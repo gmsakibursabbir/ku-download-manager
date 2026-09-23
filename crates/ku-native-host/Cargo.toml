@@ -1,0 +1,14 @@
+[package]
+name = "ku-native-host"
+description = "KuDownloader native messaging host for browser extensions"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "ku-native-host"
+path = "src/main.rs"
+
+[dependencies]
+ku-proto.workspace = true
+serde.workspace = true
+serde_json.workspace = true

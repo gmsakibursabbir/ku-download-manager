@@ -1,0 +1,191 @@
+/*
+ * KuDownloader design tokens — the single source of truth for color,
+ * type, spacing, radii, elevation and motion. Components never hardcode
+ * raw values; they reference these variables.
+ */
+
+:root {
+  /* Brand (KUDUY) */
+  --brand-blue: #2563EB;
+  --brand-lime: #D4FF00;
+  --brand-ink: #0A0A0A;
+  --brand-white: #FFFFFF;
+  --brand-surface: #F5F5F5;
+
+  /* Typography */
+  --font-ui: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Bricolage Grotesque Variable", "Bricolage Grotesque", var(--font-ui);
+  --font-mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
+  --text-2xs: 10.5px;
+  --text-xs: 11.5px;
+  --text-sm: 12.5px;
+  --text-md: 13px;
+  --text-lg: 15px;
+  --text-xl: 18px;
+  --leading-tight: 1.25;
+  --leading-normal: 1.45;
+  --weight-regular: 420;
+  --weight-medium: 520;
+  --weight-semibold: 600;
+
+  /* Spacing — 4px base */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Radii — restrained */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  /* Layout */
+  --titlebar-h: 40px;
+  --toolbar-h: 48px;
+  --sidebar-w: 216px;
+  --sidebar-w-collapsed: 56px;
+  --inspector-w: 340px;
+  --row-h: 48px;
+  --control-h: 32px;
+  --control-h-sm: 26px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --dur-slow: 240ms;
+
+  /* Z layers */
+  --z-popover: 40;
+  --z-dialog: 50;
+  --z-toast: 60;
+  --z-menu: 70;
+}
+
+/* ───────────────── Light ───────────────── */
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  /* Neutral elevation ladder: window → sidebar → content → raised → popover */
+  --bg-window: #F5F5F5;
+  --bg-sidebar: #EFEFF0;
+  --bg-toolbar: #FFFFFF;
+  --bg-content: #FFFFFF;
+  --bg-raised: #FAFAFA;
+  --bg-sunken: #F2F2F3;
+  --bg-popover: #FFFFFF;
+  --bg-hover: rgba(10, 10, 10, 0.045);
+  --bg-active: rgba(10, 10, 10, 0.075);
+  --bg-selected: rgba(37, 99, 235, 0.09);
+  --bg-selected-strong: rgba(37, 99, 235, 0.14);
+  --bg-overlay: rgba(10, 10, 10, 0.28);
+
+  --fg-primary: #0A0A0A;
+  --fg-secondary: #52525B;
+  --fg-tertiary: #8B8B94;
+  --fg-disabled: #B4B4BB;
+  --fg-on-accent: #FFFFFF;
+
+  --line: rgba(10, 10, 10, 0.08);
+  --line-strong: rgba(10, 10, 10, 0.14);
+  --line-focus: rgba(37, 99, 235, 0.55);
+
+  --accent: #2563EB;
+  --accent-hover: #1D4ED8;
+  --accent-press: #1E40AF;
+  --accent-soft: rgba(37, 99, 235, 0.10);
+  --accent-fg: #1D4ED8;
+  --highlight: #D4FF00;
+  --highlight-fg: #0A0A0A;
+
+  --success: #15803D;
+  --success-soft: rgba(21, 128, 61, 0.10);
+  --warning: #B45309;
+  --warning-soft: rgba(180, 83, 9, 0.10);
+  --danger: #DC2626;
+  --danger-soft: rgba(220, 38, 38, 0.08);
+
+  --track: rgba(10, 10, 10, 0.08);
+  --progress: #2563EB;
+  --progress-done: #15803D;
+  --progress-paused: #A1A1AA;
+  --progress-error: #DC2626;
+
+  --shadow-popover: 0 0 0 1px rgba(10, 10, 10, 0.06), 0 8px 24px -6px rgba(10, 10, 10, 0.16);
+  --shadow-dialog: 0 0 0 1px rgba(10, 10, 10, 0.06), 0 24px 48px -12px rgba(10, 10, 10, 0.24);
+  --shadow-control: 0 1px 0 rgba(10, 10, 10, 0.04);
+}
+
+/* ───────────────── Dark ───────────────── */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-window: #0A0A0A;
+  --bg-sidebar: #111113;
+  --bg-toolbar: #151517;
+  --bg-content: #151517;
+  --bg-raised: #1B1B1E;
+  --bg-sunken: #0F0F11;
+  --bg-popover: #202024;
+  --bg-hover: rgba(255, 255, 255, 0.045);
+  --bg-active: rgba(255, 255, 255, 0.075);
+  --bg-selected: rgba(37, 99, 235, 0.20);
+  --bg-selected-strong: rgba(37, 99, 235, 0.28);
+  --bg-overlay: rgba(0, 0, 0, 0.5);
+
+  --fg-primary: #F4F4F5;
+  --fg-secondary: #A1A1AA;
+  --fg-tertiary: #71717A;
+  --fg-disabled: #4A4A52;
+  --fg-on-accent: #FFFFFF;
+
+  --line: rgba(255, 255, 255, 0.065);
+  --line-strong: rgba(255, 255, 255, 0.11);
+  --line-focus: rgba(96, 140, 245, 0.7);
+
+  --accent: #2563EB;
+  --accent-hover: #3B74F0;
+  --accent-press: #1D4ED8;
+  --accent-soft: rgba(37, 99, 235, 0.18);
+  --accent-fg: #7EA3F7;
+  --highlight: #D4FF00;
+  --highlight-fg: #0A0A0A;
+
+  --success: #4ADE80;
+  --success-soft: rgba(74, 222, 128, 0.12);
+  --warning: #FBBF24;
+  --warning-soft: rgba(251, 191, 36, 0.12);
+  --danger: #F87171;
+  --danger-soft: rgba(248, 113, 113, 0.12);
+
+  --track: rgba(255, 255, 255, 0.07);
+  --progress: #3B74F0;
+  --progress-done: #3FB86A;
+  --progress-paused: #52525B;
+  --progress-error: #EF5350;
+
+  --shadow-popover: 0 0 0 1px rgba(255, 255, 255, 0.07), 0 12px 32px -8px rgba(0, 0, 0, 0.6);
+  --shadow-dialog: 0 0 0 1px rgba(255, 255, 255, 0.07), 0 24px 64px -12px rgba(0, 0, 0, 0.7);
+  --shadow-control: none;
+}
+
+:root[data-density="compact"] {
+  --row-h: 36px;
+  --toolbar-h: 44px;
+  --control-h: 28px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+  }
+}

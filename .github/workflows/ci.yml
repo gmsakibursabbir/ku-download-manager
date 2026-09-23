@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm, cache-dependency-path: app/pnpm-lock.yaml }
+      - name: Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev aria2 ffmpeg
+          sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && sudo chmod +x /usr/local/bin/yt-dlp
+      - name: Windows engines
+        if: runner.os == 'Windows'
+        run: choco install aria2 yt-dlp ffmpeg -y --no-progress
+      - name: Frontend
+        working-directory: app
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm typecheck
+          pnpm build
+      - name: Extension
+        working-directory: extension
+        run: node build.mjs
+      - name: Rust tests (unit, aria2 end-to-end, KuHTTP failure suite)
+        run: cargo test --workspace --release -- --test-threads 4
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-22.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev aria2 ffmpeg
+          sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && sudo chmod +x /usr/local/bin/yt-dlp
+      - name: Windows engines
+        if: runner.os == 'Windows'
+        run: choco install aria2 yt-dlp ffmpeg -y --no-progress
+      - run: pnpm install --frozen-lockfile
+        working-directory: app
+      - run: node build.mjs
+        working-directory: extension
+      - run: node scripts/prepare-sidecars.mjs
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: app
+          args: --config src-tauri/tauri.bundle.conf.json
+          tagName: ${{ github.ref_name }}
+          releaseName: KuDownloader ${{ github.ref_name }}
+          releaseDraft: true
+          includeUpdaterJson: true

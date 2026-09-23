@@ -1,0 +1,15 @@
+[package]
+name = "ku-cli"
+description = "KuDownloader command line interface"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "ku"
+path = "src/main.rs"
+
+[dependencies]
+ku-proto.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+clap = { version = "4", features = ["derive"] }

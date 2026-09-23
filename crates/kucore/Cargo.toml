@@ -1,0 +1,44 @@
+[package]
+name = "kucore"
+description = "KuDownloader engine: persistence, aria2/yt-dlp orchestration, queue, scheduler, local API"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+ku-proto.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+dirs.workspace = true
+rusqlite = { version = "0.32", features = ["bundled"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "gzip"] }
+axum = { version = "0.8", default-features = false, features = ["tokio", "http1", "json", "query"] }
+uuid = { version = "1", features = ["v4"] }
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+sha2 = "0.10"
+sha1 = "0.10"
+md-5 = "0.10"
+base64 = "0.22"
+url = "2"
+percent-encoding = "2"
+blake3 = "1"
+httpdate = "1"
+fs4 = "1"
+futures-util = { version = "0.3", optional = true }
+
+[features]
+# Exposes the fault-injecting HTTP test server used by tests and benchmarks.
+testing = ["dep:futures-util"]
+
+[target.'cfg(windows)'.dependencies]
+winreg = "0.55"
+windows-sys = { version = "0.59", features = ["Win32_System_Power", "Win32_Foundation", "Win32_System_IO", "Win32_System_Ioctl"] }
+
+[dev-dependencies]
+kucore = { path = ".", features = ["testing"] }
+tempfile = "3"
+futures-util = "0.3"
+sysinfo = "0.37"
+tracing-subscriber.workspace = true
