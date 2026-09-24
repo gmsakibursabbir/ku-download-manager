@@ -56,6 +56,7 @@ const ru: Record<string, string> = {
   Torrents: "Торренты",
   Network: "Сеть",
   Idle: "Простой",
+  Upload: "Отдача",
 
   // Toolbar and list
   Resume: "Возобновить",

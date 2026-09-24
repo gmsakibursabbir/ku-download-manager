@@ -56,6 +56,7 @@ const ar: Record<string, string> = {
   Torrents: "التورنت",
   Network: "الشبكة",
   Idle: "خامل",
+  Upload: "الرفع",
 
   // Toolbar and list
   Resume: "استئناف",

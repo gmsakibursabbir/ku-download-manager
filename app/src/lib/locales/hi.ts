@@ -56,6 +56,7 @@ const hi: Record<string, string> = {
   Torrents: "टॉरेंट",
   Network: "नेटवर्क",
   Idle: "निष्क्रिय",
+  Upload: "अपलोड",
 
   // Toolbar and list
   Resume: "फिर से शुरू करें",

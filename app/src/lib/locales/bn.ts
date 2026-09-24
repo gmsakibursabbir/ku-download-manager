@@ -56,6 +56,7 @@ const bn: Record<string, string> = {
   Torrents: "টরেন্ট",
   Network: "নেটওয়ার্ক",
   Idle: "নিষ্ক্রিয়",
+  Upload: "আপলোড",
 
   // Toolbar and list
   Resume: "আবার শুরু",

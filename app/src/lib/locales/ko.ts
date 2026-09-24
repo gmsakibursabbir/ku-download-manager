@@ -56,6 +56,7 @@ const ko: Record<string, string> = {
   Torrents: "토렌트",
   Network: "네트워크",
   Idle: "대기",
+  Upload: "업로드",
 
   // Toolbar and list
   Resume: "재개",

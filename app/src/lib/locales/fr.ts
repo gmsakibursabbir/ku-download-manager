@@ -56,6 +56,7 @@ const fr: Record<string, string> = {
   Torrents: "Torrents",
   Network: "Réseau",
   Idle: "Inactif",
+  Upload: "Envoi",
 
   // Toolbar and list
   Resume: "Reprendre",

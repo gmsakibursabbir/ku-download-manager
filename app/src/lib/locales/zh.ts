@@ -56,6 +56,7 @@ const zh: Record<string, string> = {
   Torrents: "种子",
   Network: "网络",
   Idle: "空闲",
+  Upload: "上传",
 
   // Toolbar and list
   Resume: "继续",

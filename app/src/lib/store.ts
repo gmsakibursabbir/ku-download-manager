@@ -15,7 +15,8 @@ const structureListeners = new Set<() => void>();
 let structureVersion = 0;
 
 const speedListeners = new Set<() => void>();
-let speed = { down: 0, up: 0, history: [] as number[] };
+/** Download and upload rates, one sample per progress tick (last 60). */
+let speed = { down: 0, up: 0, history: [] as number[], upHistory: [] as number[] };
 
 function bumpStructure() {
   structureVersion++;
@@ -71,12 +72,18 @@ export function applyEvent(e: CoreEvent) {
       }
       if (structural) bumpStructure();
       const history = [...speed.history, e.downloadSpeed].slice(-60);
-      speed = { down: e.downloadSpeed, up: e.uploadSpeed, history };
+      const upHistory = [...speed.upHistory, e.uploadSpeed].slice(-60);
+      speed = { down: e.downloadSpeed, up: e.uploadSpeed, history, upHistory };
       speedListeners.forEach((l) => l());
       break;
     }
   }
   eventHandlers.forEach((h) => h(e));
+}
+
+/** Moving data right now: downloading, merging, or seeding a torrent. */
+export function isTransferring(d: Download): boolean {
+  return d.status === "downloading" || d.status === "processing" || d.status === "seeding";
 }
 
 let started = false;
@@ -90,9 +97,11 @@ export async function startStore(): Promise<CoreEvent[]> {
   bumpStructure();
   // Speeds decay to zero when nothing is transferring (no more progress events).
   setInterval(() => {
-    const active = [...rows.values()].some((d) => d.status === "downloading" || d.status === "seeding" || d.status === "processing");
-    if (!active && (speed.down !== 0 || speed.up !== 0)) {
-      speed = { down: 0, up: 0, history: [...speed.history, 0].slice(-60) };
+    const active = [...rows.values()].some(isTransferring);
+    // Idle: a flat graph (and peak 0) instead of the last transfer frozen in place.
+    // Seeding torrents count as activity, so their upload keeps drawing.
+    if (!active && (speed.down !== 0 || speed.up !== 0 || speed.history.length > 0 || speed.upHistory.length > 0)) {
+      speed = { down: 0, up: 0, history: [], upHistory: [] };
       speedListeners.forEach((l) => l());
     }
   }, 2000);

@@ -1054,3 +1054,16 @@ body {
 :root[data-theme="dark"] .pw-actions .btn-secondary:hover:not(:disabled) {
   background: color-mix(in srgb, var(--bg-popover) 80%, #ffffff);
 }
+
+/* ───────── Network card: upload line ───────── */
+.speed-monitor-graph .line.up,
+:root[data-theme="dark"] .speed-monitor-graph .line.up {
+  stroke: var(--success);
+  stroke-dasharray: 3 2;
+}
+.speed-monitor-foot .speed-up {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--success);
+}

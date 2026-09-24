@@ -56,6 +56,7 @@ const ja: Record<string, string> = {
   Torrents: "トレント",
   Network: "ネットワーク",
   Idle: "待機中",
+  Upload: "アップロード",
 
   // Toolbar and list
   Resume: "再開",

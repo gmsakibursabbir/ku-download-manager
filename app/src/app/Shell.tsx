@@ -3,6 +3,7 @@ import { t } from "../lib/i18n";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import {
   ArrowDownToLine,
+  ArrowUpFromLine,
   ChevronDown,
   ChevronRight,
   CircleCheck,
@@ -185,32 +186,54 @@ async function openDownloadDir() {
 
 function SpeedMonitor() {
   const s = useSpeed();
-  const active = useDownloadIds((d) => d.status === "downloading" || d.status === "processing", () => 0, []).length;
+  const downloading = useDownloadIds((d) => d.status === "downloading" || d.status === "processing", () => 0, []).length;
+  const seeding = useDownloadIds((d) => d.status === "seeding", () => 0, []).length;
   const w = 180;
   const h = 56;
-  const values = s.history.length ? s.history : [0];
-  const max = Math.max(...values, 1);
-  const step = values.length > 1 ? w / (values.length - 1) : w;
-  const pts = values.map((v, i) => [i * step, h - 2 - (v / max) * (h - 8)]);
-  const line = pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
-  const area = `0,${h} ${line} ${((values.length - 1) * step).toFixed(1)},${h}`;
+  // Download and upload share one scale so their sizes compare honestly.
+  const peak = Math.max(0, ...s.history, ...s.upHistory);
+  const max = Math.max(peak, 1);
+  const n = Math.max(s.history.length, s.upHistory.length, 2);
+  const step = w / (n - 1);
+  const points = (values: number[]) => {
+    // Idle (no samples): a flat line along the bottom.
+    const vs = values.length ? values : [0, 0];
+    const offset = n - vs.length;
+    return vs.map((v, i) => `${((i + offset) * step).toFixed(1)},${(h - 2 - (v / max) * (h - 8)).toFixed(1)}`).join(" ");
+  };
+  const down = points(s.history);
+  const up = points(s.upHistory);
+  const first = down.split(",")[0];
+  const detail = [
+    downloading ? `${downloading} ${t("Downloading").toLowerCase()}` : "",
+    seeding ? `${seeding} ${t("Seeding").toLowerCase()}` : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
   return (
     <section className="speed-monitor" aria-label="Network speed">
       <div className="speed-monitor-head">
         <span>{t("Network")}</span>
-        <span className="faint">{active ? `${active} active` : "Idle"}</span>
+        <span className="faint" title={detail || undefined}>
+          {downloading + seeding ? `${downloading + seeding} active` : t("Idle")}
+        </span>
       </div>
       <div className="speed-monitor-value num">
         <Icon icon={ArrowDownToLine} size={14} />
         {fmt.speed(s.down)}
       </div>
       <svg className="speed-monitor-graph" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" aria-hidden="true">
-        <polygon points={area} className="area" />
-        <polyline points={line} className="line" />
+        <polygon points={`${first},${h} ${down} ${w},${h}`} className="area" />
+        <polyline points={up} className="line up" />
+        <polyline points={down} className="line" />
       </svg>
       <div className="speed-monitor-foot num faint">
-        <span>↑ {fmt.speed(s.up)}</span>
-        <span>peak {fmt.speed(max === 1 ? 0 : max)}</span>
+        {/* Green like the upload line, so it doubles as the legend. */}
+        <span className="speed-up" title={t("Upload")}>
+          <Icon icon={ArrowUpFromLine} size={11} />
+          {fmt.speed(s.up)}
+        </span>
+        <span>peak {fmt.speed(peak)}</span>
       </div>
     </section>
   );
