@@ -54,7 +54,7 @@ fn open_prompt_window(app: &AppHandle, request: AddRequest) {
     let state = app.state::<AppState>();
     let id = state.prompt_seq.fetch_add(1, Ordering::Relaxed).to_string();
     state.prompts.lock().unwrap().insert(id.clone(), request);
-    let dark = !matches!(state.core.settings().theme.as_str(), "light");
+    let dark = prefers_dark(app);
     let bg = if dark { (0x16, 0x16, 0x18, 255) } else { (0xF5, 0xF5, 0xF7, 255) };
     let built = WebviewWindowBuilder::new(app, format!("prompt-{id}"), WebviewUrl::App(format!("index.html#prompt={id}").into()))
         .title("Download File")
@@ -95,7 +95,7 @@ pub fn open_progress_window(app: &AppHandle, id: &str) -> tauri::Result<()> {
         let _ = w.show();
         return w.set_focus();
     }
-    let dark = !matches!(app.state::<AppState>().core.settings().theme.as_str(), "light");
+    let dark = prefers_dark(app);
     let bg = if dark { (0x16, 0x16, 0x18, 255) } else { (0xF5, 0xF5, 0xF7, 255) };
     let w = WebviewWindowBuilder::new(app, &label, WebviewUrl::App(format!("index.html#progress={id}").into()))
         .title("Download progress")
@@ -115,6 +115,15 @@ pub fn open_progress_window(app: &AppHandle, id: &str) -> tauri::Result<()> {
         }
     }
     Ok(())
+}
+
+/// Dark or light for a new window: the setting, or the OS for "system".
+fn prefers_dark(app: &AppHandle) -> bool {
+    match app.state::<AppState>().core.settings().theme.as_str() {
+        "light" => false,
+        "dark" => true,
+        _ => app.get_webview_window("main").and_then(|w| w.theme().ok()).map(|t| t == tauri::Theme::Dark).unwrap_or(true),
+    }
 }
 
 fn progress_windows_open(app: &AppHandle) -> bool {

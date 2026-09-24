@@ -27,6 +27,7 @@ fn std_buttons() -> (Vec<String>, Vec<String>) {
 }
 
 /// GNOME-style layout string: "appmenu:minimize,maximize,close" (left:right).
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
 pub fn parse_gnome_layout(s: &str) -> (Vec<String>, Vec<String>) {
     let s = s.trim().trim_matches('\'').trim_matches('"');
     let (l, r) = s.split_once(':').unwrap_or(("", s));
@@ -35,6 +36,7 @@ pub fn parse_gnome_layout(s: &str) -> (Vec<String>, Vec<String>) {
 }
 
 /// KDE kwinrc letters: I = minimize, A = maximize, X = close.
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
 pub fn parse_kde_side(s: &str) -> Vec<String> {
     s.chars()
         .filter_map(|c| match c {
@@ -48,6 +50,7 @@ pub fn parse_kde_side(s: &str) -> Vec<String> {
 }
 
 /// xfwm4 "O|HMC": H = hide (minimize), M = maximize, C = close; '|' is the title.
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
 pub fn parse_xfce_layout(s: &str) -> (Vec<String>, Vec<String>) {
     let (l, r) = s.trim().split_once('|').unwrap_or(("", s.trim()));
     let side = |x: &str| {

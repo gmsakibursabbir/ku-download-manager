@@ -36,7 +36,9 @@ function useTheme(setMaterial: (m: string) => void) {
       syncLanguage(s?.language);
       // Solid window surfaces; no Mica/Acrylic compositing.
       root.dataset.material = "none";
-      void invoke("set_window_theme", { dark: resolved === "dark" }).catch(() => {});
+      // For "System" the window follows the OS; the change listener below then
+      // re-applies when the OS (or the released window theme) switches.
+      void invoke("set_window_theme", { dark: resolved === "dark", followSystem: theme === "system" }).catch(() => {});
       setMaterial("none");
       try {
         localStorage.setItem("ku-theme", theme);

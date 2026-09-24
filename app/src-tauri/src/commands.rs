@@ -553,9 +553,13 @@ fn reveal_path(app: AppHandle, path: String) -> R<()> {
 /// Match the native window theme (resize edges, system menus) and the solid
 /// background shown before the webview paints.
 #[tauri::command]
-fn set_window_theme(app: AppHandle, dark: bool) {
+fn set_window_theme(app: AppHandle, dark: bool, follow_system: Option<bool>) {
     let Some(w) = app.get_webview_window("main") else { return };
-    let _ = w.set_theme(Some(if dark { tauri::Theme::Dark } else { tauri::Theme::Light }));
+    // "System" must not pin a theme: a pinned window theme also pins the
+    // webview's prefers-color-scheme, so later OS changes would be ignored.
+    let follow = follow_system.unwrap_or(false);
+    let _ = w.set_theme(if follow { None } else { Some(if dark { tauri::Theme::Dark } else { tauri::Theme::Light }) });
+    let dark = if follow { w.theme().map(|t| t == tauri::Theme::Dark).unwrap_or(dark) } else { dark };
     let bg = if dark { (0x16, 0x16, 0x18, 255) } else { (0xF5, 0xF5, 0xF7, 255) };
     let _ = w.set_background_color(Some(bg.into()));
 }
