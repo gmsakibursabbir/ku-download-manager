@@ -41,7 +41,45 @@ fn client(s: &Settings, opts: &DownloadOptions) -> reqwest::Result<reqwest::Clie
     b.build()
 }
 
+/// Probe a link, first turning share links and landing pages (Google Drive,
+/// Dropbox, SourceForge, meta refresh) into the direct file URL; `info.url`
+/// is the URL to download.
 pub async fn probe(url: &str, opts: &DownloadOptions, s: &Settings) -> ProbeInfo {
+    let mut current = crate::landing::rewrite(url).unwrap_or_else(|| url.to_string());
+    for _ in 0..3 {
+        let info = probe_once(&current, opts, s).await;
+        let html = info.status.is_some_and(|c| (200..300).contains(&c)) && info.mime.as_deref().is_some_and(|m| m == "text/html" || m == "application/xhtml+xml");
+        if !html {
+            return info;
+        }
+        match landing_target(&info.final_url, opts, s).await {
+            Some(next) if next != current && next != info.final_url => current = next,
+            _ => return info,
+        }
+    }
+    probe_once(&current, opts, s).await
+}
+
+/// Fetch the start of an HTML page and look for the real file link.
+async fn landing_target(page: &str, opts: &DownloadOptions, s: &Settings) -> Option<String> {
+    let base = url::Url::parse(page).ok()?;
+    let c = client(s, opts).ok()?;
+    let mut req = c.get(page).header(reqwest::header::USER_AGENT, user_agent(opts, s));
+    if let Some(ck) = cookie_header(opts) {
+        req = req.header(reqwest::header::COOKIE, ck);
+    }
+    let mut resp = req.send().await.ok()?;
+    let mut body = Vec::new();
+    while let Ok(Some(chunk)) = resp.chunk().await {
+        body.extend_from_slice(&chunk);
+        if body.len() > 512 * 1024 {
+            break;
+        }
+    }
+    crate::landing::find_in_html(&base, &String::from_utf8_lossy(&body))
+}
+
+async fn probe_once(url: &str, opts: &DownloadOptions, s: &Settings) -> ProbeInfo {
     let mut info = ProbeInfo { url: url.to_string(), final_url: url.to_string(), ..Default::default() };
     let lower = url.to_ascii_lowercase();
     if !(lower.starts_with("http://") || lower.starts_with("https://")) {
@@ -90,6 +128,8 @@ pub async fn probe(url: &str, opts: &DownloadOptions, s: &Settings) -> ProbeInfo
     info.final_url = resp.url().to_string();
     let h = resp.headers();
     let get = |n: reqwest::header::HeaderName| h.get(n).and_then(|v| v.to_str().ok()).map(str::to_string);
+    info.last_modified = get(reqwest::header::LAST_MODIFIED);
+    info.etag = get(reqwest::header::ETAG);
     info.mime = get(reqwest::header::CONTENT_TYPE).map(|m| m.split(';').next().unwrap_or("").trim().to_string());
     let disposition = get(reqwest::header::CONTENT_DISPOSITION);
     let attachment = disposition.as_deref().is_some_and(|d| d.to_ascii_lowercase().contains("attachment"));

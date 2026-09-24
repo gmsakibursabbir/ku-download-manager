@@ -19,13 +19,24 @@ pub struct YtEnv {
     pub proxy: String,
     pub user_agent: Option<String>,
     pub referer: Option<String>,
+    /// Temporary file with cookies sent by the browser extension (deleted after use).
     pub cookies_file: Option<PathBuf>,
+    /// The user's own cookies.txt (Settings › Media); never deleted.
+    pub user_cookies_file: Option<PathBuf>,
+    /// Let yt-dlp read a browser's cookie store ("firefox", "chrome", …).
+    pub cookies_from_browser: Option<String>,
 }
 
 impl YtEnv {
     fn base_command(&self) -> Command {
         let mut cmd = Command::new(&self.ytdlp);
         cmd.env("PYTHONIOENCODING", "utf-8").env("PYTHONUTF8", "1");
+        // On-demand Linux ffmpeg (shared build) finds its libraries here.
+        #[cfg(target_os = "linux")]
+        if let Some(lib) = crate::tools::ffmpeg_lib_dir() {
+            let prev = std::env::var("LD_LIBRARY_PATH").unwrap_or_default();
+            cmd.env("LD_LIBRARY_PATH", if prev.is_empty() { lib.display().to_string() } else { format!("{}:{prev}", lib.display()) });
+        }
         cmd.args(["--no-colors", "--socket-timeout", "20", "--ignore-config"]);
         if !self.proxy.trim().is_empty() {
             cmd.args(["--proxy", self.proxy.trim()]);
@@ -36,8 +47,11 @@ impl YtEnv {
         if let Some(r) = &self.referer {
             cmd.args(["--referer", r]);
         }
-        if let Some(c) = &self.cookies_file {
+        // Cookies from the extension win; then the user's file; then a browser's store.
+        if let Some(c) = self.cookies_file.as_ref().or(self.user_cookies_file.as_ref()) {
             cmd.arg("--cookies").arg(c);
+        } else if let Some(b) = &self.cookies_from_browser {
+            cmd.args(["--cookies-from-browser", b]);
         }
         if let Some(f) = &self.ffmpeg {
             cmd.arg("--ffmpeg-location").arg(f);

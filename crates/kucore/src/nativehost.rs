@@ -32,7 +32,55 @@ pub struct HostStatus {
 
 pub fn host_executable() -> Option<PathBuf> {
     let p = paths::current_exe_dir()?.join(paths::exe_name("ku-native-host"));
-    p.is_file().then_some(p)
+    if !p.is_file() {
+        return None;
+    }
+    // Browsers start the host by the path in the manifest, so it must outlive
+    // this run and be reachable from outside a sandbox.
+    #[cfg(target_os = "linux")]
+    {
+        if let Ok(id) = std::env::var("FLATPAK_ID") {
+            return flatpak_wrapper(&id).ok().or(Some(p));
+        }
+        if std::env::var_os("APPIMAGE").is_some() {
+            return stable_copy(&p).ok().or(Some(p));
+        }
+    }
+    Some(p)
+}
+
+/// AppImage: its mount point changes every run; keep a copy of the host in
+/// the data folder (refreshed when the bundled one differs).
+#[cfg(target_os = "linux")]
+fn stable_copy(src: &Path) -> Result<PathBuf> {
+    use std::os::unix::fs::PermissionsExt;
+    let dir = paths::data_dir().join("bin");
+    std::fs::create_dir_all(&dir)?;
+    let dst = dir.join("ku-native-host");
+    let same = std::fs::metadata(&dst).ok().zip(std::fs::metadata(src).ok()).is_some_and(|(a, b)| a.len() == b.len() && a.modified().ok() >= b.modified().ok());
+    if !same {
+        let tmp = dir.join(".ku-native-host.new");
+        std::fs::copy(src, &tmp)?;
+        std::fs::set_permissions(&tmp, std::fs::Permissions::from_mode(0o755))?;
+        std::fs::rename(&tmp, &dst)?;
+    }
+    Ok(dst)
+}
+
+/// Flatpak: browsers run outside the sandbox, so the manifest points at a
+/// script that starts the host inside it.
+#[cfg(target_os = "linux")]
+fn flatpak_wrapper(app_id: &str) -> Result<PathBuf> {
+    use std::os::unix::fs::PermissionsExt;
+    let dir = paths::data_dir().join("bin");
+    std::fs::create_dir_all(&dir)?;
+    let script = dir.join("ku-native-host.sh");
+    let body = format!("#!/bin/sh\nexec flatpak run --command=ku-native-host {app_id} \"$@\"\n");
+    if std::fs::read_to_string(&script).ok().as_deref() != Some(body.as_str()) {
+        std::fs::write(&script, body)?;
+    }
+    std::fs::set_permissions(&script, std::fs::Permissions::from_mode(0o755))?;
+    Ok(script)
 }
 
 fn manifest_dir() -> PathBuf {

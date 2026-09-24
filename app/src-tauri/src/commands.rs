@@ -76,6 +76,12 @@ pub fn handler() -> impl Fn(tauri::ipc::Invoke) -> bool + Send + Sync + 'static 
         extension_last_seen,
         quit_app,
         get_prompt,
+        install_tool,
+        platform_info,
+        open_progress_window,
+        get_download,
+        check_duplicate,
+        redownload,
         open_media_in_main,
     ]
 }
@@ -455,6 +461,10 @@ fn extension_paths(app: &AppHandle) -> (Option<PathBuf>, Option<PathBuf>, Option
     if let Ok(r) = app.path().resource_dir() {
         roots.push(r.join("extension"));
     }
+    // Flatpak and other /prefix/bin layouts: <prefix>/lib/KuDownloader/extension.
+    if let Some(prefix) = paths::current_exe_dir().and_then(|d| d.parent().map(Path::to_path_buf)) {
+        roots.push(prefix.join("lib").join("KuDownloader").join("extension"));
+    }
     roots.push(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../extension/dist"));
     let clean = |p: PathBuf| p.canonicalize().ok().map(|p| PathBuf::from(p.display().to_string().trim_start_matches(r"\?\")));
     let dir = |name: &str| roots.iter().map(|r| r.join(name)).find(|p| p.join("manifest.json").is_file()).and_then(clean);
@@ -563,4 +573,40 @@ fn get_prompt(state: State<'_, AppState>, id: String) -> Option<AddRequest> {
 fn open_media_in_main(app: AppHandle, state: State<'_, AppState>, url: String, cookies: Vec<BrowserCookie>) {
     crate::show_main(&app);
     state.core.emit(CoreEvent::PromptMedia { request: Box::new(MediaRequest { url, cookies, ..Default::default() }) });
+}
+
+/// Download yt-dlp or ffmpeg from the official releases (checksum-verified).
+#[tauri::command]
+async fn install_tool(state: State<'_, AppState>, name: String) -> R<String> {
+    state.core.install_tool(&name).await.map_err(|x| format!("{x:#}"))
+}
+
+/// OS, Linux desktop and window-button layout for the title bar.
+#[tauri::command]
+fn platform_info() -> crate::platform::PlatformInfo {
+    crate::platform::detect()
+}
+
+/// Open (or focus) the progress window for a download. Async on purpose:
+/// sync commands run on the main thread, and creating a window there
+/// deadlocks the event loop on Windows.
+#[tauri::command]
+async fn open_progress_window(app: AppHandle, id: String) -> R<()> {
+    crate::open_progress_window(&app, &id).map_err(e)
+}
+
+#[tauri::command]
+fn get_download(state: State<'_, AppState>, id: String) -> Option<Download> {
+    state.core.get(&id)
+}
+
+#[tauri::command]
+fn check_duplicate(state: State<'_, AppState>, url: String, dir: Option<String>, filename: Option<String>) -> Value {
+    state.core.check_duplicate(&url, dir.as_deref(), filename.as_deref())
+}
+
+/// Download finished or failed files again, replacing the old copy.
+#[tauri::command]
+async fn redownload(state: State<'_, AppState>, ids: Vec<String>) -> R<()> {
+    state.core.redownload(&ids).await.map_err(e)
 }

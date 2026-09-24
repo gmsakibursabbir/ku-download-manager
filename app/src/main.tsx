@@ -9,9 +9,13 @@ import "./app/app.css";
 import "./app/fluent.css";
 import App from "./App";
 import { PromptWindow } from "./app/PromptWindow";
+import { ProgressWindow } from "./app/ProgressWindow";
 
-// Popup windows ("Download File" for a browser download) load the same page.
+// Popup windows load the same page: "Download File" for a browser download,
+// and the per-download progress window.
 const prompt = location.hash.match(/^#prompt=(\d+)$/)?.[1];
+const progress = location.hash.match(/^#progress=([\w-]+)$/)?.[1];
 if (prompt) document.documentElement.dataset.window = "prompt";
+if (progress) document.documentElement.dataset.window = "progress";
 
-createRoot(document.getElementById("root")!).render(<StrictMode>{prompt ? <PromptWindow id={prompt} /> : <App />}</StrictMode>);
+createRoot(document.getElementById("root")!).render(<StrictMode>{prompt ? <PromptWindow id={prompt} /> : progress ? <ProgressWindow id={progress} /> : <App />}</StrictMode>);

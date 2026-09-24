@@ -2,6 +2,7 @@
 
 mod clipboard;
 mod commands;
+mod platform;
 mod tray;
 
 use ku_proto::{paths, AddRequest};
@@ -86,6 +87,40 @@ fn open_prompt_window(app: &AppHandle, request: AddRequest) {
     }
 }
 
+/// IDM-style progress window for one download (focused if already open).
+pub fn open_progress_window(app: &AppHandle, id: &str) -> tauri::Result<()> {
+    let label = format!("progress-{}", id.chars().filter(|c| c.is_ascii_alphanumeric() || *c == '-').collect::<String>());
+    if let Some(w) = app.get_webview_window(&label) {
+        let _ = w.unminimize();
+        let _ = w.show();
+        return w.set_focus();
+    }
+    let dark = !matches!(app.state::<AppState>().core.settings().theme.as_str(), "light");
+    let bg = if dark { (0x16, 0x16, 0x18, 255) } else { (0xF5, 0xF5, 0xF7, 255) };
+    let w = WebviewWindowBuilder::new(app, &label, WebviewUrl::App(format!("index.html#progress={id}").into()))
+        .title("Download progress")
+        .inner_size(560.0, 360.0)
+        .min_inner_size(440.0, 240.0)
+        .decorations(false)
+        .center()
+        .focused(true)
+        .visible(false)
+        .background_color(bg.into())
+        .build()?;
+    let others = app.webview_windows().keys().filter(|l| l.starts_with("progress-")).count().saturating_sub(1);
+    if others > 0 {
+        if let Ok(p) = w.outer_position() {
+            let step = (28.0 * w.scale_factor().unwrap_or(1.0)) as i32 * others.min(8) as i32;
+            let _ = w.set_position(tauri::PhysicalPosition::new(p.x + step, p.y + step));
+        }
+    }
+    Ok(())
+}
+
+fn progress_windows_open(app: &AppHandle) -> bool {
+    app.webview_windows().keys().any(|l| l.starts_with("progress-"))
+}
+
 fn window_visible(app: &AppHandle) -> bool {
     app.get_webview_window("main")
         .map(|w| w.is_visible().unwrap_or(false) && !w.is_minimized().unwrap_or(false))
@@ -135,8 +170,8 @@ fn forward_events(app: AppHandle, core: Arc<Core>) {
             match &ev {
                 CoreEvent::Progress { download_speed, upload_speed, items } => {
                     tray::update_tooltip(&app, *download_speed, *upload_speed, items.len());
-                    // Hidden or minimised: nothing to paint, so skip the webview.
-                    if !window_visible(&app) {
+                    // Nothing visible to paint (main hidden, no progress window): skip the webviews.
+                    if !window_visible(&app) && !progress_windows_open(&app) {
                         continue;
                     }
                 }

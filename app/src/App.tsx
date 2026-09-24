@@ -5,6 +5,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { Sidebar, TitleBar } from "./app/Shell";
 import { DownloadsView, pasteLink } from "./app/downloads/DownloadsView";
 import { AddDownloadDialog } from "./app/AddDownloadDialog";
+import { applyAppearance } from "./lib/appearance";
+import { syncLanguage } from "./lib/i18n";
 import { applyEvent, getDownload, onCoreEvent, settingsStore, startStore } from "./lib/store";
 import { api } from "./lib/api";
 import type { AddRequest, CoreEvent, GrabRequest, MediaRequest } from "./lib/types";
@@ -30,8 +32,8 @@ function useTheme(setMaterial: (m: string) => void) {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const apply = () => {
       const theme = s?.theme ?? "system";
-      const resolved = theme === "system" ? (mq.matches ? "dark" : "light") : theme;
-      root.dataset.theme = resolved;
+      const resolved = applyAppearance(s);
+      syncLanguage(s?.language);
       // Solid window surfaces; no Mica/Acrylic compositing.
       root.dataset.material = "none";
       void invoke("set_window_theme", { dark: resolved === "dark" }).catch(() => {});
@@ -43,10 +45,9 @@ function useTheme(setMaterial: (m: string) => void) {
       }
     };
     apply();
-    root.dataset.density = s?.compact ? "compact" : "comfortable";
     mq.addEventListener("change", apply);
     return () => mq.removeEventListener("change", apply);
-  }, [s?.theme, s?.compact, setMaterial]);
+  }, [s?.theme, s?.compact, s?.accent, s?.darkPalette, s?.language, setMaterial]);
 }
 
 function PowerBanner({ action, seconds, onDone }: { action: string; seconds: number; onDone: () => void }) {

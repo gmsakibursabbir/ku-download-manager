@@ -4,7 +4,8 @@ import { CircleAlert, Folder, Search, TriangleAlert, ListVideo, Radio as RadioIc
 import { api, errorText } from "../lib/api";
 import { settingsStore, queuesStore } from "../lib/store";
 import * as fmt from "../lib/format";
-import type { MediaInfo, MediaOptions } from "../lib/types";
+import type { EngineInfo, MediaInfo, MediaOptions } from "../lib/types";
+import { MediaToolsNotice } from "../app/MediaTools";
 import { Button, Checkbox, Icon, IconButton, Input, Notice, Radio, Segmented, Select } from "../ui/primitives";
 import { showMenuAt, toast } from "../ui/overlays";
 import { useApp } from "../app/context";
@@ -36,6 +37,9 @@ export function VideoDownloaderView() {
   const [dir, setDir] = useState("");
   const [busy, setBusy] = useState(false);
   const queueBtn = useRef<HTMLButtonElement>(null);
+  const [engines, setEngines] = useState<EngineInfo | null>(null);
+  const loadEngines = () => void api.engineInfo().then(setEngines).catch(() => {});
+  useEffect(loadEngines, []);
   // Bumped on every analyze/cancel; stale responses are ignored.
   const reqId = useRef(0);
   const urlRef = useRef<HTMLInputElement>(null);
@@ -152,6 +156,7 @@ export function VideoDownloaderView() {
       </div>
       <div className="page">
         <div className="page-inner">
+          <MediaToolsNotice info={engines} onInstalled={loadEngines} />
           <form
             className="input-group"
             onSubmit={(e) => {
@@ -244,7 +249,7 @@ export function VideoDownloaderView() {
 
               {!info.ffmpegAvailable && (
                 <Notice level="warning" icon={TriangleAlert} title="FFmpeg not found">
-                  Only single-file formats are available, which are often limited to lower quality. Install FFmpeg or set its path in Settings › Advanced for full quality and audio conversion.
+                  Only single-file formats are available, which are often limited to lower quality. Download FFmpeg above (or in Settings › Advanced) for full quality and audio conversion, then analyze again.
                 </Notice>
               )}
 

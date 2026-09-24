@@ -1,0 +1,69 @@
+# Flatpak built in CI from the Tauri .deb (see .github/workflows/ci.yml).
+# Local build, with kudownloader.deb next to this file:
+#   git clone --depth 1 https://github.com/flathub/shared-modules
+#   flatpak-builder --user --install --force-clean build digital.kuduy.kudownloader.yml
+id: digital.kuduy.kudownloader
+runtime: org.gnome.Platform
+runtime-version: "48"
+sdk: org.gnome.Sdk
+command: kudownloader
+finish-args:
+  - --share=ipc
+  - --share=network
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  - --filesystem=xdg-download
+  - --talk-name=org.kde.StatusNotifierWatcher
+  - --talk-name=org.freedesktop.Notifications
+  # Browser integration: native messaging host manifests.
+  - --filesystem=~/.config/google-chrome/NativeMessagingHosts:create
+  - --filesystem=~/.config/chromium/NativeMessagingHosts:create
+  - --filesystem=~/.config/microsoft-edge/NativeMessagingHosts:create
+  - --filesystem=~/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts:create
+  - --filesystem=~/.config/vivaldi/NativeMessagingHosts:create
+  - --filesystem=~/.mozilla/native-messaging-hosts:create
+  - --filesystem=~/.librewolf/native-messaging-hosts:create
+  - --filesystem=~/.zen/native-messaging-hosts:create
+modules:
+  - shared-modules/libayatana-appindicator/libayatana-appindicator-gtk3.json
+
+  - name: aria2
+    buildsystem: autotools
+    config-opts:
+      - --with-gnutls
+      - --without-openssl
+      - --without-libssh2
+      - --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt
+    sources:
+      - type: archive
+        url: https://github.com/aria2/aria2/releases/download/release-1.37.0/aria2-1.37.0.tar.xz
+        sha256: 60a420ad7085eb616cb6e2bdf0a7206d68ff3d37fb5a956dc44242eb2f79b66b
+    cleanup:
+      - /share/doc
+      - /share/man
+      - /share/locale
+
+  - name: kudownloader
+    buildsystem: simple
+    sources:
+      - type: file
+        path: kudownloader.deb
+    build-commands:
+      - ar -x kudownloader.deb
+      - mkdir -p deb && tar -xf data.tar.* -C deb
+      - install -Dm755 deb/usr/bin/kudownloader /app/bin/kudownloader
+      - install -Dm755 deb/usr/bin/ku-native-host /app/bin/ku-native-host
+      - install -Dm755 deb/usr/bin/ku /app/bin/ku
+      - mkdir -p /app/lib && cp -r deb/usr/lib/KuDownloader /app/lib/
+      - |
+        desktop=$(ls deb/usr/share/applications/*.desktop | head -1)
+        install -Dm644 "$desktop" /app/share/applications/digital.kuduy.kudownloader.desktop
+        sed -i 's/^Icon=.*/Icon=digital.kuduy.kudownloader/' /app/share/applications/digital.kuduy.kudownloader.desktop
+      - |
+        for d in deb/usr/share/icons/hicolor/*/apps; do
+          size=$(basename "$(dirname "$d")")
+          for f in "$d"/*.png; do
+            install -Dm644 "$f" "/app/share/icons/hicolor/$size/apps/digital.kuduy.kudownloader.png"
+          done
+        done

@@ -240,3 +240,44 @@
   --track: rgba(255, 255, 255, 0.08);
   --shadow-card: 0 0 0 0.5px rgba(255, 255, 255, 0.06), 0 1px 2px rgba(0, 0, 0, 0.4);
 }
+
+/* ───────── Accent colours (Settings › Appearance) ───────── */
+:root[data-accent="violet"] { --accent: #7C3AED; --accent-hover: #6D28D9; --accent-press: #5B21B6; --accent-soft: rgba(124, 58, 237, 0.12); --accent-fg: #6D28D9; --progress: #7C3AED; --bg-selected: rgba(124, 58, 237, 0.10); --bg-selected-strong: rgba(124, 58, 237, 0.16); --line-focus: rgba(124, 58, 237, 0.55); }
+:root[data-accent="teal"] { --accent: #0D9488; --accent-hover: #0F766E; --accent-press: #115E59; --accent-soft: rgba(13, 148, 136, 0.12); --accent-fg: #0F766E; --progress: #0D9488; --bg-selected: rgba(13, 148, 136, 0.10); --bg-selected-strong: rgba(13, 148, 136, 0.16); --line-focus: rgba(13, 148, 136, 0.55); }
+:root[data-accent="green"] { --accent: #16A34A; --accent-hover: #15803D; --accent-press: #166534; --accent-soft: rgba(22, 163, 74, 0.12); --accent-fg: #15803D; --progress: #16A34A; --bg-selected: rgba(22, 163, 74, 0.10); --bg-selected-strong: rgba(22, 163, 74, 0.16); --line-focus: rgba(22, 163, 74, 0.55); }
+:root[data-accent="orange"] { --accent: #EA580C; --accent-hover: #C2410C; --accent-press: #9A3412; --accent-soft: rgba(234, 88, 12, 0.12); --accent-fg: #C2410C; --progress: #EA580C; --bg-selected: rgba(234, 88, 12, 0.10); --bg-selected-strong: rgba(234, 88, 12, 0.16); --line-focus: rgba(234, 88, 12, 0.55); }
+:root[data-accent="pink"] { --accent: #DB2777; --accent-hover: #BE185D; --accent-press: #9D174D; --accent-soft: rgba(219, 39, 119, 0.12); --accent-fg: #BE185D; --progress: #DB2777; --bg-selected: rgba(219, 39, 119, 0.10); --bg-selected-strong: rgba(219, 39, 119, 0.16); --line-focus: rgba(219, 39, 119, 0.55); }
+:root[data-accent="red"] { --accent: #DC2626; --accent-hover: #B91C1C; --accent-press: #991B1B; --accent-soft: rgba(220, 38, 38, 0.12); --accent-fg: #B91C1C; --progress: #DC2626; --bg-selected: rgba(220, 38, 38, 0.10); --bg-selected-strong: rgba(220, 38, 38, 0.16); --line-focus: rgba(220, 38, 38, 0.55); }
+:root[data-accent="graphite"] { --accent: #52525B; --accent-hover: #3F3F46; --accent-press: #27272A; --accent-soft: rgba(82, 82, 91, 0.14); --accent-fg: #3F3F46; --progress: #71717A; --bg-selected: rgba(82, 82, 91, 0.12); --bg-selected-strong: rgba(82, 82, 91, 0.18); --line-focus: rgba(82, 82, 91, 0.6); }
+/* Accent text needs to stay readable on dark surfaces. */
+:root[data-theme="dark"][data-accent="violet"] { --accent-fg: #A78BFA; --progress: #8B5CF6; --bg-selected: rgba(139, 92, 246, 0.20); --bg-selected-strong: rgba(139, 92, 246, 0.28); }
+:root[data-theme="dark"][data-accent="teal"] { --accent-fg: #2DD4BF; --progress: #14B8A6; --bg-selected: rgba(20, 184, 166, 0.18); --bg-selected-strong: rgba(20, 184, 166, 0.26); }
+:root[data-theme="dark"][data-accent="green"] { --accent-fg: #4ADE80; --progress: #22C55E; --bg-selected: rgba(34, 197, 94, 0.18); --bg-selected-strong: rgba(34, 197, 94, 0.26); }
+:root[data-theme="dark"][data-accent="orange"] { --accent-fg: #FB923C; --progress: #F97316; --bg-selected: rgba(249, 115, 22, 0.18); --bg-selected-strong: rgba(249, 115, 22, 0.26); }
+:root[data-theme="dark"][data-accent="pink"] { --accent-fg: #F472B6; --progress: #EC4899; --bg-selected: rgba(236, 72, 153, 0.18); --bg-selected-strong: rgba(236, 72, 153, 0.26); }
+:root[data-theme="dark"][data-accent="red"] { --accent-fg: #F87171; --progress: #EF4444; --bg-selected: rgba(239, 68, 68, 0.18); --bg-selected-strong: rgba(239, 68, 68, 0.26); }
+:root[data-theme="dark"][data-accent="graphite"] { --accent: #71717A; --accent-hover: #A1A1AA; --accent-fg: #D4D4D8; --progress: #A1A1AA; --bg-selected: rgba(161, 161, 170, 0.16); --bg-selected-strong: rgba(161, 161, 170, 0.24); }
+
+/* ───────── Extra dark palettes ───────── */
+:root[data-theme="dark"][data-palette="midnight"] {
+  --bg-window: #0E1320;
+  --bg-sidebar: #121829;
+  --bg-toolbar: #161D31;
+  --bg-content: #141B2D;
+  --bg-raised: #1C2439;
+  --bg-sunken: #0B1019;
+  --bg-popover: #1C2439;
+  --line: rgba(160, 180, 255, 0.08);
+  --line-strong: rgba(160, 180, 255, 0.14);
+}
+:root[data-theme="dark"][data-palette="black"] {
+  --bg-window: #000000;
+  --bg-sidebar: #000000;
+  --bg-toolbar: #0B0B0C;
+  --bg-content: #050505;
+  --bg-raised: #141416;
+  --bg-sunken: #000000;
+  --bg-popover: #141416;
+  --line: rgba(255, 255, 255, 0.09);
+  --line-strong: rgba(255, 255, 255, 0.14);
+}

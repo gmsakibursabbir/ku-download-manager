@@ -2421,7 +2421,7 @@ dependencies = [
 
 [[package]]
 name = "ku-cli"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "clap",
  "ku-proto",
@@ -2431,7 +2431,7 @@ dependencies = [
 
 [[package]]
 name = "ku-native-host"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "ku-proto",
  "serde",
@@ -2440,7 +2440,7 @@ dependencies = [
 
 [[package]]
 name = "ku-proto"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "dirs 6.0.0",
  "serde",
@@ -2449,7 +2449,7 @@ dependencies = [
 
 [[package]]
 name = "kucore"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -2471,6 +2471,7 @@ dependencies = [
  "sha1",
  "sha2",
  "sysinfo",
+ "tar",
  "tempfile",
  "tokio",
  "tracing",
@@ -2479,11 +2480,13 @@ dependencies = [
  "uuid",
  "windows-sys 0.59.0",
  "winreg 0.55.0",
+ "xz2",
+ "zip",
 ]
 
 [[package]]
 name = "kudownloader"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "arboard",
@@ -2614,6 +2617,17 @@ name = "lru-slab"
 version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4050469837a6ff301cd14c1f8f24f88549e6d548f24f64e2148eb0f72cebc51f"
+
+[[package]]
+name = "lzma-sys"
+version = "0.1.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5fda04ab3764e6cde78b9974eec4f779acaba7c4e84b36eca3cf77c581b85d27"
+dependencies = [
+ "cc",
+ "libc",
+ "pkg-config",
+]
 
 [[package]]
 name = "mac-notification-sys"
@@ -6430,6 +6444,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "xz2"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "388c44dc09d76f1536602ead6d325eb532f5c122f17782bd57fb47baeeb767e2"
+dependencies = [
+ "lzma-sys",
+]
+
+[[package]]
 name = "yoke"
 version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6610,8 +6633,10 @@ checksum = "caa8cd6af31c3b31c6631b8f483848b91589021b28fffe50adada48d4f4d2ed1"
 dependencies = [
  "arbitrary",
  "crc32fast",
+ "flate2",
  "indexmap 2.14.2",
  "memchr",
+ "zopfli",
 ]
 
 [[package]]
@@ -6625,6 +6650,18 @@ name = "zmij"
 version = "1.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b"
+
+[[package]]
+name = "zopfli"
+version = "0.8.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f05cd8797d63865425ff89b5c4a48804f35ba0ce8d125800027ad6017d2b5249"
+dependencies = [
+ "bumpalo",
+ "crc32fast",
+ "log",
+ "simd-adler32",
+]
 
 [[package]]
 name = "zvariant"

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KuDownloader — fast, free download manager</title>
+  <meta name="description" content="KuDownloader: a free, open-source download manager for Windows, macOS and Linux with browser integration, video downloads, queues and resume.">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <a class="brand" href="./"><img src="icon.svg" width="28" height="28" alt=""> KuDownloader</a>
+      <nav>
+        <a href="#features">Features</a>
+        <a href="#download">Download</a>
+        <a href="#browser">Browser extension</a>
+        <a href="https://github.com/gmsakibursabbir/ku-download-manager">GitHub</a>
+      </nav>
+    </header>
+
+    <div class="hero">
+      <h1>Downloads, <span class="hl">without the waiting</span>.</h1>
+      <p>A lightweight download manager for Windows, macOS and Linux. Multi-connection downloads that resume after anything, a browser extension that hands files over, and video downloads from thousands of sites.</p>
+      <div class="cta">
+        <a class="btn primary" href="https://github.com/gmsakibursabbir/ku-download-manager/releases/latest">Download for free</a>
+        <a class="btn" href="https://github.com/gmsakibursabbir/ku-download-manager">View source</a>
+      </div>
+      <div class="note">Windows 10/11 · macOS 11+ (Apple Silicon &amp; Intel) · Linux (deb, rpm, Arch, AppImage, Flatpak) · Free &amp; open source</div>
+      <div class="shot"><img src="screenshots/main-dark.png" width="1280" height="800" alt="KuDownloader main window with downloads in progress"></div>
+    </div>
+
+    <section id="features">
+      <h2>Everything a download manager should do</h2>
+      <p class="lead">Built on a native Rust core with our own adaptive HTTP engine, aria2 for torrents and FTP, and yt-dlp for media.</p>
+      <div class="grid">
+        <div class="card"><h3>Adaptive speed</h3><p>KuHTTP opens more connections while it pays off and backs off when a server objects — 1.5–2.6× faster than aria2 in our benchmarks.</p></div>
+        <div class="card"><h3>Resume after anything</h3><p>Pause, lose Wi-Fi, reboot or crash: downloads continue from the last byte written to disk.</p></div>
+        <div class="card"><h3>Browser takeover</h3><p>Downloads you click in the browser open a small “Download File” window — even when the app is in the tray.</p></div>
+        <div class="card"><h3>Video downloads</h3><p>A KuDownload button on videos on any site, with quality choice, playlists, audio-only and subtitles.</p></div>
+        <div class="card"><h3>Queues &amp; schedules</h3><p>Run queues at night, limit speed with profiles, shut down when done, and sync files that changed on the server.</p></div>
+        <div class="card"><h3>Knows the tricks</h3><p>Google Drive, Dropbox and SourceForge links become direct downloads; duplicates are caught before they start.</p></div>
+        <div class="card"><h3>Progress window</h3><p>Per-download window with speed, time left, and a live map of every connection.</p></div>
+        <div class="card"><h3>Private by design</h3><p>No accounts, no telemetry. The browser extension talks only to the app on your computer.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Feels at home on your desktop</h2>
+      <p class="lead">Native window controls on Windows, macOS, GNOME, KDE, Cinnamon, XFCE and tiling compositors like niri and Hyprland. Light, dark, eight accent colours, English and বাংলা.</p>
+      <div class="pair">
+        <img src="screenshots/download-popup.png" alt="Download File window for a download caught in the browser" loading="lazy">
+        <img src="screenshots/progress-window.png" alt="Progress window with the connection map" loading="lazy">
+      </div>
+    </section>
+
+    <section id="download">
+      <h2>Download</h2>
+      <p class="lead">Pick the file for your system on the <a href="https://github.com/gmsakibursabbir/ku-download-manager/releases/latest">latest release</a>.</p>
+      <table>
+        <tr><th>System</th><th>File</th><th>Notes</th></tr>
+        <tr><td>Windows 10 / 11</td><td><code>KuDownloader_…_x64-setup.exe</code></td><td>Per-user install, no admin rights. If SmartScreen warns, choose “More info → Run anyway”.</td></tr>
+        <tr><td>macOS 11+</td><td><code>KuDownloader_…_aarch64.dmg</code> (Apple Silicon) or <code>…_x64.dmg</code> (Intel)</td><td>If macOS says the app can’t be checked, right-click it → Open. Install <code>brew install aria2</code> for torrents.</td></tr>
+        <tr><td>Debian, Ubuntu, Mint</td><td><code>KuDownloader_…_amd64.deb</code> / <code>…_arm64.deb</code></td><td><code>sudo apt install ./KuDownloader_…_amd64.deb</code></td></tr>
+        <tr><td>Fedora, openSUSE</td><td><code>KuDownloader-….x86_64.rpm</code> / <code>…aarch64.rpm</code></td><td><code>sudo dnf install ./KuDownloader-….rpm</code></td></tr>
+        <tr><td>Arch, Manjaro, EndeavourOS</td><td><code>kudownloader-…-x86_64.pkg.tar.zst</code></td><td><code>sudo pacman -U kudownloader-….pkg.tar.zst</code></td></tr>
+        <tr><td>Any Linux</td><td><code>KuDownloader_…_amd64.AppImage</code> or <code>KuDownloader_x86_64.flatpak</code></td><td><code>chmod +x</code> and run, or <code>flatpak install --user KuDownloader_x86_64.flatpak</code></td></tr>
+      </table>
+    </section>
+
+    <section id="browser">
+      <h2>Browser extension</h2>
+      <p class="lead">Works with Chrome, Edge, Brave, Opera, Vivaldi, Helium and other Chromium browsers, and with Firefox, Zen, Floorp and LibreWolf. Open <b>View › Browser integration</b> in the app — it lists your browsers and installs the extension in one or all of them.</p>
+      <div class="shot" style="margin-top:0"><img src="screenshots/browser-integration.png" width="1280" height="800" alt="Browser integration page listing installed browsers" loading="lazy"></div>
+    </section>
+
+    <section>
+      <h2>Questions</h2>
+      <details><summary>Is it really free?</summary><p>Yes. No ads, no accounts, no paid tier. The source code is on GitHub.</p></details>
+      <details><summary>Where do yt-dlp and FFmpeg come from?</summary><p>The first time you download a video, KuDownloader offers to download them from their official GitHub releases and checks each file against the publisher’s SHA-256 list.</p></details>
+      <details><summary>Does it collect any data?</summary><p>No. See the <a href="privacy.html">privacy policy</a>.</p></details>
+      <details><summary>Can it download DRM-protected video?</summary><p>No. Protected streams are detected and refused.</p></details>
+    </section>
+
+    <footer>
+      KuDownloader · <a href="privacy.html">Privacy</a> · <a href="https://github.com/gmsakibursabbir/ku-download-manager/issues">Report a problem</a>
+    </footer>
+  </div>
+</body>
+</html>

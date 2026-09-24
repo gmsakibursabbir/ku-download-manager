@@ -163,6 +163,9 @@ pub struct DownloadMeta {
     pub verified: Option<String>,
     pub retries: u32,
     pub playlist_index: Option<String>,
+    /// Server identity of the finished file ("size|last-modified|etag"),
+    /// compared by synchronization queues.
+    pub remote_stamp: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -240,6 +243,8 @@ pub struct ProbeInfo {
     pub mime: Option<String>,
     pub resumable: Option<bool>,
     pub status: Option<u16>,
+    pub last_modified: Option<String>,
+    pub etag: Option<String>,
     /// "aria2" or "ytdlp"
     pub engine: Option<Engine>,
     pub kind: Option<Kind>,

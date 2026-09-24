@@ -1,0 +1,237 @@
+/**
+ * Interface translations. Keys are the English strings themselves, so an
+ * untranslated string simply stays English. The language is chosen in
+ * Settings › Appearance ("system" follows the OS) and cached in localStorage
+ * so every window (main, popups) starts in it without waiting for settings.
+ */
+
+const BN: Record<string, string> = {
+  // Menus and title bar
+  Tasks: "কাজ",
+  File: "ফাইল",
+  Downloads: "ডাউনলোড",
+  View: "দেখুন",
+  Help: "সাহায্য",
+  "Add URL": "URL যোগ করুন",
+  "Add URL…": "URL যোগ করুন…",
+  "Add from clipboard": "ক্লিপবোর্ড থেকে যোগ করুন",
+  "Add batch download…": "একসাথে অনেক ডাউনলোড…",
+  "Video downloader…": "ভিডিও ডাউনলোডার…",
+  "Grab links from a page…": "পেজ থেকে লিংক সংগ্রহ…",
+  "Scheduler…": "শিডিউলার…",
+  "Open .torrent file…": ".torrent ফাইল খুলুন…",
+  "Open download folder": "ডাউনলোড ফোল্ডার খুলুন",
+  "Quit KuDownloader": "KuDownloader বন্ধ করুন",
+  "Resume all": "সব আবার শুরু",
+  "Stop all": "সব থামান",
+  "Delete all completed": "সম্পন্ন সব মুছুন",
+  "Options…": "অপশন…",
+  Theme: "থিম",
+  Light: "হালকা",
+  Dark: "গাঢ়",
+  System: "সিস্টেম",
+  "Compact rows": "ঘন সারি",
+  "Details panel": "বিস্তারিত প্যানেল",
+  "Browser integration": "ব্রাউজার ইন্টিগ্রেশন",
+  "Media detection": "মিডিয়া শনাক্তকরণ",
+  "Browser integration setup": "ব্রাউজার ইন্টিগ্রেশন সেটআপ",
+  "Keyboard shortcuts": "কীবোর্ড শর্টকাট",
+  "Check for updates…": "আপডেট দেখুন…",
+  "About KuDownloader": "KuDownloader সম্পর্কে",
+  Minimize: "ছোট করুন",
+  Maximize: "বড় করুন",
+  Restore: "আগের আকারে",
+  Close: "বন্ধ করুন",
+
+  // Sidebar
+  Categories: "বিভাগ",
+  "All Downloads": "সব ডাউনলোড",
+  Unfinished: "অসম্পূর্ণ",
+  Finished: "সম্পন্ন",
+  Queues: "সারি",
+  "Grabber Projects": "গ্র্যাবার প্রজেক্ট",
+  "Video Downloader": "ভিডিও ডাউনলোডার",
+  "Batch Downloads": "ব্যাচ ডাউনলোড",
+  Archives: "আর্কাইভ",
+  "Disk images": "ডিস্ক ইমেজ",
+  Programs: "প্রোগ্রাম",
+  Video: "ভিডিও",
+  Music: "গান",
+  Documents: "ডকুমেন্ট",
+  Images: "ছবি",
+  Torrents: "টরেন্ট",
+  Network: "নেটওয়ার্ক",
+  Idle: "নিষ্ক্রিয়",
+
+  // Toolbar and list
+  Resume: "আবার শুরু",
+  "Resume (Space)": "আবার শুরু (Space)",
+  Stop: "থামান",
+  "Stop (Space)": "থামান (Space)",
+  Pause: "বিরতি",
+  Delete: "মুছুন",
+  "Delete (Del)": "মুছুন (Del)",
+  "Start Queue": "সারি শুরু",
+  "Stop Queue": "সারি থামান",
+  "Start queue": "সারি শুরু করুন",
+  "Stop queue": "সারি থামান",
+  Scheduler: "শিডিউলার",
+  Grabber: "গ্র্যাবার",
+  "Search downloads": "ডাউনলোড খুঁজুন",
+  "Search (Ctrl F)": "খুঁজুন (Ctrl F)",
+  Settings: "সেটিংস",
+  "File name": "ফাইলের নাম",
+  Size: "আকার",
+  Status: "অবস্থা",
+  "Time Left": "বাকি সময়",
+  "Transfer rate": "গতি",
+  "Last try date": "শেষ চেষ্টা",
+  Queued: "সারিতে",
+  Downloading: "ডাউনলোড হচ্ছে",
+  Processing: "প্রক্রিয়াকরণ",
+  Paused: "বিরতিতে",
+  Completed: "সম্পন্ন",
+  Complete: "সম্পন্ন",
+  Error: "ত্রুটি",
+  Seeding: "সিডিং",
+  "Merging…": "একত্র করা হচ্ছে…",
+  "At a time": "একসাথে",
+  "When done": "শেষ হলে",
+  Sync: "সিঙ্ক",
+  Off: "বন্ধ",
+  "Every 15 min": "প্রতি ১৫ মিনিটে",
+  "Every hour": "প্রতি ঘণ্টায়",
+  "Every 6 hours": "প্রতি ৬ ঘণ্টায়",
+  Daily: "প্রতিদিন",
+  "Do nothing": "কিছু করবেন না",
+  Sleep: "স্লিপ",
+  "Shut down": "কম্পিউটার বন্ধ",
+
+  // Context menu
+  Open: "খুলুন",
+  "Show in folder": "ফোল্ডারে দেখান",
+  Retry: "আবার চেষ্টা",
+  "Download again": "আবার ডাউনলোড করুন",
+  "Move to queue": "সারিতে সরান",
+  "No queue (start directly)": "কোনো সারি নয় (সরাসরি শুরু)",
+  "Move to top": "সবার উপরে",
+  "Move up": "উপরে",
+  "Move down": "নিচে",
+  "Move to bottom": "সবার নিচে",
+  "Copy link": "লিংক কপি করুন",
+  "Select all": "সব নির্বাচন",
+
+  // Download File dialog and popup
+  "Download File": "ফাইল ডাউনলোড",
+  URL: "URL",
+  Category: "বিভাগ",
+  "Save As": "সংরক্ষণের স্থান",
+  "Remember path for this category": "এই বিভাগের জন্য পথ মনে রাখুন",
+  "More options": "আরও অপশন",
+  "Download Later": "পরে ডাউনলোড",
+  "Download Now": "এখনই ডাউনলোড",
+  Cancel: "বাতিল",
+  Automatic: "স্বয়ংক্রিয়",
+  "Choose folder": "ফোল্ডার বাছুন",
+  "Choose quality…": "মান বাছুন…",
+  "This is a media page": "এটি একটি মিডিয়া পেজ",
+  "Checking the link…": "লিংক যাচাই করা হচ্ছে…",
+  "Sent from your browser": "আপনার ব্রাউজার থেকে পাঠানো",
+  "You already downloaded this file": "এই ফাইলটি আগেই ডাউনলোড করা হয়েছে",
+  "This link is already in your downloads": "এই লিংকটি আগেই ডাউনলোড তালিকায় আছে",
+  "A file with this name is already in the folder": "এই নামের একটি ফাইল ফোল্ডারে আগেই আছে",
+  "Resume it": "আবার শুরু করুন",
+  "Show progress": "অগ্রগতি দেখুন",
+
+  // Progress window
+  "Download complete": "ডাউনলোড সম্পন্ন",
+  "Receiving data…": "ডেটা আসছে…",
+  Failed: "ব্যর্থ",
+  Address: "ঠিকানা",
+  "File size": "ফাইলের আকার",
+  Downloaded: "ডাউনলোড হয়েছে",
+  "Show details": "বিস্তারিত দেখান",
+  "Hide details": "বিস্তারিত লুকান",
+  "Open folder": "ফোল্ডার খুলুন",
+  "Cancel download": "ডাউনলোড বাতিল",
+  Hide: "লুকান",
+  Unknown: "অজানা",
+  Yes: "হ্যাঁ",
+
+  // Settings
+  General: "সাধারণ",
+  Connection: "সংযোগ",
+  Speed: "গতি",
+  Browser: "ব্রাউজার",
+  Media: "মিডিয়া",
+  Torrent: "টরেন্ট",
+  Notifications: "বিজ্ঞপ্তি",
+  Appearance: "চেহারা",
+  Advanced: "উন্নত",
+  "Accent colour": "অ্যাকসেন্ট রং",
+  "Dark mode colours": "গাঢ় মোডের রং",
+  Graphite: "গ্রাফাইট",
+  "Midnight blue": "মিডনাইট ব্লু",
+  "Pure black (OLED)": "সম্পূর্ণ কালো (OLED)",
+  Language: "ভাষা",
+  "Restarts the interface.": "ইন্টারফেস আবার চালু হবে।",
+  "Simultaneous downloads": "একসাথে ডাউনলোড",
+  "Connections per download": "প্রতি ডাউনলোডে সংযোগ",
+  "If the file already exists": "ফাইলটি আগে থেকেই থাকলে",
+  "Keep both (rename)": "দুটোই রাখুন (নাম বদলে)",
+  Overwrite: "প্রতিস্থাপন",
+  "Don't download": "ডাউনলোড করবেন না",
+  Smart: "স্মার্ট",
+  "Virus scan": "ভাইরাস স্ক্যান",
+  "Scan finished downloads": "সম্পন্ন ডাউনলোড স্ক্যান করুন",
+  "When a download completes": "ডাউনলোড সম্পন্ন হলে",
+  "When a download fails": "ডাউনলোড ব্যর্থ হলে",
+  "When a queue finishes": "সারি শেষ হলে",
+  "Show a progress window for new downloads": "নতুন ডাউনলোডে অগ্রগতি উইন্ডো দেখান",
+  "Sort into category folders": "বিভাগ অনুযায়ী ফোল্ডারে রাখুন",
+  Updates: "আপডেট",
+  "Check now": "এখনই দেখুন",
+  Unlimited: "সীমাহীন",
+  "Media tools needed": "মিডিয়া টুল প্রয়োজন",
+  "FFmpeg recommended": "FFmpeg প্রস্তাবিত",
+  Download: "ডাউনলোড",
+  Available: "আছে",
+  "Not found": "পাওয়া যায়নি",
+};
+
+const DICTS: Record<string, Record<string, string>> = { bn: BN };
+
+function detect(): string {
+  let pref = "system";
+  try {
+    pref = localStorage.getItem("ku-lang") ?? "system";
+  } catch {
+    /* storage unavailable */
+  }
+  if (pref === "system") return navigator.language.toLowerCase().startsWith("bn") ? "bn" : "en";
+  return pref;
+}
+
+let lang = detect();
+let dict = DICTS[lang];
+document.documentElement.lang = lang;
+
+/** Translate an interface string (English is the key). */
+export function t(s: string): string {
+  return dict?.[s] ?? s;
+}
+
+/** Remember the language setting; reloads the window when it changes. */
+export function syncLanguage(setting: string | undefined) {
+  if (!setting) return;
+  try {
+    if ((localStorage.getItem("ku-lang") ?? "system") === setting) return;
+    localStorage.setItem("ku-lang", setting);
+  } catch {
+    return;
+  }
+  const next = setting === "system" ? (navigator.language.toLowerCase().startsWith("bn") ? "bn" : "en") : setting;
+  if (next !== lang) location.reload();
+  lang = next;
+  dict = DICTS[lang];
+}

@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
 import type { AddRequest } from "../lib/types";
 import { settingsStore } from "../lib/store";
+import { applyAppearance } from "../lib/appearance";
 import { ToastHost } from "../ui/overlays";
 import { AddDownloadDialog } from "./AddDownloadDialog";
 import { AppContext, type AppApi } from "./context";
@@ -21,14 +22,7 @@ export function PromptWindow({ id }: { id: string }) {
     void invoke<AddRequest | null>("get_prompt", { id }).then((r) => (r ? setRequest(r) : void win.close()));
   }, [id, win]);
 
-  // Theme only; the popup has no density or material choices.
-  useEffect(() => {
-    const root = document.documentElement;
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const theme = settings?.theme ?? "system";
-    root.dataset.theme = theme === "system" ? (mq.matches ? "dark" : "light") : theme;
-    root.dataset.material = "none";
-  }, [settings?.theme]);
+  useEffect(() => void applyAppearance(settings), [settings]);
 
   // Fit the window to the dialog (it grows with "More options"), then show it.
   useLayoutEffect(() => {

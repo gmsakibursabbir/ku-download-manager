@@ -4,7 +4,8 @@
   "description": "Permissions for the main window and the Download File popups",
   "windows": [
     "main",
-    "prompt-*"
+    "prompt-*",
+    "progress-*"
   ],
   "permissions": [
     "core:default",
@@ -19,6 +20,7 @@
     "dialog:allow-message",
     "dialog:allow-ask",
     "core:window:allow-set-size",
-    "core:window:allow-show"
+    "core:window:allow-show",
+    "core:window:allow-unminimize"
   ]
 }

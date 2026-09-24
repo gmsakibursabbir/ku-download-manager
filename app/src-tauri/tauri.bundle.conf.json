@@ -3,8 +3,6 @@
   "bundle": {
     "externalBin": [
       "binaries/aria2c",
-      "binaries/yt-dlp",
-      "binaries/ffmpeg",
       "binaries/ku-native-host",
       "binaries/ku"
     ],

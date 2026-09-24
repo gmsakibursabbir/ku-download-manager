@@ -209,6 +209,9 @@ export interface Queue {
   position: number;
   running: boolean;
   after: string;
+  /** Synchronization: re-check finished files every N minutes (0 = off). */
+  syncMinutes: number;
+  lastSync: number;
 }
 
 export interface Schedule {
@@ -242,6 +245,9 @@ export interface BandwidthProfile {
 
 export interface Settings {
   theme: "light" | "dark" | "system";
+  accent: string;
+  darkPalette: string;
+  language: string;
   compact: boolean;
   translucent: boolean;
   startWithOs: boolean;
@@ -251,12 +257,18 @@ export interface Settings {
   notifyComplete: boolean;
   notifyError: boolean;
   notifyQueueDone: boolean;
+  showProgressWindow: boolean;
   downloadDir: string;
   useCategories: boolean;
   categories: Category[];
   maxConcurrent: number;
   defaultConnections: number;
   fileExists: "rename" | "overwrite" | "skip";
+  virusScan: "off" | "defender" | "custom";
+  virusScanner: string;
+  virusScannerArgs: string;
+  cookiesFile: string;
+  cookiesFromBrowser: string;
   proxy: string;
   proxyUser: string;
   proxyPass: string;
@@ -320,6 +332,7 @@ export interface LogLine {
 export type CoreEvent =
   | { type: "progress"; items: ProgressItem[]; downloadSpeed: number; uploadSpeed: number }
   | { type: "upsert"; download: Download }
+  | { type: "toolProgress"; tool: string; done: number; total: number }
   | { type: "removed"; ids: string[] }
   | { type: "notice"; level: string; title: string; message: string; downloadId?: string | null }
   | { type: "completed"; id: string; name: string; path?: string | null }

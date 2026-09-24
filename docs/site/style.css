@@ -1,0 +1,58 @@
+:root {
+  --bg: #f5f5f7; --surface: #ffffff; --text: #1d1d1f; --muted: #6e6e73; --line: rgba(0,0,0,.08);
+  --accent: #2563eb; --accent-hover: #1d4ed8; --lime: #d4ff00; --radius: 14px;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #111113; --surface: #1c1c1e; --text: #f5f5f7; --muted: #a1a1a6; --line: rgba(255,255,255,.09); --accent-hover: #3b74f0; }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont, Inter, system-ui, sans-serif; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+header.top { display: flex; align-items: center; gap: 12px; height: 64px; }
+header.top .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; color: var(--text); }
+header.top nav { margin-left: auto; display: flex; gap: 20px; font-size: 15px; }
+header.top nav a { color: var(--muted); }
+.hero { padding: 56px 0 32px; text-align: center; }
+.hero h1 { font-size: clamp(34px, 6vw, 56px); line-height: 1.08; letter-spacing: -.02em; margin: 0 0 16px; }
+.hero h1 .hl { background: linear-gradient(transparent 62%, color-mix(in srgb, var(--lime) 80%, transparent) 62%); }
+.hero p { font-size: 19px; color: var(--muted); max-width: 640px; margin: 0 auto 28px; }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 20px; border-radius: 999px; font-weight: 600; font-size: 15px; border: 1px solid var(--line); background: var(--surface); color: var(--text); }
+.btn:hover { text-decoration: none; border-color: color-mix(in srgb, var(--text) 25%, transparent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover { background: var(--accent-hover); }
+.note { font-size: 13px; color: var(--muted); margin-top: 14px; }
+.shot { margin: 40px auto 0; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); box-shadow: 0 30px 80px -30px rgba(0,0,0,.45); }
+.shot img { display: block; width: 100%; height: auto; }
+section { padding: 56px 0; }
+section h2 { font-size: 30px; letter-spacing: -.01em; margin: 0 0 8px; }
+section .lead { color: var(--muted); margin: 0 0 28px; max-width: 680px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
+.card h3 { margin: 0 0 6px; font-size: 17px; }
+.card p { margin: 0; color: var(--muted); font-size: 15px; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.pair img { width: 100%; border-radius: 10px; border: 1px solid var(--line); }
+table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); font-size: 15px; }
+th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+th { color: var(--muted); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+code { font: 14px ui-monospace, "Cascadia Code", Consolas, monospace; background: color-mix(in srgb, var(--text) 7%, transparent); padding: 2px 6px; border-radius: 6px; }
+details { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; margin-bottom: 10px; }
+summary { cursor: pointer; font-weight: 600; }
+details p { color: var(--muted); margin: 10px 0 0; }
+footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
+.prose { max-width: 760px; }
+.prose h1 { font-size: 36px; letter-spacing: -.02em; }
+.prose h2 { font-size: 22px; margin-top: 32px; }
+.prose p, .prose li { color: var(--text); }
+@media (max-width: 720px) {
+  header.top nav { display: none; }
+  .pair { grid-template-columns: 1fr; }
+  .hero { padding-top: 32px; }
+  th:nth-child(3), td:nth-child(3) { display: none; }
+}

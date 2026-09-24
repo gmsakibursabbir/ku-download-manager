@@ -7,3 +7,7 @@ node_modules/
 /.secrets
 *.kudownload
 *.kudownload.json
+/packaging/flatpak/shared-modules/
+/packaging/flatpak/*.deb
+/app/src-tauri/tauri.nosign.conf.json
+/app/src-tauri/tauri.winsign.conf.json

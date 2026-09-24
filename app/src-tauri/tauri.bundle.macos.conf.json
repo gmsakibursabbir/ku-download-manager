@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "bundle": {
+    "targets": [
+      "dmg",
+      "app"
+    ],
+    "externalBin": [
+      "binaries/ku-native-host",
+      "binaries/ku"
+    ],
+    "resources": {
+      "../../extension/dist/chrome/": "extension/chrome/",
+      "../../extension/dist/firefox/": "extension/firefox/",
+      "../../extension/dist/packages/": "extension/"
+    },
+    "macOS": {
+      "minimumSystemVersion": "11.0"
+    }
+  }
+}

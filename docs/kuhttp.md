@@ -2,7 +2,7 @@
 
 KuDownloader's native HTTP/HTTPS engine. Implemented in
 `crates/kucore/src/kuhttp`, integrated with KuCore behind
-**Settings › Advanced › HTTP engine** (default: aria2).
+**Settings › Advanced › HTTP engine** (default for new installs: KuHTTP).
 
 ## Lifecycle
 
@@ -78,38 +78,35 @@ See `docs/benchmarks/`. Run with
 Full table: [`benchmarks/kuhttp-vs-aria2.md`](benchmarks/kuhttp-vs-aria2.md).
 "Durable" = data flushed to disk (KuHTTP reports COMPLETED only after
 fsync; aria2's output is fsynced afterwards for a fair comparison). Every
-file was verified byte-for-byte.
+file was verified byte-for-byte. Numbers below are after the adaptive
+controller rework (v0.2: ~50 % growth steps, 2.5 s evaluation, partial-gain
+trimming).
 
 | Scenario | KuHTTP | aria2 | Reading |
 |---|---|---|---|
-| 1 GB, 1 connection | 14.0 s | 12.1 s | aria2 ahead on a single stream |
-| 1 GB, 2 / 4 / 8 connections | 13.5 / 11.8 / 13.6 s | 20.2 / 25.4 / 22.9 s | KuHTTP ahead (disk-bound; sparse positional writes) |
-| 500 MB, server caps 10 MB/s per connection, 8 conns | 7.9 s | 12.0 s (16 conns: 11.2 s) | KuHTTP ahead with fixed connections |
-| same, **adaptive** | 15.2 s (grew to 4) | — | adaptive growth is too slow for short transfers |
-| 500 MB, 0.2 % chunks drop the connection | 6.2 s, 17 retries | 10.7 s* | both correct; KuHTTP recovers faster |
-| CPU (1 GB, 4 conns) | 2.2 s | 5.3 s | KuHTTP uses ~40–60 % of aria2's CPU |
-| Peak RSS | 2–16 MB | 12–26 MB | |
-
-\* measured while an unrelated build was running; indicative only.
+| 1 GB, 1 connection | 12.2 s (84 MB/s) | 12.7 s (80 MB/s) | on par, KuHTTP slightly ahead |
+| 1 GB, 8 connections | 13.5 s | 23.9 s | KuHTTP ahead (disk-bound; sparse positional writes) |
+| 50 MB … 10 GB, adaptive vs aria2 16 conns | 0.35 / 6.2 / 13.6 / 98.6 / 216 s | 0.53 / 11.2 / 29.6 / 257 / 526 s | KuHTTP 1.5–2.6× faster |
+| 500 MB, server caps 10 MB/s per connection, **adaptive** | 8.4 s (grew to 9) | 9.0 s (8 conns), 6.2 s (16 conns) | adaptive now beats aria2 at IDM's usual 8 connections |
+| 500 MB, 0.2 % chunks drop the connection | 4.9 s, 17 retries | 12.0 s | both correct; KuHTTP recovers faster |
+| CPU (1 GB, 1 conn) | 1.7 s | 5.1 s | KuHTTP uses ~⅓–½ of aria2's CPU |
+| Peak RSS | 2–19 MB | 11–27 MB | |
 
 Storage experiment (1 GB, 4 connections): sparse temp files on NTFS
-8.1–8.3 s vs 15.6–16.7 s without — kept on by default. Persist interval 3 s
-vs 30 s made no measurable difference — 3 s kept (less re-download after a
-crash).
+roughly halve the time — kept on by default.
 
 ### Verdict
 
-KuHTTP is correct under every injected failure and faster than aria2 with
-2+ connections on this machine, but **not yet** a drop-in replacement:
+KuHTTP is correct under all 32 injected failures and at least as fast as
+aria2 in every benchmarked scenario except a server that caps each
+connection when aria2 is forced to 16 connections. It is therefore the
+**default HTTP/HTTPS engine for new installs** (existing settings are kept).
+aria2 remains available (Settings › Advanced › HTTP engine) and still
+handles FTP, SFTP, BitTorrent, magnet and Metalink.
 
-* single-connection throughput trails aria2;
-* the adaptive controller settles too early on short/medium transfers (it
-  only reached 4 connections where 8 would have been ~2× faster);
-* results come from one Windows machine over loopback; real WAN servers,
-  HTTP/2 servers and Linux have not been benchmarked (CI runs the test
-  suite on Linux, not the benchmark).
-
-aria2 therefore stays the default. Known limitations: no HTTP/2-specific
+Caveats: results come from one Windows machine over loopback; WAN, HTTP/2
+and Linux have not been benchmarked (CI runs the correctness suite on
+Linux, not the benchmark).
 tuning (streams are treated like connections), no Metalink/mirror support
 (aria2 handles those), per-segment checksums are not stored (resume trusts
 fsynced positions plus validators / sampled checks).

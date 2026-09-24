@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
+import { t } from "../lib/i18n";
 import { open } from "@tauri-apps/plugin-dialog";
-import { Folder, RefreshCw } from "lucide-react";
+import { Download, Folder, RefreshCw } from "lucide-react";
 import { settingsStore, updateSettings } from "../lib/store";
 import { api, errorText } from "../lib/api";
 import type { EngineInfo, Settings } from "../lib/types";
 import * as fmt from "../lib/format";
 import { Button, IconButton, Input, PrefGroup, PrefRow, Select, Switch, Checkbox } from "../ui/primitives";
 import { toast } from "../ui/overlays";
+import { useToolInstaller } from "./MediaTools";
 
 export function useSettings(): Settings | null {
   return settingsStore.use();
@@ -110,7 +112,7 @@ export function FolderPref<K extends keyof Settings>({ k, label, desc }: { k: K;
     <PrefRow label={label} desc={desc} stack>
       <div className="input-group" style={{ width: "100%" }}>
         <Input value={value} readOnly onDoubleClick={() => void pick()} />
-        <IconButton icon={Folder} label="Choose folder" onClick={() => void pick()} />
+        <IconButton icon={Folder} label={t("Choose folder")} onClick={() => void pick()} />
       </div>
     </PrefRow>
   );
@@ -177,6 +179,16 @@ export function MediaPrefs() {
         <SwitchPref k="embedThumbnail" label="Embed thumbnail as cover art" />
         <FolderPref k="videoDir" label="Save videos to" />
       </PrefGroup>
+      <PrefGroup title="Sign-in for media sites">
+        <SelectPref
+          k="cookiesFromBrowser"
+          label="Use cookies from a browser"
+          desc="For age-restricted or members-only videos added without the extension. Firefox works best; recent Chrome versions on Windows lock their cookies while running."
+          options={[{ value: "", label: t("Off") }, ...["firefox", "chrome", "edge", "brave", "chromium", "vivaldi", "opera"].map((b) => ({ value: b, label: b[0].toUpperCase() + b.slice(1) }))]}
+          width={160}
+        />
+        <TextPref k="cookiesFile" label="Or a cookies.txt file" desc="Netscape format, exported with a browser add-on. Cookies sent by the KuDownloader extension are always preferred." placeholder="None" mono />
+      </PrefGroup>
     </>
   );
 }
@@ -200,6 +212,14 @@ export function EngineStatus({ compact }: { compact?: boolean }) {
   const [updating, setUpdating] = useState(false);
   const load = () => void api.engineInfo().then(setInfo).catch(() => {});
   useEffect(load, []);
+  const tools = useToolInstaller(load);
+  const windows = navigator.userAgent.includes("Windows");
+  const get = (t: "yt-dlp" | "ffmpeg") =>
+    compact ? undefined : (
+      <Button size="sm" icon={Download} busy={tools.busy === t} disabled={!!tools.busy} onClick={() => void tools.install([t])}>
+        {tools.label(t) ?? "Download"}
+      </Button>
+    );
   const update = async () => {
     setUpdating(true);
     try {
@@ -231,9 +251,16 @@ export function EngineStatus({ compact }: { compact?: boolean }) {
           <Button size="sm" icon={RefreshCw} busy={updating} onClick={() => void update()}>
             Update
           </Button>
+        ) : info && !info.ytdlp.path ? (
+          get("yt-dlp")
         ) : undefined,
       )}
-      {row("FFmpeg", !!info?.ffmpeg.path, info?.ffmpeg.path ?? "Needed to merge high-quality video with audio and to convert audio.")}
+      {row(
+        "FFmpeg",
+        !!info?.ffmpeg.path,
+        info?.ffmpeg.path ?? (windows ? "Needed to merge high-quality video with audio and to convert audio." : "Needed to merge video with audio. Install it with your package manager (for example: sudo apt install ffmpeg)."),
+        info && !info.ffmpeg.path && windows ? get("ffmpeg") : undefined,
+      )}
     </PrefGroup>
   );
 }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { t } from "../../lib/i18n";
 import {
   Plus,
   Play,
@@ -107,29 +108,45 @@ function QueueBar({ queueId }: { queueId: string }) {
       </span>
       {q.running ? (
         <Button size="sm" icon={Square} onClick={() => void run(api.stopQueue(q.id), "Could not stop the queue")}>
-          Stop queue
+          {t("Stop queue")}
         </Button>
       ) : (
         <Button size="sm" variant="primary" icon={Play} onClick={() => void run(api.startQueue(q.id), "Could not start the queue")}>
-          Start queue
+          {t("Start queue")}
         </Button>
       )}
       <span className="toolbar-sep" />
       <label className="muted" style={{ fontSize: "var(--text-xs)" }}>
-        At a time
+        {t("At a time")}
       </label>
       <Select value={q.maxConcurrent} onChange={(e) => void save({ maxConcurrent: +e.target.value })} options={[1, 2, 3, 4, 5, 6, 8, 10].map((n) => ({ value: n, label: String(n) }))} style={{ width: 64, height: 28 }} aria-label="Downloads at a time" />
+      <label className="muted" style={{ fontSize: "var(--text-xs)" }} title="Re-check finished files on the server and download the ones that changed (IDM-style synchronization).">
+        {t("Sync")}
+      </label>
+      <Select
+        value={q.syncMinutes ?? 0}
+        onChange={(e) => void save({ syncMinutes: +e.target.value })}
+        options={[
+          { value: 0, label: t("Off") },
+          { value: 15, label: t("Every 15 min") },
+          { value: 60, label: t("Every hour") },
+          { value: 360, label: t("Every 6 hours") },
+          { value: 1440, label: t("Daily") },
+        ]}
+        style={{ width: 130, height: 28 }}
+        aria-label="Synchronize finished files"
+      />
       <label className="muted" style={{ fontSize: "var(--text-xs)" }}>
-        When done
+        {t("When done")}
       </label>
       <Select
         value={q.after}
         onChange={(e) => void save({ after: e.target.value })}
         options={[
-          { value: "none", label: "Do nothing" },
-          { value: "sleep", label: "Sleep" },
-          { value: "shutdown", label: "Shut down" },
-          { value: "quit", label: "Quit KuDownloader" },
+          { value: "none", label: t("Do nothing") },
+          { value: "sleep", label: t("Sleep") },
+          { value: "shutdown", label: t("Shut down") },
+          { value: "quit", label: t("Quit KuDownloader") },
         ]}
         style={{ width: 150, height: 28 }}
         aria-label="When the queue finishes"
@@ -176,7 +193,7 @@ function QueueBar({ queueId }: { queueId: string }) {
           footer={
             <>
               <span className="spacer" />
-              <Button onClick={() => setNaming(null)}>Cancel</Button>
+              <Button onClick={() => setNaming(null)}>{t("Cancel")}</Button>
               <Button type="submit" variant="primary" disabled={!naming.trim()}>
                 Save
               </Button>
@@ -279,7 +296,7 @@ export function DownloadsView() {
       text="Paste a link, drop a file here, or download from your browser."
       action={
         <Button variant="primary" icon={Plus} onClick={() => openAdd()}>
-          Add URL
+          {t("Add URL")}
         </Button>
       }
     />
@@ -288,38 +305,38 @@ export function DownloadsView() {
   return (
     <div className="main main-fluent">
       <div className="toolbar-card card">
-        <TbButton icon={Plus} label="Add URL" onClick={() => openAdd(filter.scope === "queue" ? { queueId: filter.queueId } : undefined)} title="Add URL (Ctrl N)" />
+        <TbButton icon={Plus} label={t("Add URL")} onClick={() => openAdd(filter.scope === "queue" ? { queueId: filter.queueId } : undefined)} title="Add URL (Ctrl N)" />
         <span className="toolbar-sep" />
-        <TbButton icon={Play} label="Resume" disabled={!sel.some(canResume)} onClick={() => void run(api.resume([...selection]), "Could not resume")} title="Resume (Space)" />
+        <TbButton icon={Play} label={t("Resume")} disabled={!sel.some(canResume)} onClick={() => void run(api.resume([...selection]), "Could not resume")} title={t("Resume (Space)")} />
         <TbButton
           icon={Pause}
-          label="Stop"
+          label={t("Stop")}
           disabled={!sel.some(canPause) && !allDownloads().some(canPause)}
           onClick={() => void run(api.pause([...selection]), "Could not stop")}
           menu={() => [
             { label: "Stop selected", icon: Pause, disabled: !sel.some(canPause), onSelect: () => void run(api.pause([...selection]), "Could not stop") },
-            { label: "Stop all", icon: Square, onSelect: () => void run(api.pauseAll(), "Could not stop") },
+            { label: t("Stop all"), icon: Square, onSelect: () => void run(api.pauseAll(), "Could not stop") },
           ]}
-          title="Stop (Space)"
+          title={t("Stop (Space)")}
         />
         <TbButton
           icon={Trash2}
-          label="Delete"
+          label={t("Delete")}
           danger
           disabled={!sel.length && !allDownloads().some((d) => d.status === "completed")}
           onClick={() => sel.length && confirmRemove([...selection])}
           menu={() => [
             { label: "Delete selected…", icon: Trash2, disabled: !sel.length, onSelect: () => confirmRemove([...selection]) },
-            { label: "Delete all completed", disabled: !allDownloads().some((d) => d.status === "completed"), onSelect: () => void run(api.clearFinished(), "Could not delete") },
+            { label: t("Delete all completed"), disabled: !allDownloads().some((d) => d.status === "completed"), onSelect: () => void run(api.clearFinished(), "Could not delete") },
           ]}
-          title="Delete (Del)"
+          title={t("Delete (Del)")}
         />
         <span className="toolbar-sep" />
-        <TbButton icon={ListStart} label="Start Queue" secondary menu={() => queueItems("start")} />
-        <TbButton icon={ListX} label="Stop Queue" secondary menu={() => queueItems("stop")} />
+        <TbButton icon={ListStart} label={t("Start Queue")} secondary menu={() => queueItems("start")} />
+        <TbButton icon={ListX} label={t("Stop Queue")} secondary menu={() => queueItems("stop")} />
         <span className="toolbar-sep" />
-        <TbButton icon={CalendarClock} label="Scheduler" secondary onClick={() => navigate("scheduled")} />
-        <TbButton icon={Hand} label="Grabber" secondary onClick={() => navigate("grabber")} />
+        <TbButton icon={CalendarClock} label={t("Scheduler")} secondary onClick={() => navigate("scheduled")} />
+        <TbButton icon={Hand} label={t("Grabber")} secondary onClick={() => navigate("grabber")} />
         <span className="spacer" />
         {searching ? (
           <div className="input-with-icon tb-search">
@@ -328,7 +345,7 @@ export function DownloadsView() {
               ref={searchRef}
               id="global-search"
               className="input"
-              placeholder="Search downloads"
+              placeholder={t("Search downloads")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => {
@@ -342,19 +359,19 @@ export function DownloadsView() {
             {search && <IconButton icon={X} label="Clear search" size="sm" onMouseDown={(e) => e.preventDefault()} onClick={() => setSearch("")} />}
           </div>
         ) : (
-          <IconButton icon={Search} label="Search (Ctrl F)" onClick={() => setSearching(true)} />
+          <IconButton icon={Search} label={t("Search (Ctrl F)")} onClick={() => setSearching(true)} />
         )}
         <SpeedControl />
         <IconButton
           icon={SettingsIcon}
-          label="Settings"
+          label={t("Settings")}
           onClick={(e) =>
             showMenuAt(
               e.currentTarget,
               [
                 { label: "Settings…", icon: SettingsIcon, shortcut: "Ctrl ,", onSelect: () => openSettings("general") },
-                { label: "Details panel", icon: PanelRight, shortcut: "Ctrl I", checked: undefined, onSelect: () => setInspectorOpen(!inspectorOpen) },
-                { label: "Open .torrent file…", icon: FileUp, onSelect: () => void pickTorrent(openAdd) },
+                { label: t("Details panel"), icon: PanelRight, shortcut: "Ctrl I", checked: undefined, onSelect: () => setInspectorOpen(!inspectorOpen) },
+                { label: t("Open .torrent file…"), icon: FileUp, onSelect: () => void pickTorrent(openAdd) },
               ],
               "end",
             )

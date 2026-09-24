@@ -14,6 +14,11 @@ pub struct Queue {
     pub running: bool,
     /// Set when a schedule started the queue: power action once it drains.
     pub after: String,
+    /// Synchronization (IDM-style): every N minutes re-check finished files on
+    /// the server and download the ones that changed. 0 = off.
+    pub sync_minutes: u32,
+    /// Last synchronization check (ms since epoch).
+    pub last_sync: i64,
 }
 
 impl Default for Queue {
@@ -25,6 +30,8 @@ impl Default for Queue {
             position: 0,
             running: false,
             after: "none".into(),
+            sync_minutes: 0,
+            last_sync: 0,
         }
     }
 }
@@ -112,6 +119,8 @@ pub enum CoreEvent {
     ClipboardUrl { url: String },
     PowerCountdown { action: String, seconds: u32 },
     PowerCancelled,
+    /// On-demand tool download (yt-dlp / ffmpeg); `total` 0 when unknown.
+    ToolProgress { tool: String, done: u64, total: u64 },
     Show,
     SettingsChanged,
     QueuesChanged,

@@ -125,7 +125,31 @@ impl Core {
     }
 
     pub fn emit(&self, e: CoreEvent) {
+        if let CoreEvent::Completed { id, name, path } = &e {
+            self.scan_finished(id, name, path.clone());
+        }
         let _ = self.events.send(e);
+    }
+
+    /// Optional virus scan of a finished file; only problems are reported.
+    fn scan_finished(&self, id: &str, name: &str, path: Option<String>) {
+        let s = self.settings();
+        if !matches!(s.virus_scan.as_str(), "defender" | "custom") {
+            return;
+        }
+        let file = path.map(std::path::PathBuf::from).or_else(|| self.get(id).map(|d| std::path::Path::new(&d.dir).join(&d.name)));
+        // Playlists point at a folder: scan files only.
+        let Some(file) = file.filter(|f| f.is_file()) else { return };
+        let Ok(rt) = tokio::runtime::Handle::try_current() else { return };
+        let (tx, id, name) = (self.events.clone(), id.to_string(), name.to_string());
+        rt.spawn(async move {
+            let (level, title, message) = match crate::scan::scan(&s.virus_scan, &s.virus_scanner, &s.virus_scanner_args, &file).await {
+                Ok(crate::scan::Outcome::Clean) => return,
+                Ok(crate::scan::Outcome::Threat(m)) => ("error", format!("Threat found in {name}"), m),
+                Err(e) => ("warning", format!("Could not scan {name}"), e.to_string()),
+            };
+            let _ = tx.send(CoreEvent::Notice { level: level.into(), title, message, download_id: Some(id) });
+        });
     }
 
     pub fn settings(&self) -> Settings {
@@ -176,6 +200,35 @@ impl Core {
     }
 
     // ───────────────────────────── queries ─────────────────────────────
+
+/// Same address, ignoring the fragment and a trailing slash.
+    fn same_url(a: &str, b: &str) -> bool {
+        let norm = |u: &str| u.trim().split('#').next().unwrap_or("").trim_end_matches('/').to_string();
+        norm(a) == norm(b)
+    }
+
+    /// Before adding: an existing download of the same link, and whether a
+    /// file with the target name is already in the folder.
+    pub fn check_duplicate(&self, url: &str, dir: Option<&str>, filename: Option<&str>) -> serde_json::Value {
+        let existing = {
+            let st = lock(&self.st);
+            let mut v: Vec<&Download> = st.downloads.values().filter(|d| Self::same_url(&d.url, url)).collect();
+            v.sort_by_key(|d| std::cmp::Reverse(d.created_at));
+            v.first().map(|d| (*d).clone())
+        };
+        let path = match (dir.filter(|d| !d.trim().is_empty()), filename.filter(|n| !n.trim().is_empty())) {
+            (Some(d), Some(n)) => Some(std::path::Path::new(d.trim()).join(n.trim())),
+            _ => None,
+        };
+        let file_exists = path.as_ref().is_some_and(|p| p.is_file());
+        serde_json::json!({
+            "existing": existing,
+            "existingFileExists": existing.as_ref().is_some_and(|d| std::path::Path::new(d.file_path.as_deref().unwrap_or("")).is_file() || std::path::Path::new(&d.dir).join(&d.name).is_file()),
+            "fileExists": file_exists,
+            "path": path.map(|p| p.display().to_string()),
+            "policy": self.settings().file_exists,
+        })
+    }
 
     pub fn list(&self) -> Vec<Download> {
         let st = lock(&self.st);
@@ -465,7 +518,11 @@ impl Core {
 
     pub async fn add(self: &Arc<Self>, req: AddRequest) -> Result<Download> {
         let s = self.settings();
-        let url = req.url.trim().to_string();
+        // Share links (Drive, Dropbox, SourceForge…) → direct file URL.
+        let mut url = req.url.trim().to_string();
+        if let Some(direct) = crate::landing::rewrite(&url) {
+            url = direct;
+        }
         let has_file = req.options.torrent_data.is_some() || req.options.metalink_data.is_some();
         if !has_file && !classify::scheme_allowed(&url) {
             bail!("Unsupported address. KuDownloader accepts http, https, ftp, sftp and magnet links.");
@@ -491,6 +548,14 @@ impl Core {
         let mut probe_info = None;
         if matches!(route, Route::Unknown | Route::Aria2(Kind::Http)) && !has_file {
             let p = probe::probe(&url, &req.options, &s).await;
+            // A landing page resolved to its file: download that.
+            if p.url != url && p.status.is_some_and(|c| (200..300).contains(&c)) {
+                url = p.url.clone();
+                route = classify::classify(&url, &s.categories);
+                if route == Route::Ytdlp {
+                    route = Route::Aria2(Kind::Http);
+                }
+            }
             if route == Route::Unknown {
                 route = match (p.engine, p.kind) {
                     (Some(Engine::Ytdlp), _) => Route::Ytdlp,
@@ -530,8 +595,10 @@ impl Core {
         let Route::Aria2(kind) = route else { unreachable!() };
         let lower_url = url.to_ascii_lowercase();
         let http_like = kind == Kind::Http && (lower_url.starts_with("http://") || lower_url.starts_with("https://")) && req.mirrors.is_empty();
-        // KuHTTP is opt-in; aria2 stays the default until KuHTTP has proven itself.
-        let engine = if http_like && (req.engine == Some(Engine::Kuhttp) || (req.engine.is_none() && s.http_engine == "kuhttp")) {
+        // KuHTTP is the default HTTP engine (docs/kuhttp.md); aria2 on request or for mirrors.
+        // Without aria2 (e.g. macOS without Homebrew) plain HTTP(S) still works through KuHTTP.
+        let no_aria2 = paths::find_binary("aria2c", Some(&s.aria2_path)).is_none();
+        let engine = if http_like && (no_aria2 || req.engine == Some(Engine::Kuhttp) || (req.engine.is_none() && s.http_engine == "kuhttp")) {
             Engine::Kuhttp
         } else {
             Engine::Aria2
@@ -753,10 +820,11 @@ impl Core {
 
     // ───────────────────────────── media ─────────────────────────────
 
+
     fn yt_env(&self, opts: &DownloadOptions) -> Result<YtEnv> {
         let s = self.settings();
         let ytdlp = paths::find_binary("yt-dlp", Some(&s.ytdlp_path)).ok_or_else(|| {
-            anyhow!("The media engine (yt-dlp) was not found. Reinstall KuDownloader or set its path in Settings › Media.")
+            anyhow!("The media engine (yt-dlp) is not installed yet. Download it from the Video Downloader or Settings › Advanced.")
         })?;
         let cookies_file = ytdlp::write_cookie_file(&self.tmp_dir, &opts.cookies)?;
         Ok(YtEnv {
@@ -766,6 +834,8 @@ impl Core {
             user_agent: opts.user_agent.clone().filter(|u| !u.is_empty()),
             referer: opts.referer.clone(),
             cookies_file,
+            user_cookies_file: Some(std::path::PathBuf::from(s.cookies_file.trim())).filter(|p| !p.as_os_str().is_empty() && p.is_file()),
+            cookies_from_browser: Some(s.cookies_from_browser.trim().to_string()).filter(|b| ALLOWED_COOKIE_BROWSERS.contains(&b.as_str())),
         })
     }
 
@@ -851,6 +921,85 @@ impl Core {
         }
         self.wake.notify_one();
         Ok(())
+    }
+
+    /// Download finished (or failed) files again from scratch, replacing the
+    /// old copy; the entry keeps its queue, folder and name.
+    pub async fn redownload(self: &Arc<Self>, ids: &[String]) -> Result<()> {
+        for id in ids {
+            let Some(d) = self.get(id) else { continue };
+            if d.kind.is_bittorrent() || d.status.is_running() {
+                continue;
+            }
+            if d.engine == Engine::Aria2 {
+                if let (Some(gid), Some(a)) = (&d.gid, self.aria.read().await.clone()) {
+                    a.purge(gid).await;
+                }
+            }
+            delete_download_files(&d);
+            self.update(id, |d| {
+                d.status = Status::Queued;
+                d.done = 0;
+                d.speed = 0;
+                d.gid = None;
+                d.error = None;
+                d.completed_at = None;
+                d.meta.retries = 0;
+                d.meta.verified = None;
+            });
+            lock(&self.st).retry_at.remove(id);
+        }
+        self.wake.notify_one();
+        Ok(())
+    }
+
+    /// Synchronization queues: re-check finished HTTP files and download the
+    /// ones that changed on the server.
+    async fn sync_queues(self: &Arc<Self>) {
+        let now = now_ms();
+        let due: Vec<Queue> = lock(&self.st).queues.iter().filter(|q| q.sync_minutes > 0 && now - q.last_sync >= q.sync_minutes as i64 * 60_000).cloned().collect();
+        for mut q in due {
+            q.last_sync = now;
+            {
+                let mut st = lock(&self.st);
+                if let Some(x) = st.queues.iter_mut().find(|x| x.id == q.id) {
+                    x.last_sync = now;
+                }
+            }
+            let _ = self.db.save_queue(&q);
+            let items: Vec<Download> = self
+                .list()
+                .into_iter()
+                .filter(|d| d.queue_id.as_deref() == Some(q.id.as_str()) && d.status == Status::Completed && d.kind == Kind::Http && d.url.starts_with("http"))
+                .collect();
+            let s = self.settings();
+            let mut changed = Vec::new();
+            for d in items {
+                let p = probe::probe(&d.url, &d.options, &s).await;
+                if p.error.is_some() || !p.status.is_some_and(|c| (200..300).contains(&c)) {
+                    continue;
+                }
+                let stamp = format!("{}|{}|{}", p.size.unwrap_or(-1), p.last_modified.unwrap_or_default(), p.etag.unwrap_or_default());
+                match d.meta.remote_stamp.as_deref() {
+                    None => {
+                        // First check: remember what the server has.
+                        self.update(&d.id, |x| x.meta.remote_stamp = Some(stamp.clone()));
+                    }
+                    Some(old) if old != stamp => {
+                        self.log(&d.id, "info", "Changed on the server — downloading the new version");
+                        self.update(&d.id, |x| x.meta.remote_stamp = Some(stamp.clone()));
+                        changed.push(d.id.clone());
+                    }
+                    _ => {}
+                }
+            }
+            if !changed.is_empty() {
+                let _ = self.redownload(&changed).await;
+                let _ = self.start_queue(&q.id, None).await;
+                self.emit(CoreEvent::Notice { level: "info".into(), title: format!("{} updated in “{}”", changed.len(), q.name), message: "Files that changed on the server are being downloaded again.".into(), download_id: None });
+            }
+            self.emit(CoreEvent::QueuesChanged);
+        }
     }
 
     pub async fn remove(self: &Arc<Self>, ids: &[String], delete_files: bool) -> Result<()> {
@@ -1213,6 +1362,8 @@ impl Core {
                 return;
             }
             self.run_schedules(chrono::Local::now().naive_local()).await;
+            let me = self.clone();
+            tokio::spawn(async move { me.sync_queues().await });
         }
     }
 
@@ -2083,6 +2234,33 @@ impl Core {
         })
     }
 
+    /// Download and install yt-dlp or ffmpeg from the official releases
+    /// (checksum-verified). Progress arrives as `ToolProgress` events.
+    pub async fn install_tool(&self, name: &str) -> Result<String> {
+        let tool = crate::tools::Tool::parse(name).ok_or_else(|| anyhow!("Unknown tool: {name}"))?;
+        let s = self.settings();
+        let mut b = reqwest::Client::builder().connect_timeout(Duration::from_secs(15)).redirect(reqwest::redirect::Policy::limited(10));
+        if !s.proxy.trim().is_empty() {
+            let mut p = reqwest::Proxy::all(s.proxy.trim())?;
+            if !s.proxy_user.is_empty() {
+                p = p.basic_auth(&s.proxy_user, &s.proxy_pass);
+            }
+            b = b.proxy(p);
+        }
+        let client = b.build()?;
+        let mut last = Instant::now() - Duration::from_secs(1);
+        let tool_name = tool.name().to_string();
+        let path = crate::tools::install(tool, &client, |done, total| {
+            if last.elapsed() >= Duration::from_millis(200) || total == Some(done) {
+                last = Instant::now();
+                self.emit(CoreEvent::ToolProgress { tool: tool_name.clone(), done, total: total.unwrap_or(0) });
+            }
+        })
+        .await?;
+        tracing::info!("{} installed at {}", tool.name(), path.display());
+        Ok(path.display().to_string())
+    }
+
     pub async fn update_ytdlp(&self) -> Result<String> {
         let s = self.settings();
         let yt = paths::find_binary("yt-dlp", Some(&s.ytdlp_path)).ok_or_else(|| anyhow!("yt-dlp was not found"))?;
@@ -2105,6 +2283,9 @@ impl Core {
         tokio::time::sleep(Duration::from_millis(300)).await;
     }
 }
+
+/// Browsers yt-dlp can read cookies from (`--cookies-from-browser`).
+pub const ALLOWED_COOKIE_BROWSERS: &[&str] = &["firefox", "chrome", "chromium", "edge", "brave", "opera", "vivaldi", "whale", "safari"];
 
 fn st_retry(map: &mut HashMap<String, Instant>, id: &str, after: Duration) {
     map.insert(id.to_string(), Instant::now() + after);

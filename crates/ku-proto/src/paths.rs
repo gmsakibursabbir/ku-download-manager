@@ -35,8 +35,14 @@ pub fn exe_name(base: &str) -> String {
     }
 }
 
+/// Tools KuDownloader downloads on demand (yt-dlp, ffmpeg): `<data>/bin`.
+pub fn tools_dir() -> PathBuf {
+    data_dir().join("bin")
+}
+
 /// Locate an engine binary. Order: explicit override, next to the current
-/// executable (bundled sidecar), `binaries/` next to it, then `PATH`.
+/// executable (bundled sidecar), `binaries/` next to it, the on-demand tools
+/// folder (`<data>/bin[/<base>]`), then `PATH`.
 pub fn find_binary(base: &str, override_path: Option<&str>) -> Option<PathBuf> {
     if let Some(p) = override_path.filter(|p| !p.trim().is_empty()) {
         let p = PathBuf::from(p.trim());
@@ -50,12 +56,26 @@ pub fn find_binary(base: &str, override_path: Option<&str>) -> Option<PathBuf> {
             }
         }
     }
+    for cand in [tools_dir().join(&name), tools_dir().join(base).join(&name), tools_dir().join(base).join("bin").join(&name)] {
+        if cand.is_file() {
+            return Some(cand);
+        }
+    }
     if let Some(path) = std::env::var_os("PATH") {
         for dir in std::env::split_paths(&path) {
             let cand = dir.join(&name);
             if cand.is_file() {
                 return Some(cand);
             }
+        }
+    }
+    // Apps started from Finder don't get the shell PATH: look where Homebrew
+    // and MacPorts install.
+    #[cfg(target_os = "macos")]
+    for dir in ["/opt/homebrew/bin", "/usr/local/bin", "/opt/local/bin"] {
+        let cand = Path::new(dir).join(&name);
+        if cand.is_file() {
+            return Some(cand);
         }
     }
     #[cfg(windows)]

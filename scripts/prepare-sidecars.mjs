@@ -4,7 +4,7 @@
 //   node scripts/prepare-sidecars.mjs            (uses aria2c/yt-dlp/ffmpeg from PATH or KU_*_PATH)
 //
 // ku-native-host and ku are built from this workspace in release mode first.
-// On Linux only those two are staged: packages depend on the distribution's
+// Windows also stages aria2c. On Linux only those two are staged: packages depend on the distribution's
 // aria2, yt-dlp and ffmpeg instead (found on PATH at runtime).
 import { execFileSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readdirSync, statSync } from "node:fs";
@@ -14,7 +14,9 @@ import { fileURLToPath } from "node:url";
 const root = join(fileURLToPath(import.meta.url), "..", "..");
 const win = process.platform === "win32";
 const exe = win ? ".exe" : "";
-const triple = execFileSync("rustc", ["-vV"], { encoding: "utf8" }).match(/host: (\S+)/)[1];
+// --target <triple> cross-builds the helpers (e.g. x86_64-apple-darwin on an arm64 Mac).
+const targetArg = process.argv.indexOf("--target");
+const triple = targetArg > 0 ? process.argv[targetArg + 1] : execFileSync("rustc", ["-vV"], { encoding: "utf8" }).match(/host: (\S+)/)[1];
 const out = join(root, "app", "src-tauri", "binaries");
 mkdirSync(out, { recursive: true });
 
@@ -48,13 +50,16 @@ function which(name) {
 }
 
 console.log("building ku-native-host and ku (release)…");
-execFileSync("cargo", ["build", "--release", "-p", "ku-native-host", "-p", "ku-cli"], { cwd: root, stdio: "inherit" });
+execFileSync("cargo", ["build", "--release", "-p", "ku-native-host", "-p", "ku-cli", ...(targetArg > 0 ? ["--target", triple] : [])], { cwd: root, stdio: "inherit" });
+const relDir = targetArg > 0 ? join(root, "target", triple, "release") : join(root, "target", "release");
 
-const ownOnly = process.platform === "linux" || process.argv.includes("--own-only");
+// Linux and macOS use system aria2/ffmpeg (or KuHTTP and the on-demand tools).
+const ownOnly = process.platform !== "win32" || process.argv.includes("--own-only");
 const items = {
-  ...(ownOnly ? {} : { aria2c: which("aria2c"), "yt-dlp": which("yt-dlp"), ffmpeg: which("ffmpeg") }),
-  "ku-native-host": join(root, "target", "release", "ku-native-host" + exe),
-  ku: join(root, "target", "release", "ku" + exe),
+  // yt-dlp and ffmpeg are downloaded on demand by the app (see kucore::tools).
+  ...(ownOnly ? {} : { aria2c: which("aria2c") }),
+  "ku-native-host": join(relDir, "ku-native-host" + exe),
+  ku: join(relDir, "ku" + exe),
 };
 let missing = false;
 for (const [name, src] of Object.entries(items)) {

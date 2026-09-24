@@ -7,7 +7,7 @@
 // No dependencies: a minimal ZIP writer and the CRX3 protobuf are built here.
 
 import { createHash, createPrivateKey, createPublicKey, sign } from "node:crypto";
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { crc32, deflateRawSync } from "node:zlib";
@@ -127,6 +127,20 @@ writeFileSync(join(pkgs, "kudmx.xpi"), xpi);
 if (existsSync(join(dist, "kudmx.signed.xpi"))) writeFileSync(join(pkgs, "kudmx.signed.xpi"), readFileSync(join(dist, "kudmx.signed.xpi")));
 console.log(`dist/kudmx.xpi  ${(xpi.length / 1024).toFixed(1)} KB`);
 
+// Chrome Web Store / Edge Add-ons upload: the stores refuse a manifest "key"
+// (they assign their own id — add it under Settings › Browser › Extra
+// extension ids, or it is added automatically once published).
+const storeDir = join(dist, ".store-chrome");
+rmSync(storeDir, { recursive: true, force: true });
+cpSync(join(dist, "chrome"), storeDir, { recursive: true });
+const storeManifest = JSON.parse(readFileSync(join(storeDir, "manifest.json"), "utf8"));
+delete storeManifest.key;
+writeFileSync(join(storeDir, "manifest.json"), JSON.stringify(storeManifest, null, 2));
+const storeZip = zip(storeDir);
+rmSync(storeDir, { recursive: true, force: true });
+writeFileSync(join(dist, "kudmx-chrome.zip"), storeZip);
+console.log(`dist/kudmx-chrome.zip  ${(storeZip.length / 1024).toFixed(1)} KB (store upload)`);
+
 // Key: .secrets/extension-key.pem locally, or the KU_EXTENSION_KEY secret (PEM text) in CI.
 const keyPath = join(here, "..", ".secrets", "extension-key.pem");
 const pem = existsSync(keyPath) ? readFileSync(keyPath) : process.env.KU_EXTENSION_KEY?.trim() ? Buffer.from(process.env.KU_EXTENSION_KEY) : null;
@@ -143,5 +157,4 @@ if (id !== expected) {
 }
 writeFileSync(join(dist, "kudmx.crx"), bytes);
 writeFileSync(join(pkgs, "kudmx.crx"), bytes);
-writeFileSync(join(dist, "kudmx-chrome.zip"), chromeZip); // for store upload
 console.log(`dist/kudmx.crx  ${(bytes.length / 1024).toFixed(1)} KB  id ${id}`);

@@ -26,6 +26,12 @@ pub struct BandwidthProfile {
 pub struct Settings {
     // Appearance
     pub theme: String,
+    /// Accent colour: "blue" (default), "violet", "teal", "green", "orange", "pink", "red", "graphite".
+    pub accent: String,
+    /// Dark palette: "default", "midnight", "black" (OLED).
+    pub dark_palette: String,
+    /// Interface language: "system", "en", "bn".
+    pub language: String,
     pub compact: bool,
     /// Mica / Acrylic window background where the OS supports it.
     pub translucent: bool,
@@ -38,6 +44,8 @@ pub struct Settings {
     pub notify_complete: bool,
     pub notify_error: bool,
     pub notify_queue_done: bool,
+    /// IDM-style progress window when a single download is started.
+    pub show_progress_window: bool,
     // Downloads
     pub download_dir: String,
     pub use_categories: bool,
@@ -47,6 +55,15 @@ pub struct Settings {
     pub default_connections: u32,
     /// rename / overwrite / skip
     pub file_exists: String,
+    /// Scan finished downloads: "off" | "defender" | "custom".
+    pub virus_scan: String,
+    /// yt-dlp: a Netscape cookies.txt file to use for media sites.
+    pub cookies_file: String,
+    /// yt-dlp: read cookies from this browser's store ("" = off).
+    pub cookies_from_browser: String,
+    pub virus_scanner: String,
+    /// Arguments for a custom scanner; `{file}` is the downloaded file.
+    pub virus_scanner_args: String,
     // Connection
     pub proxy: String,
     pub proxy_user: String,
@@ -132,6 +149,9 @@ impl Default for Settings {
         let dl = paths::default_download_dir();
         Settings {
             theme: "system".into(),
+            accent: "blue".into(),
+            dark_palette: "default".into(),
+            language: "system".into(),
             compact: false,
             translucent: false,
             start_with_os: false,
@@ -139,6 +159,7 @@ impl Default for Settings {
             clipboard_monitor: true,
             check_updates: true,
             notify_complete: true,
+            show_progress_window: true,
             notify_error: true,
             notify_queue_done: true,
             download_dir: dl.to_string_lossy().into_owned(),
@@ -147,6 +168,11 @@ impl Default for Settings {
             max_concurrent: 4,
             default_connections: 0,
             file_exists: "rename".into(),
+            virus_scan: "off".into(),
+            cookies_file: String::new(),
+            cookies_from_browser: String::new(),
+            virus_scanner: String::new(),
+            virus_scanner_args: "\"{file}\"".into(),
             proxy: String::new(),
             proxy_user: String::new(),
             proxy_pass: String::new(),
@@ -187,7 +213,8 @@ impl Default for Settings {
             aria2_path: String::new(),
             api_enabled: true,
             update_endpoint: String::new(),
-            http_engine: "aria2".into(),
+            // Default since v0.2 (see docs/kuhttp.md); existing settings are kept.
+            http_engine: "kuhttp".into(),
         }
     }
 }
@@ -205,6 +232,9 @@ impl Settings {
         self.bt_max_peers = self.bt_max_peers.clamp(1, 1000);
         if !matches!(self.file_exists.as_str(), "rename" | "overwrite" | "skip") {
             self.file_exists = "rename".into();
+        }
+        if !matches!(self.virus_scan.as_str(), "off" | "defender" | "custom") {
+            self.virus_scan = "off".into();
         }
         if !matches!(self.http_engine.as_str(), "aria2" | "kuhttp") {
             self.http_engine = "aria2".into();

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { t } from "../lib/i18n";
 import { open } from "@tauri-apps/plugin-dialog";
+import { invoke } from "@tauri-apps/api/core";
 import { Folder, ChevronDown, ChevronRight, CircleAlert, Clapperboard, Globe, FileUp, File as FileIcon, ArrowDownToLine } from "lucide-react";
 import { api, errorText } from "../lib/api";
 import { settingsStore, queuesStore, updateSettings } from "../lib/store";
@@ -8,10 +10,11 @@ import type { AddRequest, ProbeInfo, Settings, TorrentInfo } from "../lib/types"
 import { Button, Checkbox, Icon, IconButton, Input, Notice, Select, Switch } from "../ui/primitives";
 import { Dialog, toast } from "../ui/overlays";
 import { CATEGORY_ICON } from "./downloads/FileGlyph";
+import { DuplicateNotice } from "./DuplicateNotice";
 import { useApp } from "./context";
 
 const CONNECTION_CHOICES = [
-  { value: 0, label: "Smart" },
+  { value: 0, label: t("Smart") },
   { value: 4, label: "4" },
   { value: 8, label: "8" },
   { value: 16, label: "16" },
@@ -183,7 +186,9 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
           toast({ level: "success", title: `${res.added.length} downloads added` });
         }
       } else {
-        await api.add(build(queueId, start));
+        const d = await api.add(build(queueId, start));
+        // IDM-style progress window for a download started right away.
+        if (start && !queueId && settings?.showProgressWindow !== false && d?.id) void invoke("open_progress_window", { id: d.id }).catch(() => {});
       }
       onClose();
     } catch (e) {
@@ -249,7 +254,7 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
       <div className="dl-card">
         {torrent ? (
           <div className="dl-row" style={{ alignItems: "start" }}>
-            <label>Torrent</label>
+            <label>{t("Torrent")}</label>
             <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 <span className="truncate" style={{ fontWeight: 600, flex: 1 }}>
@@ -294,7 +299,7 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
         ) : (
           <div className="dl-row" style={{ alignItems: multi ? "start" : "center" }}>
             <label htmlFor="add-url" style={{ paddingTop: multi ? 6 : 0 }}>
-              URL
+              {t("URL")}
             </label>
             <div className="dl-control">
               <textarea
@@ -321,7 +326,7 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
         )}
         {!media && (
           <div className="dl-row">
-            <label htmlFor="add-cat">Category</label>
+            <label htmlFor="add-cat">{t("Category")}</label>
             <div className="dl-control">
               <Icon icon={CatIcon} size={18} />
               <Select
@@ -331,14 +336,14 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
                   setCategory(e.target.value);
                   setDirTouched(false);
                 }}
-                options={[{ value: "", label: "Automatic" }, ...(settings?.categories ?? []).map((c) => ({ value: c.id, label: c.name }))]}
+                options={[{ value: "", label: t("Automatic") }, ...(settings?.categories ?? []).map((c) => ({ value: c.id, label: c.name }))]}
                 style={{ width: 180 }}
               />
             </div>
           </div>
         )}
         <div className="dl-row">
-          <label htmlFor="add-dir">Save As</label>
+          <label htmlFor="add-dir">{t("Save As")}</label>
           <div className="dl-control">
             <Input
               id="add-dir"
@@ -348,17 +353,17 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
                 setDirTouched(true);
               }}
             />
-            <IconButton icon={Folder} label="Choose folder" onClick={() => void browse()} />
+            <IconButton icon={Folder} label={t("Choose folder")} onClick={() => void browse()} />
           </div>
         </div>
         {!media && (
           <div className="dl-row">
-            <label>Remember path for this category</label>
+            <label>{t("Remember path for this category")}</label>
             <div className="dl-control">
               <span className="muted" style={{ fontSize: "var(--text-sm)" }}>
                 {remember ? "Yes" : "No"}
               </span>
-              <Switch label="Remember path for this category" checked={remember} disabled={!category} onChange={setRemember} />
+              <Switch label={t("Remember path for this category")} checked={remember} disabled={!category} onChange={setRemember} />
             </div>
           </div>
         )}
@@ -383,6 +388,7 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
           ) : null}
         </div>
       )}
+      {!torrent && !media && <DuplicateNotice url={single} dir={dir} filename={filename || probe?.filename || ""} onHandled={onClose} />}
       {lines.length > 0 && validLines.length < lines.length && (
         <div style={{ color: "var(--danger)", fontSize: "var(--text-xs)" }}>
           {lines.length - validLines.length} line{lines.length - validLines.length === 1 ? " is" : "s are"} not a valid link and will be skipped.
@@ -391,7 +397,7 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
       {media && single && (
         <Notice
           icon={Clapperboard}
-          title="This is a media page"
+          title={t("This is a media page")}
           action={
             <Button
               size="sm"
@@ -400,7 +406,7 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
                 openMedia({ url: single, cookies: prefill?.options?.cookies ?? [] });
               }}
             >
-              Choose quality…
+              {t("Choose quality…")}
             </Button>
           }
         >
@@ -415,7 +421,7 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
         <div className="form-grid">
           {!batch && !torrent && !media && (
             <>
-              <label htmlFor="add-name">File name</label>
+              <label htmlFor="add-name">{t("File name")}</label>
               <Input
                 id="add-name"
                 value={filename}
@@ -464,12 +470,12 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
 
       <div className="dl-actions" style={{ padding: "var(--space-2) 0 0" }}>
         <Button disabled={!canSubmit} onClick={() => void go(true)} title="Add to the queue without starting">
-          Download Later
+          {t("Download Later")}
         </Button>
         <Button type="submit" variant="primary" disabled={!canSubmit} busy={busy}>
-          Download Now
+          {t("Download Now")}
         </Button>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={onClose}>{t("Cancel")}</Button>
       </div>
     </Dialog>
   );

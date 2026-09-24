@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { t } from "../lib/i18n";
 import { Plus, Trash2, RefreshCw, FolderOpen, Download as DownloadIcon } from "lucide-react";
 import { api, errorText } from "../lib/api";
 import { settingsStore } from "../lib/store";
@@ -60,14 +61,14 @@ function Updates() {
   };
   const desc = state.error ?? (state.info === null ? "KuDownloader is up to date." : state.info ? `Version ${state.info.version} is available.` : "Checks the release feed for a newer version.");
   return (
-    <PrefRow label="Updates" desc={desc}>
+    <PrefRow label={t("Updates")} desc={desc}>
       {state.info ? (
         <Button size="sm" variant="primary" icon={DownloadIcon} busy={state.busy} onClick={() => void install()}>
           Install and restart
         </Button>
       ) : (
         <Button size="sm" icon={RefreshCw} busy={state.busy} onClick={() => void check()}>
-          Check now
+          {t("Check now")}
         </Button>
       )}
     </PrefRow>
@@ -82,7 +83,7 @@ function Categories() {
   const commit = (next: Category[]) => void save({ categories: next });
   const update = (i: number, p: Partial<Category>) => setDraft(draft.map((c, j) => (j === i ? { ...c, ...p } : c)));
   return (
-    <PrefGroup title="Categories">
+    <PrefGroup title={t("Categories")}>
       <div style={{ padding: "var(--space-2) var(--space-4)" }}>
         <table className="table">
           <thead>
@@ -161,10 +162,10 @@ function Profiles() {
                   <Input value={p.name} style={{ height: 26 }} onChange={(e) => setDraft(draft.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} onBlur={commit} />
                 </td>
                 <td>
-                  <Input key={`${p.id}-d-${p.download}`} defaultValue={p.download ? fmt.bytes(p.download) : ""} placeholder="Unlimited" style={{ height: 26 }} onBlur={(e) => { setRate(i, "download", e.target.value); }} onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()} />
+                  <Input key={`${p.id}-d-${p.download}`} defaultValue={p.download ? fmt.bytes(p.download) : ""} placeholder={t("Unlimited")} style={{ height: 26 }} onBlur={(e) => { setRate(i, "download", e.target.value); }} onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()} />
                 </td>
                 <td>
-                  <Input key={`${p.id}-u-${p.upload}`} defaultValue={p.upload ? fmt.bytes(p.upload) : ""} placeholder="Unlimited" style={{ height: 26 }} onBlur={(e) => { setRate(i, "upload", e.target.value); }} onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()} />
+                  <Input key={`${p.id}-u-${p.upload}`} defaultValue={p.upload ? fmt.bytes(p.upload) : ""} placeholder={t("Unlimited")} style={{ height: 26 }} onBlur={(e) => { setRate(i, "upload", e.target.value); }} onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()} />
                 </td>
                 <td>{s.activeProfile === p.id ? <span className="chip chip-accent">Active</span> : <Button size="sm" variant="ghost" onClick={() => void api.setProfile(p.id).then(() => settingsStore.refresh())}>Use</Button>}</td>
                 <td>
@@ -200,10 +201,10 @@ function AfterAll() {
           void api.setAfterAll(e.target.value);
         }}
         options={[
-          { value: "none", label: "Do nothing" },
-          { value: "sleep", label: "Sleep" },
-          { value: "shutdown", label: "Shut down" },
-          { value: "quit", label: "Quit KuDownloader" },
+          { value: "none", label: t("Do nothing") },
+          { value: "sleep", label: t("Sleep") },
+          { value: "shutdown", label: t("Shut down") },
+          { value: "quit", label: t("Quit KuDownloader") },
         ]}
       />
     </PrefRow>
@@ -220,18 +221,18 @@ function Advanced() {
         <SelectPref
           k="httpEngine"
           label="Engine for HTTP and HTTPS downloads"
-          desc="aria2 is the proven default. KuHTTP is KuDownloader’s own adaptive engine: it passes the full failure-injection test suite but is still being benchmarked. BitTorrent, magnet and Metalink always use aria2."
+          desc="KuHTTP is KuDownloader’s own adaptive engine (faster in our benchmarks, resumes after crashes). aria2 is the long-proven alternative. FTP, SFTP, BitTorrent, magnet and Metalink always use aria2."
           options={[
-            { value: "aria2", label: "aria2 (recommended)" },
-            { value: "kuhttp", label: "KuHTTP (experimental)" },
+            { value: "kuhttp", label: "KuHTTP (recommended)" },
+            { value: "aria2", label: "aria2" },
           ]}
           width={200}
         />
       </PrefGroup>
       <PrefGroup title="Engine locations">
-        <TextPref k="aria2Path" label="aria2c" desc="Leave empty to use the bundled engine." placeholder="Automatic" width={320} mono />
-        <TextPref k="ytdlpPath" label="yt-dlp" placeholder="Automatic" width={320} mono />
-        <TextPref k="ffmpegPath" label="FFmpeg" placeholder="Automatic" width={320} mono />
+        <TextPref k="aria2Path" label="aria2c" desc="Leave empty to use the bundled engine." placeholder={t("Automatic")} width={320} mono />
+        <TextPref k="ytdlpPath" label="yt-dlp" placeholder={t("Automatic")} width={320} mono />
+        <TextPref k="ffmpegPath" label="FFmpeg" placeholder={t("Automatic")} width={320} mono />
       </PrefGroup>
       <PrefGroup title="Integration">
         <PrefRow label="Local API" desc={info?.apiPort ? `Listening on 127.0.0.1:${info.apiPort} for the ku command-line tool and the browser connector. Access requires a per-session token.` : "Not running."} />
@@ -240,7 +241,7 @@ function Advanced() {
       <PrefGroup title="Data">
         <PrefRow label="Data folder" desc={info?.dataDir}>
           <Button size="sm" icon={FolderOpen} onClick={() => void api.openDataDir()}>
-            Open
+            {t("Open")}
           </Button>
         </PrefRow>
         <PrefRow label="Version" desc={`KuDownloader ${info?.version ?? ""} · ${info?.platform ?? ""}`} />
@@ -248,6 +249,17 @@ function Advanced() {
     </>
   );
 }
+
+const ACCENTS: [string, string, string][] = [
+  ["blue", "#2563EB", "Blue"],
+  ["violet", "#7C3AED", "Violet"],
+  ["teal", "#0D9488", "Teal"],
+  ["green", "#16A34A", "Green"],
+  ["orange", "#EA580C", "Orange"],
+  ["pink", "#DB2777", "Pink"],
+  ["red", "#DC2626", "Red"],
+  ["graphite", "#52525B", "Graphite"],
+];
 
 export function SettingsView() {
   const { settingsSection, navigate } = useApp();
@@ -262,13 +274,13 @@ export function SettingsView() {
   return (
     <div className="main">
       <div className="toolbar">
-        <span className="toolbar-title">Settings</span>
+        <span className="toolbar-title">{t("Settings")}</span>
       </div>
       <div className="settings-layout" style={{ minHeight: 0 }}>
         <nav className="settings-nav" aria-label="Settings sections">
           {SECTIONS.map(([k, label]) => (
             <button key={k} type="button" className="nav-item" aria-current={section === k ? "page" : undefined} onClick={() => setSection(k)}>
-              {label}
+              {t(label)}
             </button>
           ))}
         </nav>
@@ -283,7 +295,7 @@ export function SettingsView() {
                   <SwitchPref k="checkUpdates" label="Check for updates automatically" />
                   <Updates />
                 </PrefGroup>
-                <PrefGroup title="Keyboard shortcuts">
+                <PrefGroup title={t("Keyboard shortcuts")}>
                   <table className="table" style={{ margin: "var(--space-1) 0" }}>
                     <tbody>
                       {SHORTCUTS.map(([label, keys]) => (
@@ -307,25 +319,44 @@ export function SettingsView() {
               <>
                 <PrefGroup>
                   <FolderPref k="downloadDir" label="Download folder" />
-                  <SwitchPref k="useCategories" label="Sort into category folders" desc="Archives, programs, video and so on go into their own sub-folders." />
-                  <NumberPref k="maxConcurrent" label="Simultaneous downloads" desc="Downloads outside queues. Queues have their own limit." min={1} max={32} />
+                  <SwitchPref k="useCategories" label={t("Sort into category folders")} desc="Archives, programs, video and so on go into their own sub-folders." />
+                  <NumberPref k="maxConcurrent" label={t("Simultaneous downloads")} desc="Downloads outside queues. Queues have their own limit." min={1} max={32} />
                   <SelectPref
                     k="defaultConnections"
-                    label="Connections per download"
+                    label={t("Connections per download")}
                     desc="Smart adapts to what the server allows and backs off on errors."
-                    options={[{ value: 0, label: "Smart" }, ...[1, 2, 4, 8, 16, 32].map((n) => ({ value: n, label: String(n) }))]}
+                    options={[{ value: 0, label: t("Smart") }, ...[1, 2, 4, 8, 16, 32].map((n) => ({ value: n, label: String(n) }))]}
                     width={140}
                   />
                   <SelectPref
                     k="fileExists"
-                    label="If the file already exists"
+                    label={t("If the file already exists")}
                     options={[
-                      { value: "rename", label: "Keep both (rename)" },
-                      { value: "overwrite", label: "Overwrite" },
-                      { value: "skip", label: "Don't download" },
+                      { value: "rename", label: t("Keep both (rename)") },
+                      { value: "overwrite", label: t("Overwrite") },
+                      { value: "skip", label: t("Don't download") },
                     ]}
                     width={180}
                   />
+                </PrefGroup>
+                <PrefGroup title={t("Virus scan")}>
+                  <SelectPref
+                    k="virusScan"
+                    label={t("Scan finished downloads")}
+                    desc="Only problems are reported. Downloads are never opened automatically."
+                    options={[
+                      { value: "off", label: t("Off") },
+                      ...(navigator.userAgent.includes("Windows") ? [{ value: "defender", label: "Microsoft Defender" }] : []),
+                      { value: "custom", label: "Another scanner…" },
+                    ]}
+                    width={200}
+                  />
+                  {settings.virusScan === "custom" && (
+                    <>
+                      <TextPref k="virusScanner" label="Scanner program" desc="Full path to the scanner's command-line program (for example clamscan)." placeholder="C:\Program Files\…\scanner.exe" mono />
+                      <TextPref k="virusScannerArgs" label="Arguments" desc="{file} is replaced by the downloaded file." mono />
+                    </>
+                  )}
                 </PrefGroup>
                 <Categories />
               </>
@@ -386,26 +417,65 @@ export function SettingsView() {
             )}
             {section === "notifications" && (
               <PrefGroup>
-                <SwitchPref k="notifyComplete" label="When a download completes" />
-                <SwitchPref k="notifyError" label="When a download fails" desc="Only while the window is hidden; otherwise an in-app message appears." />
-                <SwitchPref k="notifyQueueDone" label="When a queue finishes" />
+                <SwitchPref k="notifyComplete" label={t("When a download completes")} />
+                <SwitchPref k="notifyError" label={t("When a download fails")} desc="Only while the window is hidden; otherwise an in-app message appears." />
+                <SwitchPref k="notifyQueueDone" label={t("When a queue finishes")} />
+                <SwitchPref k="showProgressWindow" label={t("Show a progress window for new downloads")} desc="Like IDM: a small window with speed, time left and the connection map. Double-click any unfinished download to open it." />
               </PrefGroup>
             )}
             {section === "appearance" && (
               <PrefGroup>
-                <PrefRow label="Theme">
+                <PrefRow label={t("Theme")}>
                   <Segmented
-                    label="Theme"
+                    label={t("Theme")}
                     value={settings.theme}
                     onChange={(v) => void save({ theme: v })}
                     options={[
-                      { value: "light", label: "Light" },
-                      { value: "dark", label: "Dark" },
-                      { value: "system", label: "System" },
+                      { value: "light", label: t("Light") },
+                      { value: "dark", label: t("Dark") },
+                      { value: "system", label: t("System") },
                     ]}
                   />
                 </PrefRow>
-                <SwitchPref k="compact" label="Compact rows" desc="Shows more downloads at once by hiding the second line." />
+                <PrefRow label={t("Accent colour")}>
+                  <div className="accent-swatches" role="radiogroup" aria-label={t("Accent colour")}>
+                    {ACCENTS.map(([id, color, name]) => (
+                      <button
+                        key={id}
+                        type="button"
+                        role="radio"
+                        aria-checked={(settings.accent || "blue") === id}
+                        aria-label={name}
+                        title={name}
+                        className="accent-swatch"
+                        style={{ background: color }}
+                        onClick={() => void save({ accent: id })}
+                      />
+                    ))}
+                  </div>
+                </PrefRow>
+                <SelectPref
+                  k="darkPalette"
+                  label={t("Dark mode colours")}
+                  options={[
+                    { value: "default", label: t("Graphite") },
+                    { value: "midnight", label: t("Midnight blue") },
+                    { value: "black", label: t("Pure black (OLED)") },
+                  ]}
+                  width={180}
+                />
+                <SwitchPref k="compact" label={t("Compact rows")} desc="Shows more downloads at once by hiding the second line." />
+                <SelectPref
+                  k="language"
+                  label={t("Language")}
+                  desc={t("Restarts the interface.")}
+                  options={[
+                    { value: "system", label: t("System") },
+                    { value: "en", label: "English" },
+                    { value: "bn", label: "বাংলা (Bengali)" },
+                  ]}
+                  width={180}
+                />
               </PrefGroup>
             )}
             {section === "advanced" && <Advanced />}

@@ -1,3 +1,5 @@
+import { invoke } from "@tauri-apps/api/core";
+import { t } from "../../lib/i18n";
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronDown, ChevronUp, ListOrdered } from "lucide-react";
 import { useDownload, getDownload, settingsStore, queuesStore } from "../../lib/store";
@@ -129,7 +131,7 @@ const Row = memo(function Row({
       </div>
       <div className="cell num">{d.total > 0 ? fmt.bytes(d.total, 2) : d.done > 0 ? fmt.bytes(d.done) : ""}</div>
       <div className="cell cell-status num" data-tone={st.tone} title={st.title}>
-        <span>{st.text}</span>
+        <span>{t(st.text)}</span>
         {(active || d.status === "paused" || d.status === "queued") && d.total > 0 && d.done > 0 && (
           <span className="status-bar" aria-hidden="true">
             <span style={{ width: `${pct}%` }} />
@@ -144,12 +146,12 @@ const Row = memo(function Row({
 });
 
 function HeaderCell({ label, k, sort, onSort }: { label: string; k?: SortKey; sort: SortState; onSort?: (s: SortState) => void }) {
-  if (!k || !onSort) return <div className="hcell">{label}</div>;
+  if (!k || !onSort) return <div className="hcell">{t(label)}</div>;
   const on = sort.key === k;
   return (
     <div className="hcell">
       <button type="button" onClick={() => onSort({ key: k, dir: on ? ((sort.dir * -1) as 1 | -1) : k === "name" ? 1 : -1 })} aria-sort={on ? (sort.dir === 1 ? "ascending" : "descending") : undefined}>
-        {label}
+        {t(label)}
         {on && <Icon icon={sort.dir === 1 ? ChevronUp : ChevronDown} size={12} />}
       </button>
     </div>
@@ -253,7 +255,7 @@ export function DownloadList({
       const d = getDownload(id);
       if (!d) return;
       if (d.status === "completed" || d.status === "seeding") openDownload(d);
-      else setInspectorOpen(true);
+      else void invoke("open_progress_window", { id }).catch(() => setInspectorOpen(true));
     },
     [setInspectorOpen],
   );
@@ -401,16 +403,16 @@ export function DownloadList({
               if (el) el.indeterminate = !allSelected && selection.size > 0;
             }}
             onChange={() => setSelection(allSelected ? new Set() : new Set(ids))}
-            aria-label="Select all"
+            aria-label={t("Select all")}
           />
         </label>
-        <HeaderCell label="File name" k="name" sort={sort} onSort={onSort} />
+        <HeaderCell label={t("File name")} k="name" sort={sort} onSort={onSort} />
         <HeaderCell label="Q" k="queue" sort={sort} onSort={onSort} />
-        <HeaderCell label="Size" k="size" sort={sort} onSort={onSort} />
-        <HeaderCell label="Status" k="status" sort={sort} onSort={onSort} />
-        <HeaderCell label="Time Left" k="eta" sort={sort} onSort={onSort} />
-        <HeaderCell label="Transfer rate" k="speed" sort={sort} onSort={onSort} />
-        <HeaderCell label="Last try date" k="added" sort={sort} onSort={onSort} />
+        <HeaderCell label={t("Size")} k="size" sort={sort} onSort={onSort} />
+        <HeaderCell label={t("Status")} k="status" sort={sort} onSort={onSort} />
+        <HeaderCell label={t("Time Left")} k="eta" sort={sort} onSort={onSort} />
+        <HeaderCell label={t("Transfer rate")} k="speed" sort={sort} onSort={onSort} />
+        <HeaderCell label={t("Last try date")} k="added" sort={sort} onSort={onSort} />
       </div>
       <div
         ref={scrollRef}

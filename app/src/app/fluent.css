@@ -676,3 +676,191 @@ body {
   height: 0;
   min-height: 0;
 }
+
+/* ───────── Platform-native title bar ─────────
+ * data-os / data-desktop / data-tiling come from platform_info (Shell.tsx).
+ * Windows: Fluent caption buttons (default rules in app.css). */
+.titlebar {
+  display: flex;
+}
+.titlebar .titlebar-fill {
+  flex: 1;
+  align-self: stretch;
+}
+.titlebar .window-controls:first-child {
+  margin-right: var(--space-1);
+}
+
+/* macOS: native traffic lights float over the header (Overlay title bar). */
+.traffic-light-inset {
+  width: 76px;
+  flex: none;
+  align-self: stretch;
+}
+:root[data-os="macos"] .brand {
+  padding-left: var(--space-1);
+}
+:root[data-os="macos"] .app::after {
+  display: none; /* the native frame draws the edge */
+}
+
+/* Linux (CSD): round buttons with a little air, like the desktop's own. */
+:root[data-os="linux"] .window-controls {
+  gap: 6px;
+  align-items: center;
+  padding: 0 10px;
+}
+:root[data-os="linux"] .window-controls button {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+}
+:root[data-os="linux"] .window-controls button.close:hover {
+  background: var(--bg-active);
+  color: var(--fg-primary);
+}
+
+/* GNOME / Budgie / Pantheon (libadwaita): filled circles, 24 px. */
+:root[data-desktop="gnome"] .window-controls button,
+:root[data-desktop="budgie"] .window-controls button,
+:root[data-desktop="pantheon"] .window-controls button,
+:root[data-desktop="cosmic"] .window-controls button {
+  width: 24px;
+  height: 24px;
+  background: var(--bg-hover);
+  color: var(--fg-primary);
+}
+:root[data-desktop="gnome"] .window-controls button:hover,
+:root[data-desktop="budgie"] .window-controls button:hover,
+:root[data-desktop="pantheon"] .window-controls button:hover,
+:root[data-desktop="cosmic"] .window-controls button:hover {
+  background: var(--bg-active);
+}
+
+/* KDE Breeze: flat icons, hover circle, red close. */
+:root[data-desktop="kde"] .window-controls button {
+  width: 22px;
+  height: 22px;
+}
+:root[data-desktop="kde"] .window-controls button.close:hover {
+  background: #da4453;
+  color: #fff;
+}
+
+/* Cinnamon / XFCE / MATE / LXQt: compact square-ish buttons. */
+:root[data-desktop="cinnamon"] .window-controls button,
+:root[data-desktop="xfce"] .window-controls button,
+:root[data-desktop="mate"] .window-controls button,
+:root[data-desktop="lxqt"] .window-controls button {
+  width: 28px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+}
+:root[data-desktop="cinnamon"] .window-controls button.close:hover,
+:root[data-desktop="xfce"] .window-controls button.close:hover,
+:root[data-desktop="mate"] .window-controls button.close:hover {
+  background: #d9534f;
+  color: #fff;
+}
+
+/* Tiling compositors (niri, Hyprland, Sway, i3…): no buttons, no drawn edge,
+ * a slimmer header; the compositor owns borders and gaps. */
+:root[data-tiling="true"] .app::after {
+  display: none;
+}
+:root[data-tiling="true"] .titlebar {
+  height: 36px;
+  min-height: 36px;
+}
+
+/* ───────── Progress window (IDM-style, one per download) ───────── */
+:root[data-window="progress"] body {
+  background: var(--bg-popover);
+  overflow: hidden;
+}
+:root[data-window="progress"] #root {
+  height: auto;
+}
+.pw {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-popover);
+}
+.pw-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 40px;
+  padding: 0 var(--space-2) 0 var(--space-4);
+  border-bottom: 1px solid var(--line);
+  user-select: none;
+}
+.pw-title {
+  flex: 1;
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-md);
+}
+.pw-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+.pw-facts {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 6px var(--space-3);
+  font-size: var(--text-sm);
+}
+.pw-facts > span:nth-child(odd) {
+  color: var(--fg-secondary);
+}
+.pw-map {
+  display: grid;
+  grid-auto-rows: 100%;
+  gap: 1px;
+  height: 14px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--track);
+}
+.pw-map > span {
+  background: var(--track);
+}
+.pw-map > span[data-have="true"] {
+  background: var(--progress);
+}
+.pw-conns {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 160px;
+  overflow: auto;
+  font-size: var(--text-xs);
+}
+.pw-actions {
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+/* Accent picker */
+.accent-swatches {
+  display: flex;
+  gap: 8px;
+}
+.accent-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+}
+.accent-swatch[aria-checked="true"] {
+  border-color: var(--bg-content);
+  box-shadow: 0 0 0 2px var(--fg-primary);
+}
+.accent-swatch:focus-visible {
+  outline: 2px solid var(--line-focus);
+  outline-offset: 2px;
+}

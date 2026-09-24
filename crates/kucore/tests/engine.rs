@@ -106,6 +106,8 @@ async fn open_core(data_dir: &std::path::Path, dl_dir: &std::path::Path) -> Arc<
     let db = Db::open(&data_dir.join("kudownloader.db")).unwrap();
     let core = Core::open(db).unwrap();
     let mut s = core.settings();
+    // This suite exercises aria2; KuHTTP has its own (tests/kuhttp.rs).
+    s.http_engine = "aria2".into();
     s.download_dir = dl_dir.to_string_lossy().into_owned();
     s.use_categories = false;
     s.auto_retry = 0;

@@ -3,7 +3,8 @@
   "bundle": {
     "targets": [
       "deb",
-      "rpm"
+      "rpm",
+      "appimage"
     ],
     "externalBin": [
       "binaries/ku-native-host",
@@ -17,16 +18,22 @@
     "linux": {
       "deb": {
         "depends": [
-          "aria2",
-          "ffmpeg",
-          "yt-dlp"
+          "libwebkit2gtk-4.1-0",
+          "libgtk-3-0",
+          "aria2"
+        ],
+        "recommends": [
+          "ffmpeg"
         ]
       },
       "rpm": {
         "depends": [
-          "aria2",
-          "ffmpeg",
-          "yt-dlp"
+          "webkit2gtk4.1",
+          "gtk3",
+          "aria2"
+        ],
+        "recommends": [
+          "ffmpeg"
         ]
       }
     }

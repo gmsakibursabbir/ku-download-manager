@@ -26,11 +26,16 @@ percent-encoding = "2"
 blake3 = "1"
 httpdate = "1"
 fs4 = "1"
+zip = { version = "4", default-features = false, features = ["deflate"] }
 futures-util = { version = "0.3", optional = true }
 
 [features]
 # Exposes the fault-injecting HTTP test server used by tests and benchmarks.
 testing = ["dep:futures-util"]
+
+[target.'cfg(target_os = "linux")'.dependencies]
+tar = "0.4"
+xz2 = { version = "0.1", features = ["static"] }
 
 [target.'cfg(windows)'.dependencies]
 winreg = "0.55"

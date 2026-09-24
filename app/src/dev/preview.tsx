@@ -20,7 +20,7 @@ function dl(i: number, p: Partial<Download>): Download {
     url: `https://releases.example.org/files/${p.name ?? "file"}`,
     mirrors: [],
     name: "file.bin",
-    dir: "C:\\Users\\sk\\Downloads",
+    dir: "C:\\Users\\you\\Downloads",
     filePath: null,
     status: "downloading",
     total: 0,
@@ -55,7 +55,7 @@ const base: Download[] = [
   dl(8, { name: "dataset-2026-q3.tar.gz", category: "archives", status: "queued", queueId: "main", total: 12 * 1024 * MB }),
   dl(9, { name: "report-final-v3.pdf", category: "documents", status: "error", total: 2 * MB, done: 0, error: "The server refused access (HTTP 403). The link may have expired or require browser cookies." }),
   dl(10, { name: "Big Buck Bunny.mp4", engine: "ytdlp", kind: "media", category: "video", status: "processing", total: 158 * MB, done: 158 * MB }),
-  dl(11, { name: "nature-4k-60fps.mp4", category: "video", status: "completed", total: 1.2 * 1024 * MB, done: 1.2 * 1024 * MB, completedAt: now - 3600_000, filePath: "C:\\Users\\sk\\Downloads\\Video\\nature-4k-60fps.mp4" }),
+  dl(11, { name: "nature-4k-60fps.mp4", category: "video", status: "completed", total: 1.2 * 1024 * MB, done: 1.2 * 1024 * MB, completedAt: now - 3600_000, filePath: "C:\\Users\\you\\Downloads\\Video\\nature-4k-60fps.mp4" }),
   dl(12, { name: "debian-12.7.0-amd64-netinst.iso", kind: "torrent", category: "torrents", status: "seeding", total: 631 * MB, done: 631 * MB, uploaded: 820 * MB, uploadSpeed: 1.2 * MB, completedAt: now - 7200_000 }),
   dl(13, { name: "Album – Live at the Hall.flac", category: "music", status: "completed", total: 412 * MB, done: 412 * MB, completedAt: now - 86400_000 * 2 }),
   dl(14, { name: "tiny.txt", category: "documents", status: "completed", total: 312, done: 312, completedAt: now - 60_000 }),
@@ -72,6 +72,9 @@ for (let i = base.length + 1; i <= count; i++) {
 const settings: Settings = {
   theme: (params.get("theme") as Settings["theme"]) ?? "dark",
   compact: params.get("compact") === "1",
+  accent: params.get("accent") ?? "blue",
+  darkPalette: params.get("palette") ?? "default",
+  language: params.get("lang") ?? "en",
   translucent: false,
   startWithOs: false,
   minimizeToTray: true,
@@ -80,7 +83,8 @@ const settings: Settings = {
   notifyComplete: true,
   notifyError: true,
   notifyQueueDone: true,
-  downloadDir: "C:\\Users\\sk\\Downloads",
+  showProgressWindow: true,
+  downloadDir: "C:\\Users\\you\\Downloads",
   useCategories: true,
   categories: [
     { id: "archives", name: "Archives", folder: "Archives", extensions: ["zip", "rar", "7z"] },
@@ -94,6 +98,11 @@ const settings: Settings = {
   maxConcurrent: 4,
   defaultConnections: 0,
   fileExists: "rename",
+  virusScan: "off",
+  virusScanner: "",
+  virusScannerArgs: '"{file}"',
+  cookiesFile: "",
+  cookiesFromBrowser: "",
   proxy: "",
   proxyUser: "",
   proxyPass: "",
@@ -120,7 +129,7 @@ const settings: Settings = {
   hoverButton: true,
   mediaDetection: true,
   adapters: ["youtube", "vimeo", "generic"],
-  videoDir: "C:\\Users\\sk\\Downloads\\Video",
+  videoDir: "C:\\Users\\you\\Downloads\\Video",
   videoHeight: 1080,
   videoContainer: "mp4",
   audioFormat: "mp3",
@@ -143,7 +152,7 @@ const settings: Settings = {
 
 const MOCK_BROWSERS = [
   { id: "google-chrome", name: "Google Chrome", family: "chromium", path: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", extensionsUrl: "chrome://extensions/", key: "Software\\Google\\Chrome\\NativeMessagingHosts" },
-  { id: "helium", name: "Helium", family: "chromium", path: "C:\\Users\\sk\\AppData\\Local\\imput\\Helium\\Application\\chrome.exe", extensionsUrl: "chrome://extensions/", key: "Software\\imput\\Helium\\NativeMessagingHosts" },
+  { id: "helium", name: "Helium", family: "chromium", path: "C:\\Users\\you\\AppData\\Local\\imput\\Helium\\Application\\chrome.exe", extensionsUrl: "chrome://extensions/", key: "Software\\imput\\Helium\\NativeMessagingHosts" },
   { id: "microsoft-edge", name: "Microsoft Edge", family: "chromium", path: "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe", extensionsUrl: "edge://extensions/", key: "Software\\Microsoft\\Edge\\NativeMessagingHosts" },
   { id: "zen", name: "Zen", family: "firefox", path: "C:\\Program Files\\Zen Browser\\zen.exe", extensionsUrl: "about:addons", key: "Software\\Mozilla\\NativeMessagingHosts" },
 ];
@@ -162,7 +171,7 @@ mockIPC(
         Object.assign(settings, (args as { settings: Settings }).settings);
         return settings;
       case "list_queues":
-        return [{ id: "main", name: "Main queue", maxConcurrent: 2, position: 0, running: false, after: "none" }];
+        return [{ id: "main", name: "Main queue", maxConcurrent: 2, position: 0, running: false, after: "none", syncMinutes: 0, lastSync: 0 }];
       case "list_schedules":
         return [{ id: "s1", name: "Night downloads", enabled: true, queueId: "main", start: "02:00", stop: "07:00", days: [], date: null, profile: "background", after: "sleep" }];
       case "get_details":
@@ -179,7 +188,7 @@ mockIPC(
       case "stats":
         return {};
       case "app_info":
-        return { version: "0.1.0", dataDir: "C:\\Users\\sk\\AppData\\Roaming\\KuDownloader", apiPort: 64669, platform: "windows", defaultDownloadDir: "C:\\Users\\sk\\Downloads" };
+        return { version: "0.1.0", dataDir: "C:\\Users\\you\\AppData\\Roaming\\KuDownloader", apiPort: 64669, platform: "windows", defaultDownloadDir: "C:\\Users\\you\\Downloads" };
       case "native_host_status":
         return {
           hostPath: "C:\\Program Files\\KuDownloader\\ku-native-host.exe",
@@ -190,6 +199,25 @@ mockIPC(
         };
       case "detect_browsers":
         return MOCK_BROWSERS.map(({ key: _k, ...b }) => b);
+      case "check_duplicate": {
+        const u = (args as { url: string }).url;
+        const existing = list.find((d) => d.url === u) ?? null;
+        return { existing, existingFileExists: existing?.status === "completed", fileExists: false, path: null, policy: "rename" };
+      }
+      case "redownload":
+        return null;
+      case "get_download":
+        return list.find((d) => d.id === (args as { id: string }).id) ?? null;
+      case "platform_info": {
+        const os = params.get("os") ?? "windows";
+        const desktop = params.get("desktop") ?? "";
+        const tiling = ["niri", "hyprland", "sway", "i3"].includes(desktop);
+        const layouts: Record<string, [string[], string[]]> = { gnome: [[], ["close"]], pantheon: [["close"], ["maximize"]] };
+        const [left, right] = os === "macos" || tiling ? [[], []] : (layouts[desktop] ?? [[], ["minimize", "maximize", "close"]]);
+        return { os, desktop, tiling, left, right };
+      }
+      case "install_tool":
+        return "installed";
       case "get_prompt":
         return { url: "https://download.example.org/releases/KuSetup-2.4.1-x64.exe", source: "browser", sizeHint: 88 * MB, options: { headers: [], cookies: [{ name: "s", value: "1", domain: "example.org" }], referer: "https://example.org/download" } };
       case "extension_last_seen":
