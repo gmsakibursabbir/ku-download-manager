@@ -6,7 +6,7 @@ pkgrel=1
 pkgdesc="Fast download manager with browser integration (aria2, yt-dlp)"
 arch=('x86_64')
 url="https://github.com/gmsakibursabbir/ku-download-manager"
-license=('LicenseRef-KuDownloader')
+license=('MIT')
 depends=('webkit2gtk-4.1' 'gtk3' 'libayatana-appindicator' 'aria2' 'hicolor-icon-theme')
 # yt-dlp and ffmpeg: from the repos if present, otherwise KuDownloader downloads them on demand.
 optdepends=('ffmpeg: merge video and audio (otherwise downloaded on demand)' 'yt-dlp: media downloads (otherwise downloaded on demand)')

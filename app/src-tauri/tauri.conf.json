@@ -33,13 +33,24 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis", "deb", "appimage", "rpm"],
+    "targets": [
+      "nsis",
+      "deb",
+      "appimage",
+      "rpm"
+    ],
     "category": "Utility",
     "shortDescription": "Lightweight native download manager",
     "longDescription": "KuDownloader is a fast download manager powered by aria2 and yt-dlp with browser integration, queues, scheduling and torrents.",
     "copyright": "© KUDUY",
     "publisher": "KUDUY",
-    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
     "createUpdaterArtifacts": true,
     "windows": {
       "nsis": {
@@ -49,14 +60,24 @@
       }
     },
     "linux": {
-      "deb": { "depends": ["libwebkit2gtk-4.1-0", "libgtk-3-0"] }
-    }
+      "deb": {
+        "depends": [
+          "libwebkit2gtk-4.1-0",
+          "libgtk-3-0"
+        ]
+      }
+    },
+    "license": "MIT"
   },
   "plugins": {
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDhCQkU4QkJCODMxNDQ4NkMKUldSc1NCU0R1NHUraTBwT2d1b2crNFNYSkVWd2xWcHNURERPNms5VU1nR0g0V0pvYlY2eDR3L1QK",
-      "endpoints": ["https://github.com/gmsakibursabbir/ku-download-manager/releases/latest/download/latest.json"],
-      "windows": { "installMode": "passive" }
+      "endpoints": [
+        "https://github.com/gmsakibursabbir/ku-download-manager/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
     }
   }
 }

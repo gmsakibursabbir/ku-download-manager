@@ -189,3 +189,7 @@ verification and atomic finalize. After passing all 32 failure-injection
 scenarios and the aria2 benchmarks it is the **default HTTP/HTTPS engine for
 new installs** (aria2 remains selectable in Settings › Advanced › HTTP
 engine). Details and results: [`docs/kuhttp.md`](docs/kuhttp.md).
+
+## License
+
+MIT — see [LICENSE](LICENSE).
