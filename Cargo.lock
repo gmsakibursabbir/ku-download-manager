@@ -2431,7 +2431,7 @@ dependencies = [
 
 [[package]]
 name = "ku-cli"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "clap",
  "ku-proto",
@@ -2441,7 +2441,7 @@ dependencies = [
 
 [[package]]
 name = "ku-native-host"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "ku-proto",
  "serde",
@@ -2450,7 +2450,7 @@ dependencies = [
 
 [[package]]
 name = "ku-proto"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "dirs 6.0.0",
  "serde",
@@ -2459,7 +2459,7 @@ dependencies = [
 
 [[package]]
 name = "kucore"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "anyhow",
  "axum",
@@ -2505,7 +2505,7 @@ dependencies = [
 
 [[package]]
 name = "kudownloader"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "anyhow",
  "arboard",
