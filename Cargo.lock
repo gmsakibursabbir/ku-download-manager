@@ -2421,7 +2421,7 @@ dependencies = [
 
 [[package]]
 name = "ku-cli"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "clap",
  "ku-proto",
@@ -2431,7 +2431,7 @@ dependencies = [
 
 [[package]]
 name = "ku-native-host"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "ku-proto",
  "serde",
@@ -2440,7 +2440,7 @@ dependencies = [
 
 [[package]]
 name = "ku-proto"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "dirs 6.0.0",
  "serde",
@@ -2449,7 +2449,7 @@ dependencies = [
 
 [[package]]
 name = "kucore"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "anyhow",
  "axum",
@@ -2486,7 +2486,7 @@ dependencies = [
 
 [[package]]
 name = "kudownloader"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "anyhow",
  "arboard",
@@ -2494,6 +2494,7 @@ dependencies = [
  "clipboard-master",
  "ku-proto",
  "kucore",
+ "reqwest 0.12.28",
  "serde",
  "serde_json",
  "tauri",
