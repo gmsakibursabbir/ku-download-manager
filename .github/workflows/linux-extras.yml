@@ -1,0 +1,92 @@
+name: Linux extras (Arch, Flatpak)
+
+# Builds the Arch package and the Flatpak from a release's x86_64 .deb and
+# attaches them to that release. Called by CI after the release builds, or
+# run by hand for an existing tag (Actions › Linux extras › Run workflow).
+on:
+  workflow_call:
+    inputs:
+      tag: { type: string, required: true }
+  workflow_dispatch:
+    inputs:
+      tag: { description: "Release tag, e.g. v0.2.0", required: true }
+
+permissions:
+  contents: write
+
+jobs:
+  deb:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch the .deb from the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download "${{ inputs.tag }}" --repo "${{ github.repository }}" --pattern "*_amd64.deb" --dir pkg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb-${{ inputs.tag }}
+          path: pkg/*.deb
+          if-no-files-found: error
+
+  arch:
+    needs: deb
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ inputs.tag }}" }
+      - uses: actions/download-artifact@v4
+        with: { name: "deb-${{ inputs.tag }}", path: pkg }
+      - name: Build the pacman package
+        run: |
+          pacman -Syu --noconfirm github-cli
+          useradd -m builder
+          mv pkg/*.deb pkg/kudownloader.deb
+          cp packaging/arch/PKGBUILD pkg/
+          ver=$(sed -n 's/^  "version": *"\([^"]*\)".*/\1/p' app/src-tauri/tauri.conf.json | head -1)
+          sed -i "s/^pkgver=.*/pkgver=${ver//-/_}/" pkg/PKGBUILD
+          chown -R builder pkg
+          su builder -c "cd pkg && makepkg --nodeps --noconfirm"
+      - name: Attach to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ inputs.tag }}" pkg/*.pkg.tar.zst --clobber --repo "${{ github.repository }}"
+
+  flatpak:
+    needs: deb
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-48
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ inputs.tag }}" }
+      - uses: actions/download-artifact@v4
+        with: { name: "deb-${{ inputs.tag }}", path: pkg }
+      - name: Prepare sources
+        run: |
+          cp pkg/*.deb packaging/flatpak/kudownloader.deb
+          git clone --depth 1 https://github.com/flathub/shared-modules packaging/flatpak/shared-modules
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: KuDownloader_x86_64.flatpak
+          manifest-path: packaging/flatpak/digital.kuduy.kudownloader.yml
+          cache-key: flatpak-${{ inputs.tag }}
+          upload-artifact: true
+
+  attach-flatpak:
+    needs: flatpak
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: "*flatpak*"
+          path: fp
+          merge-multiple: true
+      - name: Attach to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          f=$(find fp -name '*.flatpak' | head -1)
+          cp "$f" KuDownloader_x86_64.flatpak
+          gh release upload "${{ inputs.tag }}" KuDownloader_x86_64.flatpak --clobber --repo "${{ github.repository }}"
