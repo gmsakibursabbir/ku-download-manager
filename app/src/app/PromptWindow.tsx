@@ -14,10 +14,11 @@ import { AppContext, type AppApi } from "./context";
 export function PromptWindow({ id }: { id: string }) {
   const [request, setRequest] = useState<AddRequest | null>(null);
   const settings = settingsStore.use();
-  const win = getCurrentWindow();
+  // One handle for the window's lifetime (getCurrentWindow() returns a new object each call).
+  const win = useMemo(() => getCurrentWindow(), []);
 
   useEffect(() => {
-    void invoke<AddRequest | null>("take_prompt", { id }).then((r) => (r ? setRequest(r) : void win.close()));
+    void invoke<AddRequest | null>("get_prompt", { id }).then((r) => (r ? setRequest(r) : void win.close()));
   }, [id, win]);
 
   // Theme only; the popup has no density or material choices.

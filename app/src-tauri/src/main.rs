@@ -66,6 +66,16 @@ fn open_prompt_window(app: &AppHandle, request: AddRequest) {
         .visible(false)
         .background_color(bg.into())
         .build();
+    // Several at once: cascade instead of stacking exactly on top of each other.
+    if let Ok(w) = &built {
+        let others = app.webview_windows().keys().filter(|l| l.starts_with("prompt-")).count().saturating_sub(1);
+        if others > 0 {
+            if let Ok(p) = w.outer_position() {
+                let step = (28.0 * w.scale_factor().unwrap_or(1.0)) as i32 * others.min(8) as i32;
+                let _ = w.set_position(tauri::PhysicalPosition::new(p.x + step, p.y + step));
+            }
+        }
+    }
     if let Err(e) = built {
         // Fall back to the dialog inside the main window.
         tracing::warn!("prompt window: {e}");
@@ -223,6 +233,12 @@ fn main() {
             Ok(())
         })
         .on_window_event(|window, event| {
+            if let Some(id) = window.label().strip_prefix("prompt-") {
+                if let WindowEvent::Destroyed = event {
+                    window.state::<AppState>().prompts.lock().unwrap().remove(id);
+                }
+                return;
+            }
             if window.label() != "main" {
                 return;
             }

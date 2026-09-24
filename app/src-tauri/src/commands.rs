@@ -75,7 +75,7 @@ pub fn handler() -> impl Fn(tauri::ipc::Invoke) -> bool + Send + Sync + 'static 
         install_extension,
         extension_last_seen,
         quit_app,
-        take_prompt,
+        get_prompt,
         open_media_in_main,
     ]
 }
@@ -550,10 +550,11 @@ fn set_window_theme(app: AppHandle, dark: bool) {
     let _ = w.set_background_color(Some(bg.into()));
 }
 
-/// The request a "Download File" popup window was opened for (taken once).
+/// The request a "Download File" popup window was opened for. Kept until the
+/// window is destroyed, so a reload of the popup still finds it.
 #[tauri::command]
-fn take_prompt(state: State<'_, AppState>, id: String) -> Option<AddRequest> {
-    state.prompts.lock().unwrap().remove(&id)
+fn get_prompt(state: State<'_, AppState>, id: String) -> Option<AddRequest> {
+    state.prompts.lock().unwrap().get(&id).cloned()
 }
 
 /// From a popup: the link is a media page, continue in the main window's

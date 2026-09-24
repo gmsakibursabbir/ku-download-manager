@@ -190,7 +190,7 @@ mockIPC(
         };
       case "detect_browsers":
         return MOCK_BROWSERS.map(({ key: _k, ...b }) => b);
-      case "take_prompt":
+      case "get_prompt":
         return { url: "https://download.example.org/releases/KuSetup-2.4.1-x64.exe", source: "browser", sizeHint: 88 * MB, options: { headers: [], cookies: [{ name: "s", value: "1", domain: "example.org" }], referer: "https://example.org/download" } };
       case "extension_last_seen":
         return Date.now() - 60000;
