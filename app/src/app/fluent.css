@@ -1067,3 +1067,68 @@ body {
   gap: 3px;
   color: var(--success);
 }
+
+/* ───────── Progress window: resizable ───────── */
+/* Fills the window; the details scroll and the buttons stay pinned at the bottom. */
+:root[data-window="progress"] #root,
+:root[data-window="progress"] .pw {
+  height: 100vh;
+}
+.pw-head,
+.pw-actions {
+  flex-shrink: 0;
+}
+.pw-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+.pw-actions {
+  flex-wrap: wrap;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+}
+@media (max-width: 480px) {
+  .pw-facts {
+    grid-template-columns: 84px minmax(0, 1fr);
+  }
+  .pw-body {
+    padding: var(--space-3);
+  }
+  .pw-actions {
+    padding: var(--space-3);
+  }
+}
+@media (max-height: 300px) {
+  .pw-body {
+    gap: var(--space-2);
+    padding-block: var(--space-2);
+  }
+  .pw-facts {
+    gap: 3px var(--space-3);
+  }
+}
+
+/* ───────── Destructive actions: red with white text on hover ───────── */
+/* :root:root outranks the themed secondary-button hover rules. */
+:root:root .btn.is-danger:hover:not(:disabled),
+:root:root .icon-btn.is-danger:hover:not(:disabled),
+:root:root .btn-danger:hover:not(:disabled),
+:root:root .menu-item.is-danger:hover:not(:disabled),
+:root:root .menu-item.is-danger[data-active="true"] {
+  background: #c42b1c;
+  border-color: #c42b1c;
+  color: #fff;
+  filter: none;
+}
+:root:root .btn.is-danger:hover:not(:disabled) svg,
+:root:root .icon-btn.is-danger:hover:not(:disabled) svg,
+:root:root .menu-item.is-danger:hover:not(:disabled) > svg,
+:root:root .menu-item.is-danger[data-active="true"] > svg {
+  color: #fff;
+}
+:root:root .btn.is-danger:active:not(:disabled),
+:root:root .icon-btn.is-danger:active:not(:disabled),
+:root:root .btn-danger:active:not(:disabled) {
+  background: #a82417;
+}

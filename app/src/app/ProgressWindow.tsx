@@ -86,24 +86,26 @@ export function ProgressWindow({ id }: { id: string }) {
     };
   }, [id, live, more]);
 
-  // Size to content, then show.
+  // Fit the window to its content when it opens and when the content changes
+  // (details shown/hidden, finished, error). In between the user can resize
+  // freely: the details area scrolls and the buttons stay pinned at the bottom.
+  const [shown, setShown] = useState(false);
+  const finished = d?.status === "completed" || d?.status === "seeding";
+  const hasConns = (details?.segments?.length || details?.connections?.length || 0) > 0;
   useLayoutEffect(() => {
     if (!d) return;
     const el = document.querySelector<HTMLElement>(".pw");
-    if (!el) return;
-    let shown = false;
-    const fit = () =>
-      void win.setSize(new LogicalSize(window.innerWidth, Math.min(el.scrollHeight + 2, screen.availHeight - 80))).then(() => {
-        if (!shown) {
-          shown = true;
-          void win.show().then(() => win.setFocus());
-        }
-      });
-    const ro = new ResizeObserver(fit);
-    ro.observe(el);
-    fit();
-    return () => ro.disconnect();
-  }, [!!d, win]);
+    const body = el?.querySelector<HTMLElement>(".pw-body");
+    if (!el || !body) return;
+    const natural = el.offsetHeight - body.clientHeight + body.scrollHeight;
+    void win.setSize(new LogicalSize(window.innerWidth, Math.min(natural + 2, screen.availHeight - 80))).then(() => {
+      if (!shown) {
+        setShown(true);
+        void win.show().then(() => win.setFocus());
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!d, win, more, finished, !!error, hasConns]);
 
   if (!d) return null;
   const pct = fmt.percent(d.done, d.total);
@@ -212,7 +214,7 @@ export function ProgressWindow({ id }: { id: string }) {
               </Button>
             )}
             {/* Like IDM: Cancel stops the download and keeps it in the list (resumable); deleting is done from the list. */}
-            <Button title={t("Stops the download and keeps it in your list, so you can resume it later.")} onClick={() => act((live || d.status === "queued" ? api.pause([d.id]) : Promise.resolve()).then(() => win.close()))}>
+            <Button className="is-danger" title={t("Stops the download and keeps it in your list, so you can resume it later.")} onClick={() => act((live || d.status === "queued" ? api.pause([d.id]) : Promise.resolve()).then(() => win.close()))}>
               {t("Cancel download")}
             </Button>
             <Button onClick={() => void win.close()}>{t("Hide")}</Button>

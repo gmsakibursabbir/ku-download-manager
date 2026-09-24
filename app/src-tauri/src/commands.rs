@@ -418,6 +418,88 @@ struct UpdateInfo {
     current_version: String,
     notes: Option<String>,
     date: Option<String>,
+    /// Signed update feed: installs in place. Otherwise `url` is the release page.
+    signed: bool,
+    url: Option<String>,
+}
+
+const RELEASES_API: &str = "https://api.github.com/repos/gmsakibursabbir/ku-download-manager/releases/latest";
+
+/// "v0.2.10" → [0, 2, 10]; a pre-release suffix is ignored.
+fn version_parts(v: &str) -> Vec<u64> {
+    v.trim().trim_start_matches(['v', 'V']).split(['-', '+']).next().unwrap_or("").split('.').map(|p| p.parse().unwrap_or(0)).collect()
+}
+
+fn is_newer(candidate: &str, current: &str) -> bool {
+    let (mut a, mut b) = (version_parts(candidate), version_parts(current));
+    let n = a.len().max(b.len());
+    a.resize(n, 0);
+    b.resize(n, 0);
+    a > b
+}
+
+/// The latest GitHub release, used when the signed feed is unavailable
+/// (e.g. a release built without the updater key has no latest.json).
+async fn latest_release(current: &str) -> Result<Option<UpdateInfo>, String> {
+    #[derive(serde::Deserialize)]
+    struct Release {
+        tag_name: String,
+        html_url: String,
+        body: Option<String>,
+        published_at: Option<String>,
+        #[serde(default)]
+        draft: bool,
+        #[serde(default)]
+        prerelease: bool,
+    }
+    let client = reqwest::Client::builder()
+        .user_agent(concat!("KuDownloader/", env!("CARGO_PKG_VERSION")))
+        .timeout(std::time::Duration::from_secs(20))
+        .build()
+        .map_err(|err| err.to_string())?;
+    let r: Release = client
+        .get(RELEASES_API)
+        .header("Accept", "application/vnd.github+json")
+        .send()
+        .await
+        .and_then(|r| r.error_for_status())
+        .map_err(|err| format!("Could not check for updates: {err}"))?
+        .json()
+        .await
+        .map_err(|err| format!("Could not check for updates: {err}"))?;
+    if r.draft || r.prerelease || !is_newer(&r.tag_name, current) {
+        return Ok(None);
+    }
+    Ok(Some(UpdateInfo {
+        version: r.tag_name.trim_start_matches(['v', 'V']).to_string(),
+        current_version: current.to_string(),
+        notes: r.body,
+        date: r.published_at,
+        signed: false,
+        url: Some(r.html_url),
+    }))
+}
+
+/// Signed feed first; if it can't be read, fall back to the GitHub release list.
+async fn available_update(app: &AppHandle, state: &AppState) -> R<Option<UpdateInfo>> {
+    let current = app.package_info().version.to_string();
+    match find_update(app, state).await {
+        Ok(Some(u)) => Ok(Some(UpdateInfo {
+            version: u.version.clone(),
+            current_version: u.current_version.clone(),
+            notes: u.body.clone(),
+            date: u.date.map(|d| d.to_string()),
+            signed: true,
+            url: None,
+        })),
+        Ok(None) => Ok(None),
+        // A custom feed is authoritative; only the official one falls back.
+        Err(err) if !state.core.settings().update_endpoint.trim().is_empty() => Err(err),
+        Err(err) => latest_release(&current).await.map_err(|fallback| {
+            tracing::warn!("signed update feed: {err}; GitHub: {fallback}");
+            fallback
+        }),
+    }
 }
 
 async fn find_update(app: &AppHandle, state: &AppState) -> R<Option<tauri_plugin_updater::Update>> {
@@ -433,17 +515,17 @@ async fn find_update(app: &AppHandle, state: &AppState) -> R<Option<tauri_plugin
 
 #[tauri::command]
 async fn check_update(app: AppHandle, state: State<'_, AppState>) -> R<Option<UpdateInfo>> {
-    Ok(find_update(&app, &state).await?.map(|u| UpdateInfo {
-        version: u.version.clone(),
-        current_version: u.current_version.clone(),
-        notes: u.body.clone(),
-        date: u.date.map(|d| d.to_string()),
-    }))
+    available_update(&app, &state).await
 }
 
 #[tauri::command]
 async fn install_update(app: AppHandle, state: State<'_, AppState>) -> R<()> {
-    let u = find_update(&app, &state).await?.ok_or("KuDownloader is up to date.")?;
+    let Ok(Some(u)) = find_update(&app, &state).await else {
+        // No signed package: open the release page so the installer can be downloaded.
+        let info = available_update(&app, &state).await?.ok_or("KuDownloader is up to date.")?;
+        let url = info.url.ok_or("KuDownloader is up to date.")?;
+        return app.opener().open_url(url, None::<&str>).map_err(e);
+    };
     u.download_and_install(|_, _| {}, || {}).await.map_err(|err| format!("Update failed: {err}"))?;
     state.core.shutdown().await;
     app.restart();
@@ -620,4 +702,19 @@ async fn redownload(state: State<'_, AppState>, ids: Vec<String>) -> R<()> {
 #[tauri::command]
 fn tool_jobs(state: State<'_, AppState>) -> Vec<String> {
     state.core.tool_jobs()
+}
+
+#[cfg(test)]
+mod update_tests {
+    use super::is_newer;
+
+    #[test]
+    fn compares_release_tags_numerically() {
+        assert!(is_newer("v0.2.3", "0.2.2"));
+        assert!(is_newer("v0.10.0", "0.9.9"));
+        assert!(is_newer("1.0", "0.9.12"));
+        assert!(!is_newer("v0.2.2", "0.2.2"));
+        assert!(!is_newer("v0.2.1", "0.2.2"));
+        assert!(!is_newer("v0.2.2-beta.1", "0.2.2"));
+    }
 }

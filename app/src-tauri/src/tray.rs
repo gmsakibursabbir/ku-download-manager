@@ -14,7 +14,7 @@ pub fn create(app: &AppHandle) -> tauri::Result<()> {
         app,
         &[&show, &PredefinedMenuItem::separator(app)?, &pause, &resume, &PredefinedMenuItem::separator(app)?, &quit],
     )?;
-    let icon = tauri::image::Image::from_bytes(include_bytes!("../icons/32x32.png"))?;
+    let icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray.png"))?;
     TrayIconBuilder::with_id(TRAY_ID)
         .icon(icon)
         .tooltip("KuDownloader")

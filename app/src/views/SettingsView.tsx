@@ -55,6 +55,7 @@ function Updates() {
     setState((s) => ({ ...s, busy: true }));
     try {
       await api.installUpdate();
+      setState((s) => ({ ...s, busy: false }));
     } catch (e) {
       setState({ busy: false, error: errorText(e) });
     }
@@ -64,7 +65,7 @@ function Updates() {
     <PrefRow label={t("Updates")} desc={desc}>
       {state.info ? (
         <Button size="sm" variant="primary" icon={DownloadIcon} busy={state.busy} onClick={() => void install()}>
-          Install and restart
+          {state.info.signed ? "Install and restart" : "Download update"}
         </Button>
       ) : (
         <Button size="sm" icon={RefreshCw} busy={state.busy} onClick={() => void check()}>
@@ -112,7 +113,7 @@ function Categories() {
                   />
                 </td>
                 <td>
-                  <IconButton icon={Trash2} label={`Delete ${c.name}`} size="sm" disabled={c.id === "torrents" || c.id === "video" || c.id === "music"} onClick={() => commit(draft.filter((_, j) => j !== i))} />
+                  <IconButton icon={Trash2} className="is-danger" label={`Delete ${c.name}`} size="sm" disabled={c.id === "torrents" || c.id === "video" || c.id === "music"} onClick={() => commit(draft.filter((_, j) => j !== i))} />
                 </td>
               </tr>
             ))}
@@ -169,7 +170,7 @@ function Profiles() {
                 </td>
                 <td>{s.activeProfile === p.id ? <span className="chip chip-accent">Active</span> : <Button size="sm" variant="ghost" onClick={() => void api.setProfile(p.id).then(() => settingsStore.refresh())}>Use</Button>}</td>
                 <td>
-                  <IconButton icon={Trash2} label={`Delete ${p.name}`} size="sm" disabled={draft.length <= 1 || s.activeProfile === p.id} onClick={() => void save({ profiles: draft.filter((_, j) => j !== i) })} />
+                  <IconButton icon={Trash2} className="is-danger" label={`Delete ${p.name}`} size="sm" disabled={draft.length <= 1 || s.activeProfile === p.id} onClick={() => void save({ profiles: draft.filter((_, j) => j !== i) })} />
                 </td>
               </tr>
             ))}

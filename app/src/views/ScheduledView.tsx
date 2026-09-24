@@ -180,6 +180,7 @@ export function ScheduledView() {
                   <IconButton icon={Pencil} label="Edit" size="sm" onClick={() => setEditing(s)} />
                   <IconButton
                     icon={Trash2}
+                    className="is-danger"
                     label="Delete"
                     size="sm"
                     onClick={() =>

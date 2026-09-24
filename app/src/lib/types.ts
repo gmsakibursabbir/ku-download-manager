@@ -403,4 +403,7 @@ export interface UpdateInfo {
   currentVersion: string;
   notes?: string | null;
   date?: string | null;
+  /** Signed package: installs in place. Otherwise `url` is the release page to download from. */
+  signed: boolean;
+  url?: string | null;
 }

@@ -353,7 +353,7 @@ export function Inspector({ id, onClose, onVerify }: { id: string; onClose: () =
               Resume
             </Button>
           )}
-          <IconButton icon={Trash2} label="Remove…" size="sm" onClick={() => confirmRemove([d.id])} />
+          <IconButton icon={Trash2} className="is-danger" label="Remove…" size="sm" onClick={() => confirmRemove([d.id])} />
         </div>
 
         <dl className="facts">

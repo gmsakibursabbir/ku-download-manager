@@ -54,6 +54,31 @@ function useTheme(setMaterial: (m: string) => void) {
   }, [s?.theme, s?.compact, s?.accent, s?.darkPalette, s?.language, setMaterial]);
 }
 
+/** Once per launch, shortly after startup: a toast when a newer release exists. */
+function useUpdateCheck(enabled: boolean | undefined) {
+  useEffect(() => {
+    if (!enabled) return;
+    const timer = setTimeout(async () => {
+      const info = await api.checkUpdate().catch(() => null);
+      if (!info) return;
+      toast({
+        level: "info",
+        title: `KuDownloader ${info.version} is available`,
+        message: `You have ${info.currentVersion}.`,
+        timeout: 0,
+        actions: [
+          {
+            label: info.signed ? "Install and restart" : "Download",
+            primary: true,
+            onClick: () => void api.installUpdate().catch((e) => toast({ level: "error", title: "Update failed", message: String(e) })),
+          },
+        ],
+      });
+    }, 8000);
+    return () => clearTimeout(timer);
+  }, [enabled]);
+}
+
 function PowerBanner({ action, seconds, onDone }: { action: string; seconds: number; onDone: () => void }) {
   const [left, setLeft] = useState(seconds);
   useEffect(() => {
@@ -109,6 +134,7 @@ export default function App() {
     return () => window.removeEventListener("ku:welcome", open);
   }, []);
   useTheme(setMaterial);
+  useUpdateCheck(settingsNow?.checkUpdates);
 
   const navigate = useCallback((v: View) => {
     setView(v);
