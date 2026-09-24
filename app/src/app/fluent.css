@@ -1021,3 +1021,36 @@ body {
 :root[dir="rtl"] .tool-panel-text {
   unicode-bidi: plaintext;
 }
+
+/* Button hover/press, both themes. The dark-theme background rule is more
+ * specific than a plain .btn-secondary:hover, so hover must be at least as
+ * specific — otherwise dark-mode secondary buttons never react. */
+.btn {
+  transition: background-color var(--dur-fast, 120ms) ease, border-color var(--dur-fast, 120ms) ease, color var(--dur-fast, 120ms) ease, transform 80ms ease;
+}
+:root .btn-secondary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--bg-content) 92%, var(--fg-primary));
+  border-color: color-mix(in srgb, var(--line-strong) 60%, var(--fg-primary));
+}
+:root[data-theme="dark"] .btn-secondary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--bg-raised) 86%, #ffffff);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+:root .btn-secondary:active:not(:disabled),
+:root .btn-primary:active:not(:disabled) {
+  transform: translateY(1px);
+}
+:root[data-theme="dark"] .btn-secondary:active:not(:disabled) {
+  background: color-mix(in srgb, var(--bg-raised) 92%, #ffffff);
+}
+.btn:focus-visible {
+  outline: 2px solid var(--line-focus);
+  outline-offset: 2px;
+}
+/* Progress window: buttons need a base that stands out from the window. */
+:root[data-theme="dark"] .pw-actions .btn-secondary {
+  background: color-mix(in srgb, var(--bg-popover) 90%, #ffffff);
+}
+:root[data-theme="dark"] .pw-actions .btn-secondary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--bg-popover) 80%, #ffffff);
+}

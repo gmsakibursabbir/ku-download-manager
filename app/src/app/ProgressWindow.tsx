@@ -211,7 +211,10 @@ export function ProgressWindow({ id }: { id: string }) {
                 {d.status === "error" ? "Retry" : "Resume"}
               </Button>
             )}
-            <Button onClick={() => act(api.pause([d.id]).then(() => api.remove([d.id], true)).then(() => win.close()))}>{t("Cancel download")}</Button>
+            {/* Like IDM: Cancel stops the download and keeps it in the list (resumable); deleting is done from the list. */}
+            <Button title={t("Stops the download and keeps it in your list, so you can resume it later.")} onClick={() => act((live || d.status === "queued" ? api.pause([d.id]) : Promise.resolve()).then(() => win.close()))}>
+              {t("Cancel download")}
+            </Button>
             <Button onClick={() => void win.close()}>{t("Hide")}</Button>
           </>
         )}
