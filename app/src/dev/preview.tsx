@@ -217,8 +217,22 @@ mockIPC(
         const [left, right] = os === "macos" || tiling ? [[], []] : (layouts[desktop] ?? [[], ["minimize", "maximize", "close"]]);
         return { os, desktop, tiling, left, right };
       }
-      case "install_tool":
-        return "installed";
+      case "install_tool": {
+        // Simulated download: ~6 s of progress, then done.
+        const tool = (args as { name: string }).name;
+        const total = tool === "ffmpeg" ? 82 * MB : 17 * MB;
+        return (async () => {
+          const { emit } = await import("@tauri-apps/api/event");
+          for (let i = 1; i <= 24; i++) {
+            await new Promise((r) => setTimeout(r, 250));
+            await emit("ku", { type: "toolProgress", tool, done: Math.round((total * i) / 24), total });
+          }
+          await emit("ku", { type: "toolDone", tool, ok: true, message: "" });
+          return "installed";
+        })();
+      }
+      case "tool_jobs":
+        return [];
       case "get_prompt":
         return { url: "https://download.example.org/releases/KuSetup-2.4.1-x64.exe", source: "browser", sizeHint: 88 * MB, options: { headers: [], cookies: [{ name: "s", value: "1", domain: "example.org" }], referer: "https://example.org/download" } };
       case "extension_last_seen":

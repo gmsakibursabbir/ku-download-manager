@@ -68,6 +68,8 @@ pub struct Core {
     aria_start: tokio::sync::Mutex<()>,
     events: broadcast::Sender<CoreEvent>,
     wake: Notify,
+    /// On-demand tool downloads in flight (one per tool).
+    tool_jobs: Mutex<std::collections::HashSet<String>>,
     yt: Mutex<HashMap<String, oneshot::Sender<()>>>,
     logs: Mutex<HashMap<String, VecDeque<LogLine>>>,
     power: Mutex<Option<oneshot::Sender<()>>>,
@@ -92,6 +94,7 @@ impl Core {
             aria_start: tokio::sync::Mutex::new(()),
             events,
             wake: Notify::new(),
+            tool_jobs: Mutex::new(std::collections::HashSet::new()),
             yt: Mutex::new(HashMap::new()),
             logs: Mutex::new(HashMap::new()),
             power: Mutex::new(None),
@@ -2238,6 +2241,27 @@ impl Core {
     /// (checksum-verified). Progress arrives as `ToolProgress` events.
     pub async fn install_tool(&self, name: &str) -> Result<String> {
         let tool = crate::tools::Tool::parse(name).ok_or_else(|| anyhow!("Unknown tool: {name}"))?;
+        // One download per tool: a second request (another screen, a double
+        // click) must not write the same files concurrently.
+        if !lock(&self.tool_jobs).insert(tool.name().to_string()) {
+            bail!("{} is already being downloaded.", tool.name());
+        }
+        let r = self.install_tool_inner(tool).await;
+        lock(&self.tool_jobs).remove(tool.name());
+        let (ok, message) = match &r {
+            Ok(p) => (true, p.clone()),
+            Err(e) => (false, format!("{e:#}")),
+        };
+        self.emit(CoreEvent::ToolDone { tool: tool.name().into(), ok, message });
+        r
+    }
+
+    /// Tools currently downloading (for a window that opens mid-download).
+    pub fn tool_jobs(&self) -> Vec<String> {
+        lock(&self.tool_jobs).iter().cloned().collect()
+    }
+
+    async fn install_tool_inner(&self, tool: crate::tools::Tool) -> Result<String> {
         let s = self.settings();
         let mut b = reqwest::Client::builder().connect_timeout(Duration::from_secs(15)).redirect(reqwest::redirect::Policy::limited(10));
         if !s.proxy.trim().is_empty() {

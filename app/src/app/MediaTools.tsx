@@ -1,51 +1,51 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Download as DownloadIcon } from "lucide-react";
-import { api, errorText } from "../lib/api";
-import { onCoreEvent } from "../lib/store";
+import { installTools, jobLabel, useToolJobs, type ToolName } from "../lib/tools";
 import type { EngineInfo } from "../lib/types";
 import * as fmt from "../lib/format";
-import { Button, Notice } from "../ui/primitives";
-import { toast } from "../ui/overlays";
+import { Button, Icon, Notice } from "../ui/primitives";
 
-export type ToolName = "yt-dlp" | "ffmpeg";
-type Progress = Partial<Record<ToolName, { done: number; total: number }>>;
+export type { ToolName };
 
-/** Shared state for on-demand tool installs (yt-dlp, ffmpeg) with live progress. */
+/** Tool installs, backed by the app-wide store (they survive switching screens). */
 export function useToolInstaller(onDone?: () => void) {
-  const [busy, setBusy] = useState<ToolName | null>(null);
-  const [progress, setProgress] = useState<Progress>({});
-  useEffect(
-    () =>
-      onCoreEvent((e) => {
-        if (e.type === "toolProgress") setProgress((p) => ({ ...p, [e.tool]: { done: e.done, total: e.total } }));
-      }),
-    [],
-  );
+  const jobs = useToolJobs();
+  // Refresh when any tool download ends, including ones started on another screen.
+  const count = useRef(jobs.length);
+  useEffect(() => {
+    if (jobs.length < count.current) onDone?.();
+    count.current = jobs.length;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobs.length]);
+  const busy = (jobs.find((j) => j.state === "downloading")?.tool ?? jobs[0]?.tool ?? null) as ToolName | null;
   const install = async (tools: ToolName[]) => {
-    for (const t of tools) {
-      setBusy(t);
-      try {
-        await api.installTool(t);
-      } catch (e) {
-        toast({ level: "error", title: `Could not download ${t === "ffmpeg" ? "FFmpeg" : "yt-dlp"}`, message: errorText(e) });
-        setBusy(null);
-        onDone?.();
-        return false;
-      }
-    }
-    setBusy(null);
-    setProgress({});
-    toast({ level: "success", title: tools.length > 1 ? "Media tools installed" : `${tools[0] === "ffmpeg" ? "FFmpeg" : "yt-dlp"} installed` });
-    onDone?.();
-    return true;
+    return installTools(tools);
   };
   const label = (t: ToolName) => {
-    const p = progress[t];
-    if (busy !== t) return null;
-    if (!p) return "Starting…";
-    return p.total ? `${fmt.bytes(p.done)} of ${fmt.bytes(p.total)}` : fmt.bytes(p.done);
+    const j = jobs.find((x) => x.tool === t);
+    return j ? jobLabel(j, fmt) : null;
   };
   return { busy, install, label };
+}
+
+/** Floating panel on every screen while yt-dlp / FFmpeg download. */
+export function ToolDownloadsPanel() {
+  const jobs = useToolJobs();
+  if (!jobs.length) return null;
+  return (
+    <div className="tool-panel" role="status" aria-live="polite">
+      {jobs.map((j) => (
+        <div key={j.tool} className="tool-panel-row">
+          <Icon icon={DownloadIcon} size={14} />
+          <span className="tool-panel-name">{j.tool === "ffmpeg" ? "FFmpeg" : "yt-dlp"}</span>
+          <span className="tool-panel-bar">
+            <span style={{ width: `${j.total ? Math.min(100, (j.done / j.total) * 100) : 0}%` }} data-indeterminate={!j.total || undefined} />
+          </span>
+          <span className="tool-panel-text num">{jobLabel(j, fmt)}</span>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 /**

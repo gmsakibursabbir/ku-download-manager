@@ -334,6 +334,7 @@ export type CoreEvent =
   | { type: "progress"; items: ProgressItem[]; downloadSpeed: number; uploadSpeed: number }
   | { type: "upsert"; download: Download }
   | { type: "toolProgress"; tool: string; done: number; total: number }
+  | { type: "toolDone"; tool: string; ok: boolean; message: string }
   | { type: "removed"; ids: string[] }
   | { type: "notice"; level: string; title: string; message: string; downloadId?: string | null }
   | { type: "completed"; id: string; name: string; path?: string | null }

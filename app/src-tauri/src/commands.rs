@@ -77,6 +77,7 @@ pub fn handler() -> impl Fn(tauri::ipc::Invoke) -> bool + Send + Sync + 'static 
         quit_app,
         get_prompt,
         install_tool,
+        tool_jobs,
         platform_info,
         open_progress_window,
         get_download,
@@ -613,4 +614,10 @@ fn check_duplicate(state: State<'_, AppState>, url: String, dir: Option<String>,
 #[tauri::command]
 async fn redownload(state: State<'_, AppState>, ids: Vec<String>) -> R<()> {
     state.core.redownload(&ids).await.map_err(e)
+}
+
+/// Tools downloading right now (a window opened mid-download shows them).
+#[tauri::command]
+fn tool_jobs(state: State<'_, AppState>) -> Vec<String> {
+    state.core.tool_jobs()
 }

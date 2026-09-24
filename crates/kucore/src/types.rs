@@ -121,6 +121,8 @@ pub enum CoreEvent {
     PowerCancelled,
     /// On-demand tool download (yt-dlp / ffmpeg); `total` 0 when unknown.
     ToolProgress { tool: String, done: u64, total: u64 },
+    /// An on-demand tool download finished (`ok`) or failed (`message`).
+    ToolDone { tool: String, ok: bool, message: String },
     Show,
     SettingsChanged,
     QueuesChanged,

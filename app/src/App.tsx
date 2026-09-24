@@ -8,6 +8,7 @@ import { AddDownloadDialog } from "./app/AddDownloadDialog";
 import { applyAppearance } from "./lib/appearance";
 import { syncLanguage } from "./lib/i18n";
 import { WelcomeGuide } from "./app/WelcomeGuide";
+import { ToolDownloadsPanel } from "./app/MediaTools";
 import { applyEvent, getDownload, onCoreEvent, settingsStore, startStore } from "./lib/store";
 import { api } from "./lib/api";
 import type { AddRequest, CoreEvent, GrabRequest, MediaRequest } from "./lib/types";
@@ -365,6 +366,7 @@ export default function App() {
       )}
       <MenuHost />
       {welcome && <WelcomeGuide onClose={() => setWelcome(false)} />}
+      <ToolDownloadsPanel />
       <ToastHost />
     </AppContext.Provider>
   );
