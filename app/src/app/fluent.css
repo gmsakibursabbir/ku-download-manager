@@ -1174,15 +1174,6 @@ body {
   .px-sprite, .px-eye, .air-rings > i { animation: none !important; }
 }
 
-.air-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-inline-start: var(--space-2);
-  font-size: var(--text-sm);
-  font-weight: var(--weight-medium);
-  white-space: nowrap;
-}
 .air-page {
   display: flex;
   flex-direction: column;
@@ -1418,19 +1409,6 @@ body {
   flex-wrap: wrap;
   gap: var(--space-2);
 }
-.air-animals button {
-  padding: 3px;
-  border: 2px solid transparent;
-  border-radius: 50%;
-  background: none;
-  cursor: pointer;
-}
-.air-animals button:hover {
-  border-color: var(--line-strong);
-}
-.air-animals button[aria-checked="true"] {
-  border-color: var(--accent);
-}
 
 /* Incoming offer / message */
 .air-offer {
@@ -1482,5 +1460,153 @@ body {
 
 @media (max-width: 640px) {
   .air-me, .air-peer { width: 104px; }
-  .air-toggle > span { display: none; }
+  .air-toggle-label { display: none; }
+}
+
+/* KuAirSend switch: a pill the height of the toolbar buttons. */
+.air-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  margin-inline-start: var(--space-2);
+  padding: 0 6px 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  background: var(--bg-raised);
+  color: var(--fg-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.air-toggle:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+.air-toggle:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.air-toggle:focus-visible {
+  outline: 2px solid var(--line-focus);
+  outline-offset: 2px;
+}
+.air-toggle[aria-checked="true"] {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line-strong));
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-raised));
+}
+.air-toggle-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--fg-tertiary, var(--fg-secondary));
+}
+.air-toggle[aria-checked="true"] .air-toggle-dot {
+  background: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+.air-toggle-state {
+  min-width: 22px;
+  color: var(--fg-secondary);
+  font-weight: var(--weight-semibold);
+}
+.air-toggle[aria-checked="true"] .air-toggle-state {
+  color: var(--accent-fg, var(--accent));
+}
+.air-toggle .switch {
+  width: 34px;
+  height: 20px;
+}
+.air-toggle .switch::after {
+  width: 16px;
+  height: 16px;
+}
+.air-toggle .switch[aria-checked="true"] {
+  background: var(--accent);
+}
+.air-toggle .switch[aria-checked="true"]::after {
+  transform: translateX(14px);
+}
+/* Off switches were almost invisible on dark surfaces. */
+:root[data-theme="dark"] .switch:not([aria-checked="true"]) {
+  background: rgba(255, 255, 255, 0.26);
+}
+
+/* Animal picker: perfectly round selection ring with a gap. */
+.air-animals button {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  line-height: 0;
+  cursor: pointer;
+  box-shadow: 0 0 0 2px transparent;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.air-animals button:hover {
+  box-shadow: 0 0 0 2px var(--line-strong);
+  transform: translateY(-1px);
+}
+.air-animals button[aria-checked="true"] {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.air-animals button:focus-visible {
+  outline: 2px solid var(--line-focus);
+  outline-offset: 3px;
+}
+
+/* System badge on a device's avatar. */
+.air-peer-ring {
+  position: relative;
+}
+.px-os {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--bg-raised);
+  box-shadow: 0 0 0 2px var(--bg-content);
+  color: var(--fg-primary);
+}
+.px-os svg {
+  width: 72%;
+  height: 72%;
+}
+
+/* Radar: the avatar itself sits on its point (the centre for you, the ring for
+   devices); the name hangs below instead of pulling the avatar up. */
+.air-me {
+  /* 76px avatar: half its height. */
+  transform: translate(-50%, -38px);
+}
+.air-peer {
+  /* 6px padding + 3px ring + half of the 60px avatar. */
+  transform: translate(-50%, -39px);
+}
+
+/* Destructive primary buttons (Remove, Delete): solid red with white text in
+   both themes. The dark theme's --danger is a light red meant for text, too
+   pale behind white. */
+:root .btn-danger {
+  background: #d13438;
+  border-color: #d13438;
+  color: #fff;
+}
+:root:root .btn-danger:hover:not(:disabled) {
+  background: #b82a2e;
+  border-color: #b82a2e;
+}
+:root:root .btn-danger:active:not(:disabled) {
+  background: #a02428;
+}
+.btn-danger:focus-visible {
+  outline: 2px solid #d13438;
+  outline-offset: 2px;
 }

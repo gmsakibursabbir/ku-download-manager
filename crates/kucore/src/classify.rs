@@ -178,7 +178,10 @@ pub fn sanitize_filename(name: &str) -> String {
         out.clear();
     }
     let stem = out.split('.').next().unwrap_or("").to_ascii_uppercase();
-    const RESERVED: &[&str] = &["CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "LPT1", "LPT2", "LPT3"];
+    const RESERVED: &[&str] = &[
+        "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7",
+        "LPT8", "LPT9",
+    ];
     if RESERVED.contains(&stem.as_str()) {
         out.insert(0, '_');
     }

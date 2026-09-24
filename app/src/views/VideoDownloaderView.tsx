@@ -1,3 +1,4 @@
+import { AUDIO_FORMATS } from "../app/prefs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { CircleAlert, Folder, Search, TriangleAlert, ListVideo, Radio as RadioIcon, X } from "lucide-react";
@@ -29,7 +30,7 @@ export function VideoDownloaderView() {
   const [height, setHeight] = useState<number | null>(null);
   const [bitrate, setBitrate] = useState<number>(settings?.audioBitrate ?? 320);
   const [container, setContainer] = useState(settings?.videoContainer ?? "mp4");
-  const [audioFormat, setAudioFormat] = useState(settings?.audioFormat ?? "mp3");
+  const [audioFormat, setAudioFormat] = useState(settings?.audioFormat ?? "m4a");
   const [subs, setSubs] = useState(settings?.subtitles ?? false);
   const [subLangs, setSubLangs] = useState<Set<string>>(new Set((settings?.subLangs ?? "en").split(/[,\s]+/).filter(Boolean)));
   const [embedThumb, setEmbedThumb] = useState(settings?.embedThumbnail ?? false);
@@ -316,7 +317,7 @@ export function VideoDownloaderView() {
                             <Radio name="a" checked={bitrate === a.bitrate} onChange={() => setBitrate(a.bitrate)} />
                           </td>
                           <td className="num">{a.bitrate} kbps</td>
-                          <td className="muted">{info.ffmpegAvailable ? audioFormat.toUpperCase() : `${a.ext.toUpperCase()} (original)`}</td>
+                          <td className="muted">{info.ffmpegAvailable && audioFormat !== "best" ? audioFormat.toUpperCase() : `${a.ext.toUpperCase()} (original)`}</td>
                           <td className="num muted" style={{ textAlign: "right" }}>
                             {a.size ? `≈ ${fmt.bytes(a.size)}` : "—"}
                           </td>
@@ -413,7 +414,7 @@ export function VideoDownloaderView() {
                 ) : (
                   <>
                     <label>Format</label>
-                    <Select value={audioFormat} onChange={(e) => setAudioFormat(e.target.value)} disabled={!info.ffmpegAvailable} options={[{ value: "mp3", label: "MP3" }, { value: "m4a", label: "M4A (AAC)" }, { value: "opus", label: "Opus" }, { value: "flac", label: "FLAC" }]} style={{ width: 240 }} />
+                    <Select value={audioFormat} onChange={(e) => setAudioFormat(e.target.value)} disabled={!info.ffmpegAvailable} options={AUDIO_FORMATS()} style={{ width: 240 }} />
                   </>
                 )}
                 <label>Cover art</label>

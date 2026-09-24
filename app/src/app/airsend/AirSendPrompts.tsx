@@ -7,7 +7,7 @@ import { t } from "../../lib/i18n";
 import { Button, Checkbox } from "../../ui/primitives";
 import { Dialog, toast } from "../../ui/overlays";
 import { useApp } from "../context";
-import { PixelAnimal } from "./PixelAnimal";
+import { OsBadge, PixelAnimal } from "./PixelAnimal";
 import { hashPick } from "../../lib/airsend";
 
 const isLink = (s: string) => /^(https?|ftp|magnet):\S+$/i.test(s.trim());
@@ -43,7 +43,10 @@ function RequestDialog({ r }: { r: AirRequest }) {
       }
     >
       <div className="air-offer">
-        <PixelAnimal animal={r.peerAvatar} size={64} seed={hashPick(r.peerFingerprint, 97)} />
+        <span className="air-peer-ring">
+          <PixelAnimal animal={r.peerAvatar} size={64} seed={hashPick(r.peerFingerprint, 97)} />
+          <OsBadge os={r.peerOs} />
+        </span>
         <div className="air-offer-text">
           <b>{r.peer}</b>
           <span className="faint">

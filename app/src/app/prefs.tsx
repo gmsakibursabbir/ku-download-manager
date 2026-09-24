@@ -10,6 +10,15 @@ import { Button, IconButton, Input, PrefGroup, PrefRow, Select, Switch, Checkbox
 import { toast } from "../ui/overlays";
 import { useToolInstaller } from "./MediaTools";
 
+/** Audio formats; the fast ones are copied out of the stream, the others re-encoded. */
+export const AUDIO_FORMATS = () => [
+  { value: "m4a", label: t("M4A (AAC) · fast") },
+  { value: "best", label: t("Original · fastest") },
+  { value: "opus", label: t("Opus · fast") },
+  { value: "mp3", label: t("MP3 · converts, slower") },
+  { value: "flac", label: t("FLAC · converts, slower") },
+];
+
 export function useSettings(): Settings | null {
   return settingsStore.use();
 }
@@ -172,7 +181,7 @@ export function MediaPrefs() {
       <PrefGroup title="Defaults">
         <SelectPref k="videoHeight" label="Video quality" desc="Used when a quality isn't chosen explicitly. Lower qualities are picked when unavailable." options={VIDEO_HEIGHTS} width={120} />
         <SelectPref k="videoContainer" label="Video format" options={[{ value: "mp4", label: "MP4" }, { value: "mkv", label: "MKV" }, { value: "webm", label: "WebM" }]} width={120} />
-        <SelectPref k="audioFormat" label="Audio format" options={[{ value: "mp3", label: "MP3" }, { value: "m4a", label: "M4A (AAC)" }, { value: "opus", label: "Opus" }, { value: "flac", label: "FLAC" }]} width={120} />
+        <SelectPref k="audioFormat" label="Audio format" options={AUDIO_FORMATS()} width={120} />
         <SelectPref k="audioBitrate" label="Audio bitrate" options={[320, 256, 192, 128].map((b) => ({ value: b, label: `${b} kbps` }))} width={120} />
         <SwitchPref k="subtitles" label="Download subtitles" desc="When available, embedded into the video." />
         <TextPref k="subLangs" label="Subtitle languages" desc="Comma separated codes, e.g. en, de, fr." width={160} />

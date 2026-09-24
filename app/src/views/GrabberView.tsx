@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { t } from "../lib/i18n";
 import { CircleAlert, Link2, Search, Folder } from "lucide-react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { api, errorText } from "../lib/api";
@@ -111,7 +112,7 @@ export function GrabberView() {
   return (
     <div className="main">
       <div className="toolbar">
-        <span className="toolbar-title">URL Grabber</span>
+        <span className="toolbar-title">{t("Fetch Projects")}</span>
       </div>
       <div className="page" style={{ display: "flex", flexDirection: "column" }}>
         <div className="page-inner wide" style={{ flex: 1, width: "100%" }}>

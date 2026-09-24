@@ -62,6 +62,54 @@ const SPRITES: Record<string, Sprite> = {
     lid: "a",
     bg: ["#fff6cf", "#3a3214"],
   },
+  dog: {
+    half: ["..oooo", ".oaaaa", "odoaaa", "oddaaa", "oddkaa", "oddaaa", "odoaww", ".oaawx", "..oaww", "...ooo"],
+    pal: { o: "#3b2a1e", a: "#e8c39a", d: "#8a5a3b", w: "#fff7ee", x: "#1b1b1b", k: "#1b1b1b" },
+    lid: "a",
+    bg: ["#f7ecdf", "#35291f"],
+  },
+  bear: {
+    half: [".oo...", "obbo..", "oaaooo", "oaaaaa", "oakaaa", "oaaaaa", "oaaabb", "oaabbx", ".oaabb", "..oooo"],
+    pal: { o: "#2a1a10", a: "#9a6a44", b: "#d8b08a", x: "#1b1b1b", k: "#1b1b1b" },
+    lid: "a",
+    bg: ["#f1e4d6", "#33251b"],
+  },
+  koala: {
+    half: ["ooo...", "obbo..", "obbooo", "oaaaaa", "oakaaa", "oaaaxx", "oaaaxx", "oaaaax", ".oaaaa", "..oooo"],
+    pal: { o: "#2e3440", a: "#a7b1bf", b: "#eceff4", x: "#2e3440", k: "#1b1b1b" },
+    lid: "a",
+    bg: ["#e8edf3", "#252b35"],
+  },
+  owl: {
+    half: ["o.....", "oo....", "oaoooo", "owwwwa", "owkkwa", "owwwwa", "oaaaan", "oabbba", ".oabbb", "..oooo"],
+    pal: { o: "#2b1d12", a: "#9c6b3e", w: "#fff3d6", b: "#d9b48a", n: "#f0a020", k: "#1b1b1b" },
+    lid: "w",
+    bg: ["#f5ead8", "#33271a"],
+  },
+  monkey: {
+    half: ["..oooo", ".oaaaa", "ooabbb", "obabkb", "ooabbb", ".oabbx", ".obbbb", ".obxxx", "..obbb", "...ooo"],
+    pal: { o: "#3b2414", a: "#7a4a2a", b: "#f0c9a0", x: "#3b2414", k: "#1b1b1b" },
+    lid: "b",
+    bg: ["#f6e6d4", "#35251a"],
+  },
+  tiger: {
+    half: ["o.....", "oo....", "owo...", "oaoooo", "osaasa", "oakaaa", "osaaaa", "owwwan", ".owwww", "..oooo"],
+    pal: { o: "#2a1a0a", a: "#f28c28", s: "#2a1a0a", w: "#fff4e0", n: "#ff8fab", k: "#1b1b1b" },
+    lid: "a",
+    bg: ["#ffeccf", "#3a2814"],
+  },
+  mouse: {
+    half: ["ooo...", "obbo..", "obbo..", ".oaooo", ".oaaaa", "oakaaa", "oaaaaa", ".oaaan", "..oaaa", "...ooo"],
+    pal: { o: "#3a3a44", a: "#b8bcc8", b: "#ffb3c6", n: "#ff7fa0", k: "#1b1b1b" },
+    lid: "a",
+    bg: ["#eeeef3", "#2b2b33"],
+  },
+  cow: {
+    half: ["h.....", "hooooo", "odwwww", "oddwww", "owkwww", "owwwww", "obbbbb", "obxbbb", ".obbbb", "..oooo"],
+    pal: { o: "#2b2b2b", w: "#f8f8f8", d: "#2b2b2b", b: "#ffb8c6", h: "#d9c9a0", x: "#8a4a5a", k: "#1b1b1b" },
+    lid: "w",
+    bg: ["#eef2e6", "#28301f"],
+  },
 };
 
 export const ANIMAL_NAMES: Record<string, string> = {
@@ -73,6 +121,14 @@ export const ANIMAL_NAMES: Record<string, string> = {
   penguin: "Penguin",
   pig: "Pig",
   chick: "Chick",
+  dog: "Dog",
+  bear: "Bear",
+  koala: "Koala",
+  owl: "Owl",
+  monkey: "Monkey",
+  tiger: "Tiger",
+  mouse: "Mouse",
+  cow: "Cow",
 };
 
 function spriteRects(s: Sprite) {
@@ -110,6 +166,37 @@ export const PixelAnimal = memo(function PixelAnimal({ animal, size = 64, seed =
             <rect key={i} x={r.x} y={r.y} width={1.02} height={1.02} fill={r.c} className={r.eye ? "px-eye" : undefined} style={r.eye ? delay : undefined} />
           ))}
         </g>
+      </svg>
+    </span>
+  );
+});
+
+/**
+ * Pixel badges for the device's system, drawn to match the animals.
+ * x/w/y are the colours below; "." is transparent.
+ */
+const OS: Record<string, { rows: string[]; pal: Record<string, string>; name: string }> = {
+  windows: { rows: ["xxx.xxx", "xxx.xxx", "xxx.xxx", ".......", "xxx.xxx", "xxx.xxx", "xxx.xxx"], pal: { x: "#1a8fff" }, name: "Windows" },
+  macos: { rows: ["....x..", "...x...", ".xx.xx.", "xxxxxxx", "xxxxxx.", "xxxxxx.", "xxxxxxx", ".xx.xx."], pal: { x: "currentColor" }, name: "macOS" },
+  ios: { rows: ["....x..", "...x...", ".xx.xx.", "xxxxxxx", "xxxxxx.", "xxxxxx.", "xxxxxxx", ".xx.xx."], pal: { x: "currentColor" }, name: "iOS" },
+  linux: { rows: ["..xxx..", ".xwxwx.", ".xyyyx.", "xxwwwxx", "xwwwwwx", "xwwwwwx", ".xwwwx.", "yy...yy"], pal: { x: "#1b1b1b", w: "#ffffff", y: "#f5b50a" }, name: "Linux" },
+  android: { rows: [".x...x.", "..xxx..", ".xxxxx.", "xwxxxwx", "xxxxxxx", "xxxxxxx"], pal: { x: "#3ddc84", w: "#10131c" }, name: "Android" },
+};
+
+export function osName(os: string): string {
+  return OS[os]?.name ?? (os ? os[0].toUpperCase() + os.slice(1) : "");
+}
+
+/** The device's system as a small round pixel badge. */
+export const OsBadge = memo(function OsBadge({ os, size = 20 }: { os: string; size?: number }) {
+  const o = OS[os];
+  if (!o) return null;
+  const w = Math.max(...o.rows.map((r) => r.length));
+  const h = o.rows.length;
+  return (
+    <span className="px-os" style={{ width: size, height: size }} title={o.name} role="img" aria-label={o.name}>
+      <svg viewBox={`${-(11 - w) / 2} ${-(11 - h) / 2} 11 11`} shapeRendering="crispEdges">
+        {o.rows.flatMap((row, y) => [...row].map((c, x) => (c === "." ? null : <rect key={`${x}-${y}`} x={x} y={y} width={1.02} height={1.02} fill={o.pal[c]} />)))}
       </svg>
     </span>
   );

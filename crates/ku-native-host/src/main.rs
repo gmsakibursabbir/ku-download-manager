@@ -65,6 +65,17 @@ fn connect(launch: bool) -> Result<Client, String> {
     })
 }
 
+/// What a browser may not decide: where files go, the proxy, local torrent
+/// or metalink data. Those come from the user (settings or the confirm window).
+fn from_browser(mut req: AddRequest) -> AddRequest {
+    req.dir = None;
+    req.options.proxy = None;
+    req.options.torrent_data = None;
+    req.options.metalink_data = None;
+    req.options.select_files = None;
+    req
+}
+
 fn handle(kind: &str, payload: Value) -> Result<Value, String> {
     let e = |e: ClientError| e.to_string();
     match kind {
@@ -81,7 +92,7 @@ fn handle(kind: &str, payload: Value) -> Result<Value, String> {
         },
         "stats" => connect(false)?.get::<Value>("/v1/stats").map_err(e),
         "add" => {
-            let req: AddRequest = serde_json::from_value(payload).map_err(|e| format!("invalid request: {e}"))?;
+            let req = from_browser(serde_json::from_value(payload).map_err(|e| format!("invalid request: {e}"))?);
             if !url_ok(&req.url) {
                 return Err("unsupported URL scheme".into());
             }
@@ -90,7 +101,7 @@ fn handle(kind: &str, payload: Value) -> Result<Value, String> {
         "addBatch" => {
             let urls: Vec<String> = serde_json::from_value(payload["urls"].clone()).map_err(|e| e.to_string())?;
             let urls: Vec<String> = urls.into_iter().filter(|u| url_ok(u)).collect();
-            let template: AddRequest = serde_json::from_value(payload["template"].clone()).unwrap_or_default();
+            let template = from_browser(serde_json::from_value(payload["template"].clone()).unwrap_or_default());
             connect(true)?.post("/v1/downloads/batch", &json!({"urls": urls, "template": template})).map_err(e)
         }
         "analyze" => {
@@ -101,7 +112,8 @@ fn handle(kind: &str, payload: Value) -> Result<Value, String> {
             connect(true)?.with_timeout(Duration::from_secs(150)).post("/v1/media/analyze", &payload).map_err(e)
         }
         "mediaDownload" => {
-            let req: MediaRequest = serde_json::from_value(payload).map_err(|e| format!("invalid request: {e}"))?;
+            let mut req: MediaRequest = serde_json::from_value(payload).map_err(|e| format!("invalid request: {e}"))?;
+            req.dir = None;
             if !req.url.starts_with("http://") && !req.url.starts_with("https://") {
                 return Err("unsupported URL scheme".into());
             }
@@ -161,6 +173,9 @@ mod tests {
         assert!(!url_ok("javascript:alert(1)"));
         assert!(url_ok("magnet:?xt=urn:btih:x"));
         assert!(handle("add", json!({"url": "file:///c:/x"})).is_err());
+        let req: AddRequest = serde_json::from_value(json!({"url": "https://x/a", "dir": "/etc/startup", "options": {"proxy": "http://evil:1", "torrentData": "AA=="}})).unwrap();
+        let req = from_browser(req);
+        assert!(req.dir.is_none() && req.options.proxy.is_none() && req.options.torrent_data.is_none());
         assert!(handle("nope", Value::Null).is_err());
     }
 }

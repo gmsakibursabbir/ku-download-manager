@@ -336,7 +336,7 @@ export function DownloadsView() {
         <TbButton icon={ListX} label={t("Stop Queue")} secondary menu={() => queueItems("stop")} />
         <span className="toolbar-sep" />
         <TbButton icon={CalendarClock} label={t("Scheduler")} secondary onClick={() => navigate("scheduled")} />
-        <TbButton icon={Hand} label={t("Grabber")} secondary onClick={() => navigate("grabber")} />
+        <TbButton icon={Hand} label={t("Fetch")} secondary onClick={() => navigate("grabber")} />
         <span className="spacer" />
         {searching ? (
           <div className="input-with-icon tb-search">

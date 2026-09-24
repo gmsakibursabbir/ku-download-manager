@@ -223,7 +223,8 @@ impl Default for Settings {
             video_dir: dl.join("Video").to_string_lossy().into_owned(),
             video_height: 1080,
             video_container: "mp4".into(),
-            audio_format: "mp3".into(),
+            // M4A is copied out of YouTube's stream; MP3 has to be re-encoded (slow).
+            audio_format: "m4a".into(),
             audio_bitrate: 320,
             subtitles: false,
             sub_langs: "en".into(),

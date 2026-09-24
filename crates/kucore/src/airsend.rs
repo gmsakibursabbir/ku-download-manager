@@ -59,7 +59,18 @@ const HISTORY_MAX: usize = 100;
 /// File names carried in events (the count is always complete).
 const FILES_LISTED: usize = 200;
 const PARALLEL_FILES: usize = 4;
-pub const AVATARS: [&str; 8] = ["cat", "fox", "frog", "panda", "bunny", "penguin", "pig", "chick"];
+/// Devices remembered at once (the least recently seen is dropped first).
+const MAX_PEERS: usize = 256;
+/// Simultaneous connections to the KuAirSend server.
+const MAX_CONNECTIONS: usize = 64;
+/// Wrong PINs from one device before it has to wait.
+const PIN_TRIES: u32 = 5;
+const PIN_LOCKOUT: Duration = Duration::from_secs(60);
+/// At most one message popup per device this often.
+const MESSAGE_GAP: Duration = Duration::from_secs(2);
+pub const AVATARS: [&str; 16] = [
+    "cat", "fox", "frog", "panda", "bunny", "penguin", "pig", "chick", "dog", "bear", "koala", "owl", "monkey", "tiger", "mouse", "cow",
+];
 
 // ───────────────────────── wire types ─────────────────────────
 
@@ -240,6 +251,11 @@ struct Inner {
     /// Per transfer: (speed sample time, bytes then, last event time).
     meters: HashMap<String, (Instant, u64, Instant)>,
     history: VecDeque<AirTransfer>,
+    /// Devices being checked after an announcement (fingerprint → when).
+    verifying: HashMap<String, Instant>,
+    /// Wrong PINs per device: (count, last attempt).
+    pin_fails: HashMap<String, (u32, Instant)>,
+    last_message: HashMap<String, Instant>,
 }
 
 struct Running {
@@ -690,6 +706,12 @@ impl AirSend {
         };
         let changed = {
             let mut g = self.lock();
+            if g.peers.len() >= MAX_PEERS && !g.peers.contains_key(&peer.fingerprint) {
+                let oldest = g.peers.values().min_by_key(|p| p.seen).map(|p| p.fingerprint.clone());
+                if let Some(fp) = oldest {
+                    g.peers.remove(&fp);
+                }
+            }
             let old = g.peers.insert(peer.fingerprint.clone(), peer.clone());
             !matches!(old, Some(o) if o.alias == peer.alias && o.avatar == peer.avatar && o.ip == peer.ip && o.port == peer.port && o.trusted == peer.trusted)
         };
@@ -724,17 +746,48 @@ impl AirSend {
                 }
             };
             let Ok(info) = serde_json::from_slice::<DeviceInfo>(&buf[..n]) else { continue };
-            let wants_reply = info.announce;
-            let Some(peer) = self.add_peer(info, from.ip()) else { continue };
-            if wants_reply {
-                let (me, udp) = (self.clone(), udp.clone());
-                tokio::spawn(async move {
-                    // Answer over TLS (verifies both ends); UDP if that is blocked.
-                    if me.hello(&peer.ip, peer.port, Some(&peer.fingerprint)).await.is_err() {
-                        me.announce(&udp, false).await;
-                    }
-                });
+            if info.app != APP || info.fingerprint.is_empty() || info.fingerprint == self.id.fingerprint || info.port == 0 {
+                continue;
             }
+            // Anyone on the network can send these packets, so they only prompt a
+            // check: a device is added or moved only after it proves, over TLS, that
+            // it holds the certificate its fingerprint names.
+            let ip = plain_ip(from.ip()).to_string();
+            let known = {
+                let mut g = self.lock();
+                match g.peers.get_mut(&info.fingerprint) {
+                    Some(p) if p.ip == ip && p.port == info.port => {
+                        p.seen = Some(Instant::now());
+                        true
+                    }
+                    _ => false,
+                }
+            };
+            if known && !info.announce {
+                continue;
+            }
+            let fresh = {
+                let mut g = self.lock();
+                let now = Instant::now();
+                g.verifying.retain(|_, t| now.duration_since(*t) < Duration::from_secs(3));
+                if g.verifying.len() >= MAX_PEERS || g.verifying.contains_key(&info.fingerprint) {
+                    false
+                } else {
+                    g.verifying.insert(info.fingerprint.clone(), now);
+                    true
+                }
+            };
+            if !fresh {
+                continue;
+            }
+            let (me, udp, wants_reply) = (self.clone(), udp.clone(), info.announce);
+            tokio::spawn(async move {
+                // Verifies both ends; if TLS can't get through, a UDP answer lets
+                // the other device check us instead.
+                if me.hello(&ip, info.port, Some(&info.fingerprint)).await.is_err() && wants_reply {
+                    me.announce(&udp, false).await;
+                }
+            });
         }
     }
 
@@ -903,11 +956,33 @@ impl AirSend {
         let Some(peer) = self.add_peer(from, caller.ip) else { return Err(StatusCode::FORBIDDEN) };
         let s = self.core.settings();
         let pin = s.airsend_pin.trim();
-        if !pin.is_empty() && offer.pin.as_deref().map(str::trim) != Some(pin) {
-            return Err(StatusCode::UNAUTHORIZED);
+        if !pin.is_empty() {
+            let mut g = self.lock();
+            let locked = g.pin_fails.get(&peer.fingerprint).is_some_and(|(n, at)| *n >= PIN_TRIES && at.elapsed() < PIN_LOCKOUT);
+            if locked {
+                return Err(StatusCode::TOO_MANY_REQUESTS);
+            }
+            if offer.pin.as_deref().map(str::trim) != Some(pin) {
+                let e = g.pin_fails.entry(peer.fingerprint.clone()).or_insert((0, Instant::now()));
+                if e.1.elapsed() >= PIN_LOCKOUT {
+                    e.0 = 0;
+                }
+                e.0 += 1;
+                e.1 = Instant::now();
+                return Err(StatusCode::UNAUTHORIZED);
+            }
+            g.pin_fails.remove(&peer.fingerprint);
         }
         // A message or link: shown right away, nothing to store.
         if let Some(text) = offer.text.filter(|t| !t.trim().is_empty()) {
+            {
+                let mut g = self.lock();
+                let now = Instant::now();
+                if g.last_message.get(&peer.fingerprint).is_some_and(|t| now.duration_since(*t) < MESSAGE_GAP) {
+                    return Err(StatusCode::TOO_MANY_REQUESTS);
+                }
+                g.last_message.insert(peer.fingerprint.clone(), now);
+            }
             let text: String = text.chars().take(100_000).collect();
             let id = uid();
             self.begin(AirTransfer {
@@ -932,8 +1007,12 @@ impl AirSend {
         let id = uid();
         let folder = self.folder();
         let listed: Vec<AirFile> = offer.files.iter().take(FILES_LISTED).map(|f| AirFile { name: f.name.clone(), size: f.size, done: false }).collect();
-        let total: u64 = offer.files.iter().map(|f| f.size).sum();
+        let total: u64 = offer.files.iter().fold(0u64, |a, f| a.saturating_add(f.size));
         let file_count = offer.files.len();
+        // Refuse up front rather than fail at 99%.
+        if free_space(&folder).is_some_and(|free| total > free) {
+            return Err(StatusCode::INSUFFICIENT_STORAGE);
+        }
         {
             let mut g = self.lock();
             if g.incoming.is_some() {
@@ -1059,7 +1138,7 @@ impl AirSend {
     }
 
     async fn receive_file(self: Arc<Self>, q: FileQuery, body: Body) -> Result<(), StatusCode> {
-        let (dest, index) = {
+        let (dest, index, size) = {
             let mut g = self.lock();
             let inc = g.incoming.as_mut().filter(|i| i.id == q.session && i.accepted).ok_or(StatusCode::FORBIDDEN)?;
             let taken: HashSet<PathBuf> = inc.files.values().filter_map(|f| f.path.clone()).collect();
@@ -1073,8 +1152,9 @@ impl AirSend {
             }
             let dest = unique_path(folder.join(safe_relative(&f.offer.name)), &taken);
             f.path = Some(dest.clone());
+            let size = f.offer.size;
             inc.last_activity = Instant::now();
-            (dest, f.index)
+            (dest, f.index, size)
         };
         let part = part_path(&dest);
         let fail = |me: &AirSend, msg: String| {
@@ -1096,14 +1176,21 @@ impl AirSend {
         };
         let mut out = tokio::io::BufWriter::with_capacity(1 << 20, file);
         let mut stream = body.into_data_stream();
-        while let Some(chunk) = stream.next().await {
-            let chunk = match chunk {
-                Ok(c) => c,
-                Err(_) => {
+        let mut written = 0u64;
+        loop {
+            let chunk = match tokio::time::timeout(IDLE_TIMEOUT, stream.next()).await {
+                Ok(None) => break,
+                Ok(Some(Ok(c))) => c,
+                Ok(Some(Err(_))) | Err(_) => {
                     fail(self.as_ref(), "The connection was lost.".into());
                     return Err(StatusCode::BAD_REQUEST);
                 }
             };
+            written += chunk.len() as u64;
+            if written > size {
+                fail(self.as_ref(), "The sender sent more data than it announced.".into());
+                return Err(StatusCode::PAYLOAD_TOO_LARGE);
+            }
             if let Err(e) = out.write_all(&chunk).await {
                 fail(self.as_ref(), format!("Writing failed: {e}"));
                 return Err(StatusCode::INTERNAL_SERVER_ERROR);
@@ -1126,6 +1213,10 @@ impl AirSend {
             }
             let n = chunk.len() as u64;
             self.update(&q.session, false, |t| t.done += n);
+        }
+        if written != size {
+            fail(self.as_ref(), "The file arrived incomplete.".into());
+            return Err(StatusCode::BAD_REQUEST);
         }
         if let Err(e) = out.flush().await {
             fail(self.as_ref(), format!("Writing failed: {e}"));
@@ -1232,6 +1323,8 @@ impl AirSend {
             StatusCode::UNAUTHORIZED => return Ok("pin"),
             StatusCode::FORBIDDEN => return Ok("declined"),
             StatusCode::CONFLICT => bail!("{} is receiving from someone else. Try again in a moment.", peer.alias),
+            StatusCode::TOO_MANY_REQUESTS => bail!("{} asked to wait (too many attempts). Try again in a minute.", peer.alias),
+            StatusCode::INSUFFICIENT_STORAGE => bail!("{} does not have enough free space for this.", peer.alias),
             s => bail!("{} refused the transfer ({s}).", peer.alias),
         }
         let reply: OfferReply = resp.json().await?;
@@ -1304,26 +1397,39 @@ impl AirSend {
     async fn serve(self: Arc<Self>, listener: TcpListener, tls: tokio_rustls::TlsAcceptor) {
         let app = Router::new()
             .route(&format!("{API}/hello"), post(hello_handler))
-            .route(&format!("{API}/offer"), post(offer_handler).layer(DefaultBodyLimit::max(64 << 20)))
+            .route(&format!("{API}/offer"), post(offer_handler).layer(DefaultBodyLimit::max(16 << 20)))
             .route(&format!("{API}/file"), post(file_handler).layer(DefaultBodyLimit::disable()))
             .route(&format!("{API}/cancel"), post(cancel_handler))
             .with_state(self.clone());
+        let slots = Arc::new(tokio::sync::Semaphore::new(MAX_CONNECTIONS));
         loop {
             let Ok((tcp, addr)) = listener.accept().await else {
                 tokio::time::sleep(Duration::from_millis(100)).await;
                 continue;
             };
+            // Full: drop the connection rather than queue it.
+            let Ok(permit) = slots.clone().try_acquire_owned() else { continue };
             let _ = tcp.set_nodelay(true);
             let (tls, app) = (tls.clone(), app.clone());
             tokio::spawn(async move {
+                let _permit = permit;
                 let Ok(Ok(stream)) = tokio::time::timeout(Duration::from_secs(10), tls.accept(tcp)).await else { return };
                 let fingerprint = stream.get_ref().1.peer_certificates().and_then(|c| c.first()).map(|c| fingerprint_of(c)).unwrap_or_default();
                 let app = app.layer(Extension(Caller { ip: plain_ip(addr.ip()), fingerprint }));
                 let svc = hyper_util::service::TowerToHyperService::new(app);
-                let _ = hyper::server::conn::http1::Builder::new().serve_connection(hyper_util::rt::TokioIo::new(stream), svc).await;
+                let _ = hyper::server::conn::http1::Builder::new()
+                    .timer(hyper_util::rt::TokioTimer::new())
+                    .header_read_timeout(Duration::from_secs(10))
+                    .serve_connection(hyper_util::rt::TokioIo::new(stream), svc).await;
             });
         }
     }
+}
+
+/// Free bytes on the disk that holds `dir` (or its nearest existing parent).
+fn free_space(dir: &Path) -> Option<u64> {
+    let existing = dir.ancestors().find(|p| p.exists())?;
+    fs4::available_space(existing).ok()
 }
 
 fn part_path(dest: &Path) -> PathBuf {

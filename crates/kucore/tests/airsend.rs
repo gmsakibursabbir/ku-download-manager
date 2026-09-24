@@ -130,8 +130,18 @@ async fn receiver_decides_and_pin_is_enforced() {
     cb.save_settings(s).await.unwrap();
     let id = alice.send(&peer.fingerprint, paths.clone(), None, None).unwrap();
     assert_eq!(finished(&alice, &id, 20).await.state, "pin");
-    let id = alice.send(&peer.fingerprint, paths, None, Some("4321".into())).unwrap();
+    let id = alice.send(&peer.fingerprint, paths.clone(), None, Some("4321".into())).unwrap();
     assert_eq!(finished(&alice, &id, 20).await.state, "done");
+
+    // Guessing the PIN locks the sender out for a while, even with the right PIN.
+    for _ in 0..5 {
+        let id = alice.send(&peer.fingerprint, paths.clone(), None, Some("0000".into())).unwrap();
+        assert_eq!(finished(&alice, &id, 20).await.state, "pin");
+    }
+    let id = alice.send(&peer.fingerprint, paths, None, Some("4321".into())).unwrap();
+    let t = finished(&alice, &id, 20).await;
+    assert_eq!(t.state, "failed");
+    assert!(t.error.unwrap_or_default().contains("too many attempts"));
 }
 
 /// Two devices find each other through multicast alone. Ignored in CI (runners

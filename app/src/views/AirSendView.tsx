@@ -10,7 +10,7 @@ import { settingsStore, updateSettings } from "../lib/store";
 import { Button, Icon, IconButton, Input, PrefRow, Switch } from "../ui/primitives";
 import { Dialog, showMenu, toast } from "../ui/overlays";
 import { useApp } from "../app/context";
-import { ANIMAL_NAMES, PixelAnimal } from "../app/airsend/PixelAnimal";
+import { ANIMAL_NAMES, OsBadge, osName, PixelAnimal } from "../app/airsend/PixelAnimal";
 
 /** What each send was, so "Try again" and a PIN retry can repeat it. */
 const sent = new Map<string, { fingerprint: string; paths: string[]; text?: string }>();
@@ -224,12 +224,13 @@ function Radar({ status, peers, transfers, onPeer }: { status: AirStatus; peers:
           >
             <span className="air-peer-ring" style={live ? { background: `conic-gradient(var(--accent) ${pct}%, transparent 0)` } : undefined}>
               <PixelAnimal animal={p.avatar} size={60} seed={hashPick(p.fingerprint, 97)} />
+              <OsBadge os={p.os} />
             </span>
             <span className="air-name">
               {p.trusted && <Icon icon={ShieldCheck} size={12} />}
               {p.alias}
             </span>
-            <span className="air-sub faint">{live ? `${pct.toFixed(0)}%` : p.os === "macos" ? "macOS" : p.os ? p.os[0].toUpperCase() + p.os.slice(1) : ""}</span>
+            <span className="air-sub faint">{live ? `${pct.toFixed(0)}%` : osName(p.os)}</span>
           </button>
         );
       })}
@@ -377,10 +378,13 @@ export function AirSendView() {
             </Button>
           </>
         )}
-        <label className="air-toggle">
-          <span>{t("Send & receive")}</span>
-          <Switch checked={on} disabled={busy || !status} onChange={(v) => void toggle(v)} label={t("Send & receive")} />
-        </label>
+        {/* One control: the whole pill toggles, and says plainly whether you are visible. */}
+        <button type="button" role="switch" aria-checked={on} className="air-toggle" disabled={busy || !status} onClick={() => void toggle(!on)} title={t("Send & receive")}>
+          <span className="air-toggle-dot" aria-hidden="true" />
+          <span className="air-toggle-label">{t("Send & receive")}</span>
+          <span className="air-toggle-state">{on ? t("On") : t("Off")}</span>
+          <span className="switch" aria-hidden="true" aria-checked={on} />
+        </button>
       </div>
       <div className="page">
         <div className="page-inner air-page">

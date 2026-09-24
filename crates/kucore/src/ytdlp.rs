@@ -358,9 +358,17 @@ pub fn build_args(job: &YtJob, ffmpeg: bool) -> Vec<String> {
         a.extend(["-f".into(), fid.into()]);
     } else if audio {
         if ffmpeg {
-            let fmt = m.container.clone().unwrap_or_else(|| "mp3".into());
-            a.extend(["-f".into(), "ba/b".into(), "-x".into(), "--audio-format".into(), fmt]);
-            if let Some(b) = m.audio_bitrate {
+            let fmt = m.container.clone().filter(|c| !c.is_empty()).unwrap_or_else(|| "m4a".into());
+            // Take the stream that already is the wanted codec, so FFmpeg only
+            // copies it out (seconds) instead of re-encoding the whole track.
+            // MP3/FLAC always need a conversion: YouTube serves neither.
+            let source = match fmt.as_str() {
+                "m4a" | "aac" => "ba[ext=m4a]/ba/b",
+                "opus" => "ba[acodec=opus]/ba/b",
+                _ => "ba/b",
+            };
+            a.extend(["-f".into(), source.into(), "-x".into(), "--audio-format".into(), fmt.clone()]);
+            if let Some(b) = m.audio_bitrate.filter(|_| matches!(fmt.as_str(), "mp3" | "m4a" | "aac" | "opus")) {
                 a.extend(["--audio-quality".into(), format!("{b}K")]);
             }
         } else {
@@ -624,6 +632,24 @@ mod tests {
         assert!(a.windows(2).any(|w| w[0] == "-S" && w[1] == "res:720,ext:mp4:m4a"));
         assert!(a.windows(2).any(|w| w[0] == "-o" && w[1] == "My_ video.%(ext)s"));
         assert_eq!(a.last().unwrap(), "https://example.com/v");
+    }
+
+    #[test]
+    fn audio_prefers_a_stream_that_needs_no_conversion() {
+        let job = |fmt: &str| YtJob {
+            url: "https://example.com/v".into(),
+            dir: PathBuf::from("out"),
+            media: MediaOptions { mode: "audio".into(), container: Some(fmt.into()), audio_bitrate: Some(320), ..Default::default() },
+            speed_limit: None,
+            name_stem: None,
+        };
+        let f = |a: &[String]| a.windows(2).find(|w| w[0] == "-f").map(|w| w[1].clone()).unwrap();
+        assert_eq!(f(&build_args(&job("m4a"), true)), "ba[ext=m4a]/ba/b");
+        assert_eq!(f(&build_args(&job("opus"), true)), "ba[acodec=opus]/ba/b");
+        assert_eq!(f(&build_args(&job("mp3"), true)), "ba/b");
+        let best = build_args(&job("best"), true);
+        assert!(best.windows(2).any(|w| w[0] == "--audio-format" && w[1] == "best"));
+        assert!(!best.iter().any(|x| x == "--audio-quality"));
     }
 
     #[test]

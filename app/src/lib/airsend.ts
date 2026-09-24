@@ -72,7 +72,7 @@ export interface AirStatus {
   discoveryError?: string | null;
 }
 
-export const AVATARS = ["cat", "fox", "frog", "panda", "bunny", "penguin", "pig", "chick"] as const;
+export const AVATARS = ["cat", "fox", "frog", "panda", "bunny", "penguin", "pig", "chick", "dog", "bear", "koala", "owl", "monkey", "tiger", "mouse", "cow"] as const;
 
 export const airApi = {
   status: () => invoke<AirStatus>("airsend_status"),
