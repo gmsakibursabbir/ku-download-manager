@@ -12,6 +12,7 @@ export type View =
   | "video"
   | "grabber"
   | "batch"
+  | "airsend"
   | "settings";
 
 /** What the download list shows (the Categories tree). */

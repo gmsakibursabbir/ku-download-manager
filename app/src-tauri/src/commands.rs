@@ -21,6 +21,17 @@ fn e(err: impl std::fmt::Display) -> String {
 
 pub fn handler() -> impl Fn(tauri::ipc::Invoke) -> bool + Send + Sync + 'static {
     tauri::generate_handler![
+        airsend_status,
+        airsend_set_enabled,
+        airsend_peers,
+        airsend_transfers,
+        airsend_send,
+        airsend_cancel,
+        airsend_decide,
+        airsend_refresh,
+        airsend_add,
+        airsend_trust,
+        airsend_clear_history,
         app_ready,
         app_info,
         list_downloads,
@@ -289,6 +300,12 @@ async fn save_settings(app: AppHandle, state: State<'_, AppState>, settings: Set
     }
     if old.extra_extension_ids != s.extra_extension_ids {
         let _ = kucore::nativehost::register(&s.extra_extension_ids);
+    }
+    // New name or animal: tell nearby devices now rather than at the next announcement.
+    if old.airsend_name != s.airsend_name || old.airsend_avatar != s.airsend_avatar {
+        if let Some(a) = state.airsend.clone() {
+            tauri::async_runtime::spawn(async move { a.refresh().await });
+        }
     }
     Ok(s)
 }
@@ -702,6 +719,81 @@ async fn redownload(state: State<'_, AppState>, ids: Vec<String>) -> R<()> {
 #[tauri::command]
 fn tool_jobs(state: State<'_, AppState>) -> Vec<String> {
     state.core.tool_jobs()
+}
+
+// ───────── KuAirSend ─────────
+
+fn air(state: &AppState) -> R<std::sync::Arc<kucore::airsend::AirSend>> {
+    state.airsend.clone().ok_or_else(|| "KuAirSend is unavailable on this computer.".to_string())
+}
+
+#[tauri::command]
+fn airsend_status(state: State<'_, AppState>) -> R<kucore::airsend::AirStatus> {
+    Ok(air(&state)?.status())
+}
+
+/// The KuAirSend switch: opens or closes its network port and remembers the choice.
+#[tauri::command]
+async fn airsend_set_enabled(state: State<'_, AppState>, enabled: bool) -> R<kucore::airsend::AirStatus> {
+    let a = air(&state)?;
+    let status = if enabled { a.start().await.map_err(|err| format!("{err:#}"))? } else {
+        a.stop().await;
+        a.status()
+    };
+    let mut s = state.core.settings();
+    if s.airsend_enabled != enabled {
+        s.airsend_enabled = enabled;
+        state.core.save_settings(s).await.map_err(e)?;
+    }
+    Ok(status)
+}
+
+#[tauri::command]
+fn airsend_peers(state: State<'_, AppState>) -> R<Vec<kucore::airsend::AirPeer>> {
+    Ok(air(&state)?.peers())
+}
+
+#[tauri::command]
+fn airsend_transfers(state: State<'_, AppState>) -> R<Vec<kucore::airsend::AirTransfer>> {
+    Ok(air(&state)?.transfers())
+}
+
+#[tauri::command]
+async fn airsend_send(state: State<'_, AppState>, fingerprint: String, paths: Vec<String>, text: Option<String>, pin: Option<String>) -> R<String> {
+    air(&state)?.send(&fingerprint, paths, text, pin).map_err(|err| format!("{err:#}"))
+}
+
+#[tauri::command]
+async fn airsend_cancel(state: State<'_, AppState>, id: String) -> R<()> {
+    air(&state)?.cancel(&id).await;
+    Ok(())
+}
+
+#[tauri::command]
+async fn airsend_decide(state: State<'_, AppState>, id: String, accept: bool, trust: bool) -> R<()> {
+    air(&state)?.decide(&id, accept, trust).await.map_err(|err| format!("{err:#}"))
+}
+
+#[tauri::command]
+async fn airsend_refresh(state: State<'_, AppState>) -> R<()> {
+    air(&state)?.refresh().await;
+    Ok(())
+}
+
+#[tauri::command]
+async fn airsend_add(state: State<'_, AppState>, address: String) -> R<kucore::airsend::AirPeer> {
+    air(&state)?.add_address(&address).await.map_err(|err| format!("{err:#}"))
+}
+
+#[tauri::command]
+async fn airsend_trust(state: State<'_, AppState>, fingerprint: String, trusted: bool) -> R<()> {
+    air(&state)?.set_trusted(&fingerprint, trusted).await.map_err(|err| format!("{err:#}"))
+}
+
+#[tauri::command]
+fn airsend_clear_history(state: State<'_, AppState>) -> R<()> {
+    air(&state)?.clear_history();
+    Ok(())
 }
 
 #[cfg(test)]

@@ -13,7 +13,7 @@ tokio.workspace = true
 tracing.workspace = true
 dirs.workspace = true
 rusqlite = { version = "0.32", features = ["bundled"] }
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "gzip"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "gzip", "stream"] }
 axum = { version = "0.8", default-features = false, features = ["tokio", "http1", "json", "query"] }
 uuid = { version = "1", features = ["v4"] }
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
@@ -27,11 +27,21 @@ blake3 = "1"
 httpdate = "1"
 fs4 = "1"
 zip = { version = "4", default-features = false, features = ["deflate"] }
-futures-util = { version = "0.3", optional = true }
+futures-util = "0.3"
+# KuAirSend: mutual-TLS server, device certificate, LAN discovery.
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "tls12"] }
+hyper = { version = "1", features = ["server", "http1"] }
+hyper-util = { version = "0.1", features = ["tokio", "service"] }
+tokio-util = { version = "0.7", features = ["io"] }
+rcgen = { version = "0.13", default-features = false, features = ["crypto", "ring"] }
+socket2 = { version = "0.6", features = ["all"] }
+if-addrs = "0.13"
+gethostname = "1"
 
 [features]
 # Exposes the fault-injecting HTTP test server used by tests and benchmarks.
-testing = ["dep:futures-util"]
+testing = []
 
 [target.'cfg(target_os = "linux")'.dependencies]
 tar = "0.4"

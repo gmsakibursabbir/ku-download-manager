@@ -5,6 +5,7 @@
 //!                               └─▶ yt-dlp (media sites, HLS/DASH)
 //! ```
 
+pub mod airsend;
 pub mod api;
 pub mod aria2;
 pub mod browsers;

@@ -127,6 +127,13 @@ const settings: Settings = {
   interceptExtensions: [],
   skipDomains: [],
   extraExtensionIds: [],
+  airsendEnabled: params.has("air"),
+  airsendName: "",
+  airsendAvatar: "",
+  airsendFolder: "",
+  airsendAutoAccept: false,
+  airsendPin: "",
+  airsendTrusted: ["b2"],
   hoverButton: true,
   mediaDetection: true,
   adapters: ["youtube", "vimeo", "generic"],
@@ -156,6 +163,19 @@ const MOCK_BROWSERS = [
   { id: "helium", name: "Helium", family: "chromium", path: "C:\\Users\\you\\AppData\\Local\\imput\\Helium\\Application\\chrome.exe", extensionsUrl: "chrome://extensions/", key: "Software\\imput\\Helium\\NativeMessagingHosts" },
   { id: "microsoft-edge", name: "Microsoft Edge", family: "chromium", path: "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe", extensionsUrl: "edge://extensions/", key: "Software\\Microsoft\\Edge\\NativeMessagingHosts" },
   { id: "zen", name: "Zen", family: "firefox", path: "C:\\Program Files\\Zen Browser\\zen.exe", extensionsUrl: "about:addons", key: "Software\\Mozilla\\NativeMessagingHosts" },
+];
+
+const airPeers = [
+  { fingerprint: "b2", alias: "Living-room laptop", avatar: "panda", os: "windows", version: "0.2.3", ip: "192.168.1.20", port: 53318, trusted: true },
+  { fingerprint: "c3", alias: "MacBook Air", avatar: "penguin", os: "macos", version: "0.2.3", ip: "192.168.1.31", port: 53318, trusted: false },
+  { fingerprint: "d4", alias: "Arch desktop", avatar: "frog", os: "linux", version: "0.2.3", ip: "192.168.1.42", port: 53318, trusted: false },
+  { fingerprint: "e5", alias: "Office PC", avatar: "cat", os: "windows", version: "0.2.3", ip: "192.168.1.51", port: 53318, trusted: false },
+];
+const airTransfers = [
+  { id: "t1", direction: "send", peer: "MacBook Air", peerFingerprint: "c3", peerAvatar: "penguin", state: "transferring", files: [{ name: "Holiday video 4K.mp4", size: 3.2 * 1024 * MB, done: false }], fileCount: 1, total: 3.2 * 1024 * MB, done: 1.9 * 1024 * MB, speed: 86 * MB, started: now - 20000 },
+  { id: "t2", direction: "receive", peer: "Living-room laptop", peerFingerprint: "b2", peerAvatar: "panda", state: "done", files: [{ name: "Photos/IMG_0001.jpg", size: 4 * MB, done: true }], fileCount: 248, total: 1.1 * 1024 * MB, done: 1.1 * 1024 * MB, speed: 0, started: now - 3600000, finished: now - 3500000, folder: "C:\Users\you\Downloads\KuAirSend" },
+  { id: "t3", direction: "receive", peer: "Arch desktop", peerFingerprint: "d4", peerAvatar: "frog", state: "done", files: [], fileCount: 0, total: 0, done: 0, speed: 0, started: now - 7200000, finished: now - 7200000, text: "https://releases.ubuntu.com/24.04/ubuntu-24.04.1-desktop-amd64.iso" },
+  { id: "t4", direction: "send", peer: "Office PC", peerFingerprint: "e5", peerAvatar: "cat", state: "declined", files: [{ name: "report-final-v3.pdf", size: 2 * MB, done: false }], fileCount: 1, total: 2 * MB, done: 0, speed: 0, started: now - 86400000, finished: now - 86400000 },
 ];
 
 mockWindows("main");
@@ -207,6 +227,14 @@ mockIPC(
       }
       case "redownload":
         return null;
+      case "airsend_status":
+      case "airsend_set_enabled":
+        if (cmd === "airsend_set_enabled") settings.airsendEnabled = (args as { enabled: boolean }).enabled;
+        return { running: settings.airsendEnabled, alias: settings.airsendName || "Studio-PC", avatar: settings.airsendAvatar || "fox", fingerprint: "a1", port: 53318, addresses: ["192.168.1.14"], folder: "C:\Users\you\Downloads\KuAirSend", discoveryError: null };
+      case "airsend_peers":
+        return settings.airsendEnabled ? airPeers : [];
+      case "airsend_transfers":
+        return airTransfers;
       case "get_download":
         return list.find((d) => d.id === (args as { id: string }).id) ?? null;
       case "platform_info": {

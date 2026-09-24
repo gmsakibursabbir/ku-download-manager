@@ -289,6 +289,14 @@ export interface Settings {
   interceptExtensions: string[];
   skipDomains: string[];
   extraExtensionIds: string[];
+  // KuAirSend
+  airsendEnabled: boolean;
+  airsendName: string;
+  airsendAvatar: string;
+  airsendFolder: string;
+  airsendAutoAccept: boolean;
+  airsendPin: string;
+  airsendTrusted: string[];
   hoverButton: boolean;
   mediaDetection: boolean;
   adapters: string[];
@@ -348,7 +356,11 @@ export type CoreEvent =
   | { type: "show" }
   | { type: "settingsChanged" }
   | { type: "queuesChanged" }
-  | { type: "schedulesChanged" };
+  | { type: "schedulesChanged" }
+  | { type: "airSendPeers"; peers: import("./airsend").AirPeer[] }
+  | { type: "airSendTransfer"; transfer: import("./airsend").AirTransfer }
+  | { type: "airSendRequest"; request: import("./airsend").AirRequest }
+  | { type: "airSendMessage"; message: import("./airsend").AirMessage };
 
 export interface Details {
   log: LogLine[];

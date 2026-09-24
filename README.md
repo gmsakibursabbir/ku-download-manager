@@ -46,11 +46,16 @@ aria2`) elsewhere — plain HTTP(S) works without it.
   **synchronization** queues that re-download files changed on the server.
 * Video/audio downloads via yt-dlp (qualities, playlists, subtitles), cookies
   from the extension, a cookies.txt file or a browser's store.
+* **KuAirSend**: send files, folders, text and links between KuDownloader on
+  your computers over your own Wi-Fi or network, at full speed, encrypted, no
+  cloud. Nearby devices show up as 8-bit animals; a received link downloads in
+  one click. Off until you switch it on.
 * Optional **virus scan** of finished files (Microsoft Defender or any scanner).
 * Native title bar per platform: Windows, macOS traffic lights, GNOME, KDE,
   Cinnamon, XFCE, MATE, and tiling compositors (niri, Hyprland, Sway, i3).
 * Light/dark, 8 accent colours, graphite/midnight/OLED dark palettes, English
-  and বাংলা; responsive down to the minimum window size.
+  and 11 more languages (including Arabic, right to left); responsive down to
+  the minimum window size.
 
 ```
 Browser ── KuDownloader extension ── Native Messaging ── ku-native-host
@@ -178,6 +183,12 @@ GitHub releases and can be changed in Settings › Advanced.
   detected and refused.
 * Credentials and cookies are sent only to the origin they belong to; KuHTTP
   strips them on cross-origin redirects.
+* KuAirSend opens a network port (53318) only while it is switched on. Only
+  KuDownloader devices take part. Every connection is mutual TLS with each
+  device's own certificate, checked by its SHA-256 fingerprint on both ends.
+  Nothing is saved until you accept, unless you trusted that device, turned on
+  auto-accept or set a PIN the sender knows. Received names are confined to the
+  receive folder and never overwrite existing files.
 
 ## KuHTTP
 

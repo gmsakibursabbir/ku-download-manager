@@ -89,6 +89,21 @@ pub struct Settings {
     pub intercept_extensions: Vec<String>,
     pub skip_domains: Vec<String>,
     pub extra_extension_ids: Vec<String>,
+    // KuAirSend (local transfers between KuDownloader devices)
+    /// Off by default: no network port is opened until the user turns it on.
+    pub airsend_enabled: bool,
+    /// Name shown to nearby devices; empty = the computer name.
+    pub airsend_name: String,
+    /// 8-bit animal shown to nearby devices; empty = picked from the device id.
+    pub airsend_avatar: String,
+    /// Where received files go; empty = <download folder>/KuAirSend.
+    pub airsend_folder: String,
+    /// Accept from any nearby KuDownloader without asking.
+    pub airsend_auto_accept: bool,
+    /// Senders must enter this PIN (empty = no PIN).
+    pub airsend_pin: String,
+    /// Device fingerprints accepted without asking.
+    pub airsend_trusted: Vec<String>,
     // Media
     pub hover_button: bool,
     pub media_detection: bool,
@@ -195,6 +210,13 @@ impl Default for Settings {
             intercept_extensions: Vec::new(),
             skip_domains: Vec::new(),
             extra_extension_ids: Vec::new(),
+            airsend_enabled: false,
+            airsend_name: String::new(),
+            airsend_avatar: String::new(),
+            airsend_folder: String::new(),
+            airsend_auto_accept: false,
+            airsend_pin: String::new(),
+            airsend_trusted: Vec::new(),
             hover_button: true,
             media_detection: true,
             adapters: vec!["youtube".into(), "vimeo".into(), "dailymotion".into(), "generic".into()],

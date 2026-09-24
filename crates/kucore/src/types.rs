@@ -123,6 +123,14 @@ pub enum CoreEvent {
     ToolProgress { tool: String, done: u64, total: u64 },
     /// An on-demand tool download finished (`ok`) or failed (`message`).
     ToolDone { tool: String, ok: bool, message: String },
+    /// KuAirSend: the nearby devices changed.
+    AirSendPeers { peers: Vec<crate::airsend::AirPeer> },
+    /// KuAirSend: a transfer started, progressed or finished.
+    AirSendTransfer { transfer: Box<crate::airsend::AirTransfer> },
+    /// KuAirSend: a nearby device wants to send files (Accept / Decline).
+    AirSendRequest { request: Box<crate::airsend::AirRequest> },
+    /// KuAirSend: a text message or link arrived.
+    AirSendMessage { message: Box<crate::airsend::AirMessage> },
     Show,
     SettingsChanged,
     QueuesChanged,
@@ -134,7 +142,13 @@ impl CoreEvent {
     pub fn is_prompt(&self) -> bool {
         matches!(
             self,
-            CoreEvent::PromptAdd { .. } | CoreEvent::PromptMedia { .. } | CoreEvent::Grab { .. } | CoreEvent::ClipboardUrl { .. } | CoreEvent::PowerCountdown { .. }
+            CoreEvent::PromptAdd { .. }
+                | CoreEvent::PromptMedia { .. }
+                | CoreEvent::Grab { .. }
+                | CoreEvent::ClipboardUrl { .. }
+                | CoreEvent::PowerCountdown { .. }
+                | CoreEvent::AirSendRequest { .. }
+                | CoreEvent::AirSendMessage { .. }
         )
     }
 }

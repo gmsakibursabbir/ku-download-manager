@@ -9,6 +9,8 @@ import { applyAppearance } from "./lib/appearance";
 import { syncLanguage } from "./lib/i18n";
 import { WelcomeGuide } from "./app/WelcomeGuide";
 import { ToolDownloadsPanel } from "./app/MediaTools";
+import { AirSendPrompts } from "./app/airsend/AirSendPrompts";
+import { loadAir } from "./lib/airsend";
 import { applyEvent, getDownload, onCoreEvent, settingsStore, startStore } from "./lib/store";
 import { api } from "./lib/api";
 import type { AddRequest, CoreEvent, GrabRequest, MediaRequest } from "./lib/types";
@@ -19,6 +21,7 @@ import { run } from "./app/downloads/actions";
 // Secondary screens load on demand to keep startup light.
 const VideoDownloaderView = lazy(() => import("./views/VideoDownloaderView").then((m) => ({ default: m.VideoDownloaderView })));
 const GrabberView = lazy(() => import("./views/GrabberView").then((m) => ({ default: m.GrabberView })));
+const AirSendView = lazy(() => import("./views/AirSendView").then((m) => ({ default: m.AirSendView })));
 const BatchView = lazy(() => import("./views/BatchView").then((m) => ({ default: m.BatchView })));
 const BrowserView = lazy(() => import("./views/BrowserView").then((m) => ({ default: m.BrowserView })));
 const MediaView = lazy(() => import("./views/BrowserView").then((m) => ({ default: m.MediaView })));
@@ -257,6 +260,7 @@ export default function App() {
     };
     const off = onCoreEvent(handle);
     void startStore().then((pending) => pending.forEach(applyEvent));
+    loadAir();
     return () => {
       off();
     };
@@ -337,6 +341,9 @@ export default function App() {
     case "batch":
       content = <BatchView />;
       break;
+    case "airsend":
+      content = <AirSendView />;
+      break;
     case "browser":
       content = <BrowserView />;
       break;
@@ -393,6 +400,7 @@ export default function App() {
       <MenuHost />
       {welcome && <WelcomeGuide onClose={() => setWelcome(false)} />}
       <ToolDownloadsPanel />
+      <AirSendPrompts />
       <ToastHost />
     </AppContext.Provider>
   );

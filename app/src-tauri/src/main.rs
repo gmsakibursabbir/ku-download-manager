@@ -23,6 +23,8 @@ pub struct AppState {
     /// Requests waiting for their "Download File" popup window to pick them up.
     pub prompts: Mutex<HashMap<String, AddRequest>>,
     pub prompt_seq: AtomicU64,
+    /// KuAirSend (None when its device certificate could not be created).
+    pub airsend: Option<Arc<kucore::airsend::AirSend>>,
 }
 
 fn init_logging() {
@@ -199,6 +201,15 @@ fn forward_events(app: AppHandle, core: Arc<Core>) {
                     continue;
                 }
                 CoreEvent::PromptAdd { .. } => show_main(&app),
+                CoreEvent::AirSendRequest { request } => {
+                    show_main(&app);
+                    let what = if request.file_count == 1 { request.files.first().map(|f| format!("“{}”", f.name)).unwrap_or_default() } else { format!("{} files", request.file_count) };
+                    notify(&app, "KuAirSend", &format!("{} wants to send you {what}.", request.peer));
+                }
+                CoreEvent::AirSendMessage { message } if !window_visible(&app) => notify(&app, &format!("Message from {}", message.peer), &message.text),
+                CoreEvent::AirSendTransfer { transfer } if transfer.direction == "receive" && transfer.state == "done" && transfer.text.is_none() && !window_visible(&app) => {
+                    notify(&app, "KuAirSend", &format!("Received {} file{} from {}.", transfer.file_count, if transfer.file_count == 1 { "" } else { "s" }, transfer.peer))
+                }
                 CoreEvent::ClipboardUrl { url } if !window_visible(&app) => notify(&app, "Link copied", &format!("{url}\nOpen KuDownloader to download it.")),
                 _ => {}
             }
@@ -228,6 +239,8 @@ fn main() {
     };
     let core = Core::open(db).expect("initializing KuCore");
 
+    let airsend = kucore::airsend::AirSend::new(core.clone()).map_err(|e| tracing::error!("KuAirSend unavailable: {e:#}")).ok();
+    let setup_air = airsend.clone();
     let setup_core = core.clone();
     let exit_core = core.clone();
     let launch_args = args.clone();
@@ -249,6 +262,7 @@ fn main() {
             api_port: Mutex::new(None),
             prompts: Mutex::new(HashMap::new()),
             prompt_seq: AtomicU64::new(1),
+            airsend,
         })
         .invoke_handler(commands::handler())
         .setup(move |app| {
@@ -274,6 +288,13 @@ fn main() {
             }
             commands::sync_autostart(&handle, core.settings().start_with_os);
             handle_args(&handle, &launch_args);
+            if let Some(air) = setup_air.clone().filter(|_| core.settings().airsend_enabled) {
+                tauri::async_runtime::spawn(async move {
+                    if let Err(e) = air.start().await {
+                        tracing::warn!("KuAirSend: {e:#}");
+                    }
+                });
+            }
             Ok(())
         })
         .on_window_event(|window, event| {

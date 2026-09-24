@@ -1,0 +1,126 @@
+import { useState } from "react";
+import { Copy, Download } from "lucide-react";
+import { airApi, dismissMessage, dismissRequest, useAir, type AirMessage, type AirRequest } from "../../lib/airsend";
+import { errorText } from "../../lib/api";
+import * as fmt from "../../lib/format";
+import { t } from "../../lib/i18n";
+import { Button, Checkbox } from "../../ui/primitives";
+import { Dialog, toast } from "../../ui/overlays";
+import { useApp } from "../context";
+import { PixelAnimal } from "./PixelAnimal";
+import { hashPick } from "../../lib/airsend";
+
+const isLink = (s: string) => /^(https?|ftp|magnet):\S+$/i.test(s.trim());
+
+function RequestDialog({ r }: { r: AirRequest }) {
+  const [trust, setTrust] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const answer = async (accept: boolean) => {
+    setBusy(true);
+    try {
+      await airApi.decide(r.id, accept, accept && trust);
+    } catch (e) {
+      toast({ level: "error", title: "KuAirSend", message: errorText(e) });
+    } finally {
+      dismissRequest(r.id);
+    }
+  };
+  const shown = r.files.slice(0, 6);
+  return (
+    <Dialog
+      title="KuAirSend"
+      width={440}
+      onClose={() => void answer(false)}
+      footer={
+        <>
+          <Button className="is-danger" disabled={busy} onClick={() => void answer(false)}>
+            {t("Decline")}
+          </Button>
+          <Button variant="primary" busy={busy} onClick={() => void answer(true)} data-autofocus>
+            {t("Accept")}
+          </Button>
+        </>
+      }
+    >
+      <div className="air-offer">
+        <PixelAnimal animal={r.peerAvatar} size={64} seed={hashPick(r.peerFingerprint, 97)} />
+        <div className="air-offer-text">
+          <b>{r.peer}</b>
+          <span className="faint">
+            {t("wants to send you {files}").replace("{files}", r.fileCount === 1 ? t("1 file") : t("{n} files").replace("{n}", String(r.fileCount)))} · {fmt.bytes(r.total)}
+          </span>
+        </div>
+      </div>
+      <ul className="air-offer-files">
+        {shown.map((f, i) => (
+          <li key={i}>
+            <span className="truncate" title={f.name}>
+              {f.name}
+            </span>
+            <span className="faint num">{fmt.bytes(f.size)}</span>
+          </li>
+        ))}
+        {r.fileCount > shown.length && <li className="faint">{t("+{n} more").replace("{n}", String(r.fileCount - shown.length))}</li>}
+      </ul>
+      <Checkbox checked={trust} onChange={setTrust}>
+        {t("Always accept from this device")}
+      </Checkbox>
+    </Dialog>
+  );
+}
+
+function MessageDialog({ m }: { m: AirMessage }) {
+  const app = useApp();
+  const link = isLink(m.text);
+  const close = () => dismissMessage(m.id);
+  return (
+    <Dialog
+      title={t("Message from {peer}").replace("{peer}", m.peer)}
+      width={460}
+      onClose={close}
+      footer={
+        <>
+          <Button
+            icon={Copy}
+            onClick={() => {
+              void navigator.clipboard.writeText(m.text);
+              toast({ level: "success", title: t("Copied") });
+            }}
+          >
+            {t("Copy")}
+          </Button>
+          {link ? (
+            <Button
+              variant="primary"
+              icon={Download}
+              data-autofocus
+              onClick={() => {
+                close();
+                app.openAdd({ url: m.text.trim() });
+              }}
+            >
+              {t("Download")}
+            </Button>
+          ) : (
+            <Button variant="primary" onClick={close} data-autofocus>
+              {t("Close")}
+            </Button>
+          )}
+        </>
+      }
+    >
+      <div className="air-offer">
+        <PixelAnimal animal={m.peerAvatar} size={48} seed={hashPick(m.peerFingerprint, 97)} />
+        <div className={`air-message ${link ? "mono" : ""}`}>{m.text}</div>
+      </div>
+    </Dialog>
+  );
+}
+
+/** Incoming offers and messages, over whatever screen is open (one at a time). */
+export function AirSendPrompts() {
+  const { requests, messages } = useAir();
+  if (requests[0]) return <RequestDialog key={requests[0].id} r={requests[0]} />;
+  if (messages[0]) return <MessageDialog key={messages[0].id} m={messages[0]} />;
+  return null;
+}

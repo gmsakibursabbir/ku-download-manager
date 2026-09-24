@@ -11,6 +11,7 @@ import {
   Clapperboard,
   File,
   ListPlus,
+  Radar,
   Hand,
   ListOrdered,
   Minus,
@@ -29,6 +30,7 @@ import { run } from "./downloads/actions";
 import { CATEGORY_ICON } from "./downloads/FileGlyph";
 import { invoke } from "@tauri-apps/api/core";
 import { pasteLink, pickTorrent } from "./downloads/DownloadsView";
+import { useAir } from "../lib/airsend";
 
 
 export interface PlatformInfo {
@@ -275,6 +277,7 @@ function TreeItem({
 }
 
 export function Sidebar({ collapsed }: { collapsed: boolean; onToggle?: () => void }) {
+  const air = useAir();
   const { view, filter, showList, navigate } = useApp();
   const settings = settingsStore.use();
   const queues = queuesStore.use();
@@ -315,6 +318,9 @@ export function Sidebar({ collapsed }: { collapsed: boolean; onToggle?: () => vo
           <button type="button" className="nav-item" title={t("Batch Downloads")} aria-current={view === "batch" ? "page" : undefined} onClick={() => navigate("batch")}>
             <Icon icon={ListPlus} />
           </button>
+          <button type="button" className="nav-item" title="KuAirSend" aria-current={view === "airsend" ? "page" : undefined} onClick={() => navigate("airsend")}>
+            <Icon icon={Radar} />
+          </button>
         </div>
       </nav>
     );
@@ -338,6 +344,7 @@ export function Sidebar({ collapsed }: { collapsed: boolean; onToggle?: () => vo
         <TreeItem icon={Hand} label={t("Grabber Projects")} active={view === "grabber"} onClick={() => navigate("grabber")} />
         <TreeItem icon={Clapperboard} label={t("Video Downloader")} active={view === "video"} onClick={() => navigate("video")} />
         <TreeItem icon={ListPlus} label={t("Batch Downloads")} active={view === "batch"} onClick={() => navigate("batch")} />
+        <TreeItem icon={Radar} label="KuAirSend" count={air.peers.length || undefined} active={view === "airsend"} onClick={() => navigate("airsend")} />
       </div>
       <SpeedMonitor />
     </nav>
