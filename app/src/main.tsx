@@ -8,6 +8,7 @@ import "./design-system/components.css";
 import "./app/app.css";
 import "./app/fluent.css";
 import App from "./App";
+import { initLanguage } from "./lib/i18n";
 import { PromptWindow } from "./app/PromptWindow";
 import { ProgressWindow } from "./app/ProgressWindow";
 
@@ -18,4 +19,7 @@ const progress = location.hash.match(/^#progress=([\w-]+)$/)?.[1];
 if (prompt) document.documentElement.dataset.window = "prompt";
 if (progress) document.documentElement.dataset.window = "progress";
 
-createRoot(document.getElementById("root")!).render(<StrictMode>{prompt ? <PromptWindow id={prompt} /> : progress ? <ProgressWindow id={progress} /> : <App />}</StrictMode>);
+// The interface language is loaded before the first render.
+void initLanguage().finally(() =>
+  createRoot(document.getElementById("root")!).render(<StrictMode>{prompt ? <PromptWindow id={prompt} /> : progress ? <ProgressWindow id={progress} /> : <App />}</StrictMode>),
+);

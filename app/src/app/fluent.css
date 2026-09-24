@@ -1009,3 +1009,15 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .tool-panel-bar > span[data-indeterminate] { animation: none; }
 }
+
+/* Right-to-left (Arabic): numbers, sizes, dates, file names and paths keep
+ * their own direction instead of being reordered ("5.80 GB", not "GB 5.80"). */
+:root[dir="rtl"] .num,
+:root[dir="rtl"] .cell,
+:root[dir="rtl"] .row-title,
+:root[dir="rtl"] .mono,
+:root[dir="rtl"] input,
+:root[dir="rtl"] textarea,
+:root[dir="rtl"] .tool-panel-text {
+  unicode-bidi: plaintext;
+}

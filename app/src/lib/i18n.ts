@@ -1,246 +1,54 @@
 /**
  * Interface translations. Keys are the English strings themselves, so an
- * untranslated string simply stays English. The language is chosen in
- * Settings › Appearance ("system" follows the OS) and cached in localStorage
- * so every window (main, popups) starts in it without waiting for settings.
+ * untranslated string simply stays English. Each language lives in
+ * `locales/<code>.ts` and is loaded on demand before the first render.
+ * The choice is made in Settings › Appearance ("system" follows the OS) and
+ * cached in localStorage so every window (main, popups) starts in it.
  */
 
-const BN: Record<string, string> = {
-  // Menus and title bar
-  Tasks: "কাজ",
-  File: "ফাইল",
-  Downloads: "ডাউনলোড",
-  View: "দেখুন",
-  Help: "সাহায্য",
-  "Add URL": "URL যোগ করুন",
-  "Add URL…": "URL যোগ করুন…",
-  "Add from clipboard": "ক্লিপবোর্ড থেকে যোগ করুন",
-  "Add batch download…": "একসাথে অনেক ডাউনলোড…",
-  "Video downloader…": "ভিডিও ডাউনলোডার…",
-  "Grab links from a page…": "পেজ থেকে লিংক সংগ্রহ…",
-  "Scheduler…": "শিডিউলার…",
-  "Open .torrent file…": ".torrent ফাইল খুলুন…",
-  "Open download folder": "ডাউনলোড ফোল্ডার খুলুন",
-  "Quit KuDownloader": "KuDownloader বন্ধ করুন",
-  "Resume all": "সব আবার শুরু",
-  "Stop all": "সব থামান",
-  "Delete all completed": "সম্পন্ন সব মুছুন",
-  "Options…": "অপশন…",
-  Theme: "থিম",
-  Light: "হালকা",
-  Dark: "গাঢ়",
-  System: "সিস্টেম",
-  "Compact rows": "ঘন সারি",
-  "Details panel": "বিস্তারিত প্যানেল",
-  "Browser integration": "ব্রাউজার ইন্টিগ্রেশন",
-  "Media detection": "মিডিয়া শনাক্তকরণ",
-  "Browser integration setup": "ব্রাউজার ইন্টিগ্রেশন সেটআপ",
-  "Keyboard shortcuts": "কীবোর্ড শর্টকাট",
-  "Check for updates…": "আপডেট দেখুন…",
-  "About KuDownloader": "KuDownloader সম্পর্কে",
-  Minimize: "ছোট করুন",
-  Maximize: "বড় করুন",
-  Restore: "আগের আকারে",
-  Close: "বন্ধ করুন",
+export const LANGUAGES: { code: string; name: string }[] = [
+  { code: "en", name: "English" },
+  { code: "zh", name: "简体中文" },
+  { code: "hi", name: "हिन्दी" },
+  { code: "es", name: "Español" },
+  { code: "ar", name: "العربية" },
+  { code: "fr", name: "Français" },
+  { code: "bn", name: "বাংলা" },
+  { code: "pt", name: "Português" },
+  { code: "ru", name: "Русский" },
+  { code: "ja", name: "日本語" },
+  { code: "de", name: "Deutsch" },
+  { code: "ko", name: "한국어" },
+];
+const RTL = new Set(["ar"]);
 
-  // Sidebar
-  Categories: "বিভাগ",
-  "All Downloads": "সব ডাউনলোড",
-  Unfinished: "অসম্পূর্ণ",
-  Finished: "সম্পন্ন",
-  Queues: "সারি",
-  "Grabber Projects": "গ্র্যাবার প্রজেক্ট",
-  "Video Downloader": "ভিডিও ডাউনলোডার",
-  "Batch Downloads": "ব্যাচ ডাউনলোড",
-  Archives: "আর্কাইভ",
-  "Disk images": "ডিস্ক ইমেজ",
-  Programs: "প্রোগ্রাম",
-  Video: "ভিডিও",
-  Music: "গান",
-  Documents: "ডকুমেন্ট",
-  Images: "ছবি",
-  Torrents: "টরেন্ট",
-  Network: "নেটওয়ার্ক",
-  Idle: "নিষ্ক্রিয়",
+const loaders = import.meta.glob<{ default: Record<string, string> }>("./locales/*.ts");
 
-  // Toolbar and list
-  Resume: "আবার শুরু",
-  "Resume (Space)": "আবার শুরু (Space)",
-  Stop: "থামান",
-  "Stop (Space)": "থামান (Space)",
-  Pause: "বিরতি",
-  Delete: "মুছুন",
-  "Delete (Del)": "মুছুন (Del)",
-  "Start Queue": "সারি শুরু",
-  "Stop Queue": "সারি থামান",
-  "Start queue": "সারি শুরু করুন",
-  "Stop queue": "সারি থামান",
-  Scheduler: "শিডিউলার",
-  Grabber: "গ্র্যাবার",
-  "Search downloads": "ডাউনলোড খুঁজুন",
-  "Search (Ctrl F)": "খুঁজুন (Ctrl F)",
-  Settings: "সেটিংস",
-  "File name": "ফাইলের নাম",
-  Size: "আকার",
-  Status: "অবস্থা",
-  "Time Left": "বাকি সময়",
-  "Transfer rate": "গতি",
-  "Last try date": "শেষ চেষ্টা",
-  Queued: "সারিতে",
-  Downloading: "ডাউনলোড হচ্ছে",
-  Processing: "প্রক্রিয়াকরণ",
-  Paused: "বিরতিতে",
-  Completed: "সম্পন্ন",
-  Complete: "সম্পন্ন",
-  Error: "ত্রুটি",
-  Seeding: "সিডিং",
-  "Merging…": "একত্র করা হচ্ছে…",
-  "At a time": "একসাথে",
-  "When done": "শেষ হলে",
-  Sync: "সিঙ্ক",
-  Off: "বন্ধ",
-  "Every 15 min": "প্রতি ১৫ মিনিটে",
-  "Every hour": "প্রতি ঘণ্টায়",
-  "Every 6 hours": "প্রতি ৬ ঘণ্টায়",
-  Daily: "প্রতিদিন",
-  "Do nothing": "কিছু করবেন না",
-  Sleep: "স্লিপ",
-  "Shut down": "কম্পিউটার বন্ধ",
-
-  // Context menu
-  Open: "খুলুন",
-  "Show in folder": "ফোল্ডারে দেখান",
-  Retry: "আবার চেষ্টা",
-  "Download again": "আবার ডাউনলোড করুন",
-  "Move to queue": "সারিতে সরান",
-  "No queue (start directly)": "কোনো সারি নয় (সরাসরি শুরু)",
-  "Move to top": "সবার উপরে",
-  "Move up": "উপরে",
-  "Move down": "নিচে",
-  "Move to bottom": "সবার নিচে",
-  "Copy link": "লিংক কপি করুন",
-  "Select all": "সব নির্বাচন",
-
-  // Download File dialog and popup
-  "Download File": "ফাইল ডাউনলোড",
-  URL: "URL",
-  Category: "বিভাগ",
-  "Save As": "সংরক্ষণের স্থান",
-  "Remember path for this category": "এই বিভাগের জন্য পথ মনে রাখুন",
-  "More options": "আরও অপশন",
-  "Download Later": "পরে ডাউনলোড",
-  "Download Now": "এখনই ডাউনলোড",
-  Cancel: "বাতিল",
-  Automatic: "স্বয়ংক্রিয়",
-  "Choose folder": "ফোল্ডার বাছুন",
-  "Choose quality…": "মান বাছুন…",
-  "This is a media page": "এটি একটি মিডিয়া পেজ",
-  "Checking the link…": "লিংক যাচাই করা হচ্ছে…",
-  "Sent from your browser": "আপনার ব্রাউজার থেকে পাঠানো",
-  "You already downloaded this file": "এই ফাইলটি আগেই ডাউনলোড করা হয়েছে",
-  "This link is already in your downloads": "এই লিংকটি আগেই ডাউনলোড তালিকায় আছে",
-  "A file with this name is already in the folder": "এই নামের একটি ফাইল ফোল্ডারে আগেই আছে",
-  "Resume it": "আবার শুরু করুন",
-  "Show progress": "অগ্রগতি দেখুন",
-
-  // Progress window
-  "Download complete": "ডাউনলোড সম্পন্ন",
-  "Receiving data…": "ডেটা আসছে…",
-  Failed: "ব্যর্থ",
-  Address: "ঠিকানা",
-  "File size": "ফাইলের আকার",
-  Downloaded: "ডাউনলোড হয়েছে",
-  "Show details": "বিস্তারিত দেখান",
-  "Hide details": "বিস্তারিত লুকান",
-  "Open folder": "ফোল্ডার খুলুন",
-  "Cancel download": "ডাউনলোড বাতিল",
-  Hide: "লুকান",
-  Unknown: "অজানা",
-  Yes: "হ্যাঁ",
-
-  // Settings
-  General: "সাধারণ",
-  Connection: "সংযোগ",
-  Speed: "গতি",
-  Browser: "ব্রাউজার",
-  Media: "মিডিয়া",
-  Torrent: "টরেন্ট",
-  Notifications: "বিজ্ঞপ্তি",
-  Appearance: "চেহারা",
-  Advanced: "উন্নত",
-  "Accent colour": "অ্যাকসেন্ট রং",
-  "Dark mode colours": "গাঢ় মোডের রং",
-  Graphite: "গ্রাফাইট",
-  "Midnight blue": "মিডনাইট ব্লু",
-  "Pure black (OLED)": "সম্পূর্ণ কালো (OLED)",
-  Language: "ভাষা",
-  "Restarts the interface.": "ইন্টারফেস আবার চালু হবে।",
-  "Simultaneous downloads": "একসাথে ডাউনলোড",
-  "Connections per download": "প্রতি ডাউনলোডে সংযোগ",
-  "If the file already exists": "ফাইলটি আগে থেকেই থাকলে",
-  "Keep both (rename)": "দুটোই রাখুন (নাম বদলে)",
-  Overwrite: "প্রতিস্থাপন",
-  "Don't download": "ডাউনলোড করবেন না",
-  Smart: "স্মার্ট",
-  "Virus scan": "ভাইরাস স্ক্যান",
-  "Scan finished downloads": "সম্পন্ন ডাউনলোড স্ক্যান করুন",
-  "When a download completes": "ডাউনলোড সম্পন্ন হলে",
-  "When a download fails": "ডাউনলোড ব্যর্থ হলে",
-  "When a queue finishes": "সারি শেষ হলে",
-  "Show a progress window for new downloads": "নতুন ডাউনলোডে অগ্রগতি উইন্ডো দেখান",
-  "Sort into category folders": "বিভাগ অনুযায়ী ফোল্ডারে রাখুন",
-  Updates: "আপডেট",
-  "Check now": "এখনই দেখুন",
-  Unlimited: "সীমাহীন",
-  "Media tools needed": "মিডিয়া টুল প্রয়োজন",
-  "FFmpeg recommended": "FFmpeg প্রস্তাবিত",
-  Download: "ডাউনলোড",
-  Available: "আছে",
-  "Not found": "পাওয়া যায়নি",
-
-  // First-run guide
-  "Getting started…": "শুরু করার গাইড…",
-  "Welcome to KuDownloader": "KuDownloader-এ স্বাগতম",
-  "Fast downloads that resume after anything — from your browser, video sites and links.": "দ্রুত ডাউনলোড, যা যেকোনো বাধার পরেও আবার চালু হয় — ব্রাউজার, ভিডিও সাইট আর লিংক থেকে।",
-  "Paste a link or press Add URL to download with several connections at once.": "লিংক পেস্ট করুন বা URL যোগ করুন চাপুন — একসাথে কয়েকটি সংযোগে ডাউনলোড হবে।",
-  "Downloads you start in the browser open a small Download File window.": "ব্রাউজারে শুরু করা ডাউনলোড একটি ছোট “ফাইল ডাউনলোড” উইন্ডোতে খুলবে।",
-  "A KuDownload button appears on videos on web pages.": "ওয়েব পেজের ভিডিওতে একটি KuDownload বোতাম দেখা যাবে।",
-  "Two quick steps get everything ready.": "দুটি ছোট ধাপে সব প্রস্তুত হয়ে যাবে।",
-  "Video and audio tools": "ভিডিও ও অডিও টুল",
-  "Video downloads use yt-dlp, and FFmpeg merges the best video with its audio. Both come from their official releases and are checked before use.": "ভিডিও ডাউনলোডে yt-dlp লাগে, আর FFmpeg সেরা ভিডিওর সাথে অডিও জুড়ে দেয়। দুটোই অফিসিয়াল রিলিজ থেকে আসে এবং ব্যবহারের আগে যাচাই করা হয়।",
-  "Everything is installed.": "সব ইনস্টল করা আছে।",
-  "Installing…": "ইনস্টল হচ্ছে…",
-  "Install yt-dlp and FFmpeg": "yt-dlp ও FFmpeg ইনস্টল করুন",
-  Install: "ইনস্টল",
-  Installed: "ইনস্টল করা আছে",
-  "Not installed": "ইনস্টল নেই",
-  "You can skip this and install them later from the Video Downloader.": "চাইলে এখন বাদ দিয়ে পরে ভিডিও ডাউনলোডার থেকে ইনস্টল করতে পারবেন।",
-  "Add the browser extension": "ব্রাউজার এক্সটেনশন যোগ করুন",
-  "The extension sends downloads and videos from your browser to KuDownloader. Choose Install next to each browser you use:": "এক্সটেনশনটি ব্রাউজার থেকে ডাউনলোড ও ভিডিও KuDownloader-এ পাঠায়। আপনার প্রতিটি ব্রাউজারের পাশে ইনস্টল চাপুন:",
-  "the extensions page opens: turn on Developer mode, choose Load unpacked, paste the folder path (already copied) and press Enter.": "এক্সটেনশন পেজ খুলবে: Developer mode চালু করুন, Load unpacked বাছুন, ফোল্ডারের পথ পেস্ট করুন (আগেই কপি করা) এবং Enter চাপুন।",
-  "about:debugging opens: choose Load Temporary Add-on and pick manifest.json in the folder that opened.": "about:debugging খুলবে: Load Temporary Add-on বাছুন এবং খোলা ফোল্ডার থেকে manifest.json নির্বাচন করুন।",
-  Back: "পেছনে",
-  Skip: "বাদ দিন",
-  Next: "পরবর্তী",
-  Finish: "শেষ",
-};
-
-const DICTS: Record<string, Record<string, string>> = { bn: BN };
-
-function detect(): string {
-  let pref = "system";
-  try {
-    pref = localStorage.getItem("ku-lang") ?? "system";
-  } catch {
-    /* storage unavailable */
-  }
-  if (pref === "system") return navigator.language.toLowerCase().startsWith("bn") ? "bn" : "en";
-  return pref;
+function resolve(pref: string): string {
+  if (pref && pref !== "system") return pref;
+  const nav = (navigator.language || "en").toLowerCase();
+  return LANGUAGES.find((l) => nav === l.code || nav.startsWith(l.code + "-"))?.code ?? "en";
 }
 
-let lang = detect();
-let dict = DICTS[lang];
-document.documentElement.lang = lang;
+function stored(): string {
+  try {
+    return localStorage.getItem("ku-lang") ?? "system";
+  } catch {
+    return "system";
+  }
+}
+
+let lang = "en";
+let dict: Record<string, string> | undefined;
+
+/** Load the chosen language before the first render. */
+export async function initLanguage(): Promise<void> {
+  lang = resolve(stored());
+  const load = loaders[`./locales/${lang}.ts`];
+  dict = load ? (await load().catch(() => ({ default: {} }))).default : undefined;
+  document.documentElement.lang = lang;
+  document.documentElement.dir = RTL.has(lang) ? "rtl" : "ltr";
+}
 
 /** Translate an interface string (English is the key). */
 export function t(s: string): string {
@@ -251,13 +59,10 @@ export function t(s: string): string {
 export function syncLanguage(setting: string | undefined) {
   if (!setting) return;
   try {
-    if ((localStorage.getItem("ku-lang") ?? "system") === setting) return;
+    if (stored() === setting) return;
     localStorage.setItem("ku-lang", setting);
   } catch {
     return;
   }
-  const next = setting === "system" ? (navigator.language.toLowerCase().startsWith("bn") ? "bn" : "en") : setting;
-  if (next !== lang) location.reload();
-  lang = next;
-  dict = DICTS[lang];
+  if (resolve(setting) !== lang) location.reload();
 }

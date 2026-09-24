@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { t } from "../lib/i18n";
+import { LANGUAGES, t } from "../lib/i18n";
 import { Plus, Trash2, RefreshCw, FolderOpen, Download as DownloadIcon } from "lucide-react";
 import { api, errorText } from "../lib/api";
 import { settingsStore } from "../lib/store";
@@ -469,11 +469,7 @@ export function SettingsView() {
                   k="language"
                   label={t("Language")}
                   desc={t("Restarts the interface.")}
-                  options={[
-                    { value: "system", label: t("System") },
-                    { value: "en", label: "English" },
-                    { value: "bn", label: "বাংলা (Bengali)" },
-                  ]}
+                  options={[{ value: "system", label: t("System") }, ...LANGUAGES.map((l) => ({ value: l.code, label: l.name }))]}
                   width={180}
                 />
               </PrefGroup>
