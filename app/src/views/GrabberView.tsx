@@ -22,7 +22,7 @@ function nameOf(l: GrabLink) {
 }
 
 export function GrabberView() {
-  const { grabPrefill, navigate } = useApp();
+  const { grabPrefill, showList } = useApp();
   const settings = settingsStore.use();
   const queues = queuesStore.use();
   const [pageUrl, setPageUrl] = useState(grabPrefill?.pageUrl ?? "");
@@ -98,7 +98,7 @@ export function GrabberView() {
         level: r.failed.length ? "warning" : "success",
         title: `${r.added.length} added${r.failed.length ? `, ${r.failed.length} skipped` : ""}`,
         message: r.failed[0] ? `${fmt.host(r.failed[0].url)}: ${r.failed[0].error}` : undefined,
-        actions: [{ label: "View", onClick: () => navigate(queueId ? "queue" : "downloads") }],
+        actions: [{ label: "View", onClick: () => showList(queueId ? { scope: "queue", queueId } : { scope: "all" }) }],
       });
       setSelected(new Set());
     } catch (e) {

@@ -125,7 +125,7 @@ pub fn category_for(name: &str, categories: &[Category], kind: Kind) -> String {
     let ext = extension_of(name).unwrap_or_default();
     categories
         .iter()
-        .find(|c| c.extensions.iter().any(|e| *e == ext))
+        .find(|c| c.extensions.contains(&ext))
         .map(|c| c.id.clone())
         .unwrap_or_default()
 }

@@ -3,5 +3,8 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "scripts": { "build": "node build.mjs" }
+  "scripts": {
+    "build": "node build.mjs && node pack.mjs",
+    "sign:firefox": "node sign-firefox.mjs"
+  }
 }

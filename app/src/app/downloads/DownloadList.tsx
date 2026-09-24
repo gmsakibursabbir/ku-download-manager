@@ -1,20 +1,22 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, ListOrdered } from "lucide-react";
 import { useDownload, getDownload, settingsStore, queuesStore } from "../../lib/store";
 import * as fmt from "../../lib/format";
 import type { Download } from "../../lib/types";
-import { Icon, IconButton, Progress, StatusBadge } from "../../ui/primitives";
+import { Icon } from "../../ui/primitives";
 import { showMenu } from "../../ui/overlays";
 import { FileGlyph } from "./FileGlyph";
-import { contextMenu, openDownload, primaryAction, canPause, canResume, run } from "./actions";
+import { contextMenu, openDownload, canPause, canResume, run } from "./actions";
 import { api } from "../../lib/api";
 import { useApp } from "../context";
 
-export type SortKey = "added" | "name" | "size" | "progress" | "speed" | "status" | "queue";
+export type SortKey = "added" | "name" | "size" | "progress" | "speed" | "status" | "queue" | "eta";
 export interface SortState {
   key: SortKey;
   dir: 1 | -1;
 }
+
+const lastTry = (d: Download) => d.completedAt ?? d.createdAt;
 
 export function compareBy(sort: SortState) {
   return (a: Download, b: Download) => {
@@ -27,47 +29,50 @@ export function compareBy(sort: SortState) {
         r = a.total - b.total;
         break;
       case "progress":
-        r = fmt.percent(a.done, a.total) - fmt.percent(b.done, b.total);
+      case "status":
+        r = fmt.percent(a.done, a.total) - fmt.percent(b.done, b.total) || a.status.localeCompare(b.status);
         break;
       case "speed":
         r = a.speed - b.speed;
         break;
-      case "status":
-        r = a.status.localeCompare(b.status);
+      case "eta":
+        r = (fmt.eta(a.done, a.total, a.speed) ?? Infinity) - (fmt.eta(b.done, b.total, b.speed) ?? Infinity);
         break;
       case "queue":
         r = a.position - b.position || a.createdAt - b.createdAt;
         break;
       default:
-        r = (a.completedAt ?? a.createdAt) - (b.completedAt ?? b.createdAt);
+        r = lastTry(a) - lastTry(b);
     }
     return r * sort.dir || b.createdAt - a.createdAt;
   };
 }
 
-function subline(d: Download): { text: string; error?: boolean } {
-  const h = fmt.host(d.url);
-  const sizes = d.total > 0 ? `${fmt.bytes(d.done)} of ${fmt.bytes(d.total)}` : d.done > 0 ? fmt.bytes(d.done) : "Size unknown";
+function dateLabel(ms: number) {
+  const d = new Date(ms);
+  const time = d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", hour12: false });
+  const date = d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  return `${time}, ${date}`;
+}
+
+function statusCell(d: Download): { text: string; tone?: "accent" | "success" | "danger" | "muted"; title?: string } {
+  const pct = d.total > 0 ? `${fmt.percent(d.done, d.total).toFixed(2)}%` : null;
   switch (d.status) {
     case "downloading":
-      if (d.kind === "magnet" && d.total === 0) return { text: "Fetching torrent metadata…" };
-      return { text: [h, sizes, d.meta.playlistIndex ? `item ${d.meta.playlistIndex}` : ""].filter(Boolean).join(" · ") };
+      if (d.kind === "magnet" && d.total === 0) return { text: "Getting metadata…", tone: "accent" };
+      return { text: pct ?? fmt.bytes(d.done), tone: "accent" };
     case "processing":
-      return { text: "Merging and converting…" };
+      return { text: "Merging…", tone: "accent" };
     case "seeding":
-      return { text: `Seeding · ${fmt.bytes(d.uploaded)} uploaded` };
-    case "queued": {
-      if (d.meta.retries > 0) return { text: `Retrying soon (attempt ${d.meta.retries}) · ${sizes}` };
-      const q = d.queueId ? queuesStore.get().find((x) => x.id === d.queueId) : null;
-      if (q) return { text: `${q.running ? "Waiting in" : "In"} ${q.name}${d.done > 0 ? ` · ${sizes}` : ""}` };
-      return { text: d.done > 0 ? `Waiting for a free slot · ${sizes}` : "Waiting for a free slot" };
-    }
-    case "paused":
-      return { text: `Paused · ${sizes}` };
-    case "error":
-      return { text: d.error ?? "Failed", error: true };
+      return { text: "Seeding", tone: "success" };
     case "completed":
-      return { text: [h, d.dir].filter(Boolean).join(" · ") };
+      return { text: "Complete", tone: "success" };
+    case "error":
+      return { text: "Error", tone: "danger", title: d.error ?? undefined };
+    case "paused":
+    case "queued":
+      if (d.done > 0 && pct) return { text: pct, tone: "muted", title: d.status === "queued" ? "Waiting to continue" : "Paused" };
+      return { text: d.status === "queued" ? "Queued" : "Not started", tone: "muted" };
   }
 }
 
@@ -78,6 +83,7 @@ const Row = memo(function Row({
   selected,
   cursor,
   onMouseDown,
+  onCheck,
   onDoubleClick,
   onContextMenu,
 }: {
@@ -87,79 +93,61 @@ const Row = memo(function Row({
   selected: boolean;
   cursor: boolean;
   onMouseDown: (e: React.MouseEvent, id: string, index: number) => void;
+  onCheck: (id: string, index: number) => void;
   onDoubleClick: (id: string) => void;
   onContextMenu: (e: React.MouseEvent, id: string, index: number) => void;
 }) {
   const d = useDownload(id);
-  queuesStore.use(); // queue names appear in the subline
+  const queues = queuesStore.use();
   if (!d) return null;
+  const st = statusCell(d);
+  const active = d.status === "downloading";
+  const eta = active ? fmt.eta(d.done, d.total, d.speed) : null;
+  const queue = d.queueId ? queues.find((q) => q.id === d.queueId) : null;
   const pct = fmt.percent(d.done, d.total);
-  const active = d.status === "downloading" || d.status === "processing";
-  const sub = subline(d);
-  const action = primaryAction(d);
-  const eta = d.status === "downloading" ? fmt.eta(d.done, d.total, d.speed) : null;
-  const indeterminate = (active && d.total === 0) || d.status === "processing";
   return (
     <div
       className="row list-grid"
       role="row"
       aria-selected={selected}
       data-cursor={cursor || undefined}
+      data-status={d.status}
       style={{ transform: `translateY(${top}px)` }}
       onMouseDown={(e) => onMouseDown(e, id, index)}
       onDoubleClick={() => onDoubleClick(id)}
       onContextMenu={(e) => onContextMenu(e, id, index)}
     >
-      <FileGlyph d={d} />
-      <div className="row-name">
-        <div className="row-title" title={d.name}>
-          {d.name}
-        </div>
-        <div className={`row-sub ${sub.error ? "is-error" : ""}`} title={sub.text}>
-          {sub.text}
-        </div>
+      <label className="row-check" onMouseDown={(e) => e.stopPropagation()}>
+        <input type="checkbox" checked={selected} onChange={() => onCheck(id, index)} aria-label={`Select ${d.name}`} />
+      </label>
+      <div className="row-name" title={d.error ? `${d.name}\n${d.error}` : d.name}>
+        <FileGlyph d={d} size={14} />
+        <span className="row-title">{d.name}</span>
       </div>
-      {d.status === "completed" ? (
-        <div className="cell-num" style={{ textAlign: "left" }}>
-          {fmt.relativeDate(d.completedAt)}
-        </div>
-      ) : (
-        <div className="row-progress num">
-          <Progress value={d.status === "seeding" ? 100 : pct} state={d.status} indeterminate={indeterminate} />
-          <span className="pct">{d.total > 0 && (d.done > 0 || active) && d.status !== "processing" ? `${pct < 10 ? pct.toFixed(1) : Math.floor(pct)}%` : ""}</span>
-        </div>
-      )}
-      <div className={`cell-num num ${active && d.status !== "processing" ? "strong" : ""}`}>
-        {d.status === "downloading" ? fmt.speed(d.speed) : d.status === "seeding" ? `↑ ${fmt.speed(d.uploadSpeed)}` : d.status === "completed" ? fmt.bytes(d.total) : ""}
+      <div className="cell-q" title={queue ? `In ${queue.name}` : undefined}>
+        {queue && <Icon icon={ListOrdered} size={14} />}
       </div>
-      <div className="cell-num num">{d.status === "downloading" ? (eta != null ? fmt.duration(eta) : "—") : ""}</div>
-      <div>
-        <StatusBadge status={d.status} />
-      </div>
-      <div className="right">
-        {action && (
-          <IconButton
-            icon={action.icon}
-            label={action.label}
-            size="sm"
-            className="row-action"
-            onMouseDown={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation();
-              action.run();
-            }}
-          />
+      <div className="cell num">{d.total > 0 ? fmt.bytes(d.total, 2) : d.done > 0 ? fmt.bytes(d.done) : ""}</div>
+      <div className="cell cell-status num" data-tone={st.tone} title={st.title}>
+        <span>{st.text}</span>
+        {(active || d.status === "paused" || d.status === "queued") && d.total > 0 && d.done > 0 && (
+          <span className="status-bar" aria-hidden="true">
+            <span style={{ width: `${pct}%` }} />
+          </span>
         )}
       </div>
+      <div className="cell num">{active ? (eta != null ? fmt.duration(eta) : "—") : ""}</div>
+      <div className="cell num">{active ? fmt.speed(d.speed) : d.status === "seeding" ? `↑ ${fmt.speed(d.uploadSpeed)}` : ""}</div>
+      <div className="cell num faint">{d.status === "queued" && d.done === 0 ? "" : dateLabel(lastTry(d))}</div>
     </div>
   );
 });
 
-function HeaderCell({ label, k, sort, onSort, right }: { label: string; k?: SortKey; sort: SortState; onSort?: (s: SortState) => void; right?: boolean }) {
-  if (!k || !onSort) return <div className={right ? "right" : undefined}>{label}</div>;
+function HeaderCell({ label, k, sort, onSort }: { label: string; k?: SortKey; sort: SortState; onSort?: (s: SortState) => void }) {
+  if (!k || !onSort) return <div className="hcell">{label}</div>;
   const on = sort.key === k;
   return (
-    <div className={right ? "right" : undefined}>
+    <div className="hcell">
       <button type="button" onClick={() => onSort({ key: k, dir: on ? ((sort.dir * -1) as 1 | -1) : k === "name" ? 1 : -1 })} aria-sort={on ? (sort.dir === 1 ? "ascending" : "descending") : undefined}>
         {label}
         {on && <Icon icon={sort.dir === 1 ? ChevronUp : ChevronDown} size={12} />}
@@ -175,9 +163,7 @@ export function DownloadList({
   onSort,
   onVerify,
   onDropFiles,
-  footer,
   reorderable,
-  finished,
 }: {
   ids: string[];
   empty: ReactNode;
@@ -185,9 +171,7 @@ export function DownloadList({
   onSort?: (s: SortState) => void;
   onVerify: (id: string) => void;
   onDropFiles: (dt: DataTransfer) => void;
-  footer?: ReactNode;
   reorderable?: boolean;
-  finished?: boolean;
 }) {
   const app = useApp();
   const { selection, setSelection, setInspectorOpen, confirmRemove } = app;
@@ -197,7 +181,7 @@ export function DownloadList({
   const [anchor, setAnchor] = useState<number>(-1);
   const [dragOver, setDragOver] = useState(false);
   const compact = settingsStore.use()?.compact ?? false;
-  const rowH = compact ? 36 : 48;
+  const rowH = compact ? 28 : 34;
 
   useLayoutEffect(() => {
     const el = scrollRef.current;
@@ -207,7 +191,6 @@ export function DownloadList({
     return () => ro.disconnect();
   }, []);
 
-  // Keep selection limited to visible ids when the list changes.
   useEffect(() => {
     const valid = new Set(ids);
     const next = new Set([...selection].filter((id) => valid.has(id)));
@@ -251,6 +234,18 @@ export function DownloadList({
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [anchor, selection, ids],
+  );
+
+  const onCheck = useCallback(
+    (id: string, index: number) => {
+      const next = new Set(selection);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      setSelection(next);
+      setAnchor(index);
+      setCursor(index);
+    },
+    [selection, setSelection],
   );
 
   const onDoubleClick = useCallback(
@@ -331,7 +326,7 @@ export function DownloadList({
       case " ": {
         e.preventDefault();
         const list = sel.map(getDownload).filter((d): d is Download => !!d);
-        if (list.some(canPause)) void run(api.pause(sel), "Could not pause");
+        if (list.some(canPause)) void run(api.pause(sel), "Could not stop");
         else if (list.some(canResume)) void run(api.resume(sel), "Could not resume");
         break;
       }
@@ -355,7 +350,7 @@ export function DownloadList({
     }
   };
 
-  const overscan = 6;
+  const overscan = 8;
   const first = Math.max(0, Math.floor(viewport.top / rowH) - overscan);
   const last = Math.min(ids.length, Math.ceil((viewport.top + viewport.height) / rowH) + overscan);
   const visible = [];
@@ -370,15 +365,18 @@ export function DownloadList({
         selected={selection.has(id)}
         cursor={cursor === i}
         onMouseDown={onMouseDown}
+        onCheck={onCheck}
         onDoubleClick={onDoubleClick}
         onContextMenu={onContextMenu}
       />,
     );
   }
+  const allSelected = ids.length > 0 && ids.every((id) => selection.has(id));
 
   return (
     <div
-      className="list"
+      className="list card"
+      style={{ ["--row-h" as string]: `${rowH}px` }}
       onDragOver={(e) => {
         if (e.dataTransfer.types.includes("Files") || e.dataTransfer.types.includes("text/uri-list") || e.dataTransfer.types.includes("text/plain")) {
           e.preventDefault();
@@ -393,16 +391,26 @@ export function DownloadList({
         setDragOver(false);
         onDropFiles(e.dataTransfer);
       }}
-      style={{ position: "relative" }}
     >
       <div className="list-header list-grid" role="row">
-        <div />
-        <HeaderCell label="Name" k="name" sort={sort} onSort={onSort} />
-        {finished ? <HeaderCell label="Completed" k="added" sort={sort} onSort={onSort} /> : <HeaderCell label="Progress" k="progress" sort={sort} onSort={onSort} />}
-        {finished ? <HeaderCell label="Size" k="size" sort={sort} onSort={onSort} right /> : <HeaderCell label="Speed" k="speed" sort={sort} onSort={onSort} right />}
-        <HeaderCell label={finished ? "" : "ETA"} right sort={sort} />
+        <label className="row-check">
+          <input
+            type="checkbox"
+            checked={allSelected}
+            ref={(el) => {
+              if (el) el.indeterminate = !allSelected && selection.size > 0;
+            }}
+            onChange={() => setSelection(allSelected ? new Set() : new Set(ids))}
+            aria-label="Select all"
+          />
+        </label>
+        <HeaderCell label="File name" k="name" sort={sort} onSort={onSort} />
+        <HeaderCell label="Q" k="queue" sort={sort} onSort={onSort} />
+        <HeaderCell label="Size" k="size" sort={sort} onSort={onSort} />
         <HeaderCell label="Status" k="status" sort={sort} onSort={onSort} />
-        <div />
+        <HeaderCell label="Time Left" k="eta" sort={sort} onSort={onSort} />
+        <HeaderCell label="Transfer rate" k="speed" sort={sort} onSort={onSort} />
+        <HeaderCell label="Last try date" k="added" sort={sort} onSort={onSort} />
       </div>
       <div
         ref={scrollRef}
@@ -418,7 +426,6 @@ export function DownloadList({
       >
         {ids.length === 0 ? empty : <div style={{ height: ids.length * rowH, position: "relative" }}>{visible}</div>}
       </div>
-      {footer}
       {dragOver && <div className="drop-hint">Drop links or .torrent files to download</div>}
     </div>
   );

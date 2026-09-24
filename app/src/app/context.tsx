@@ -14,7 +14,18 @@ export type View =
   | "batch"
   | "settings";
 
+/** What the download list shows (the Categories tree). */
+export interface ListFilter {
+  scope: "all" | "unfinished" | "finished" | "queue";
+  /** Category id; "" = every category. */
+  category: string;
+  queueId?: string;
+}
+
 export interface AppApi {
+  filter: ListFilter;
+  showList: (f: Partial<ListFilter>) => void;
+  material: string;
   view: View;
   navigate: (v: View) => void;
   openAdd: (prefill?: Partial<AddRequest>) => void;

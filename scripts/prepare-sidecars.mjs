@@ -4,6 +4,8 @@
 //   node scripts/prepare-sidecars.mjs            (uses aria2c/yt-dlp/ffmpeg from PATH or KU_*_PATH)
 //
 // ku-native-host and ku are built from this workspace in release mode first.
+// On Linux only those two are staged: packages depend on the distribution's
+// aria2, yt-dlp and ffmpeg instead (found on PATH at runtime).
 import { execFileSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readdirSync, statSync } from "node:fs";
 import { delimiter, join } from "node:path";
@@ -48,10 +50,9 @@ function which(name) {
 console.log("building ku-native-host and ku (release)…");
 execFileSync("cargo", ["build", "--release", "-p", "ku-native-host", "-p", "ku-cli"], { cwd: root, stdio: "inherit" });
 
+const ownOnly = process.platform === "linux" || process.argv.includes("--own-only");
 const items = {
-  aria2c: which("aria2c"),
-  "yt-dlp": which("yt-dlp"),
-  ffmpeg: which("ffmpeg"),
+  ...(ownOnly ? {} : { aria2c: which("aria2c"), "yt-dlp": which("yt-dlp"), ffmpeg: which("ffmpeg") }),
   "ku-native-host": join(root, "target", "release", "ku-native-host" + exe),
   ku: join(root, "target", "release", "ku" + exe),
 };

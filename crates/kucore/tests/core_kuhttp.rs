@@ -55,12 +55,12 @@ async fn kucore_with_kuhttp() {
     srv.state.set("b.bin", r);
     let b = core.add(AddRequest { url: srv.url("/r/b.bin"), ..Default::default() }).await.unwrap();
     wait(&core, &b.id, 30, |d| d.done > 2 * MB as i64).await;
-    core.pause(&[b.id.clone()]).await.unwrap();
+    core.pause(std::slice::from_ref(&b.id)).await.unwrap();
     tokio::time::sleep(Duration::from_millis(800)).await;
     let p = core.get(&b.id).unwrap();
     assert_eq!(p.status, Status::Paused);
     srv.state.update("b.bin", |r| r.per_conn_rate = 0);
-    core.resume(&[b.id.clone()]).await.unwrap();
+    core.resume(std::slice::from_ref(&b.id)).await.unwrap();
     let b2 = wait(&core, &b.id, 60, |d| d.status == Status::Completed || d.status == Status::Error).await;
     assert_eq!(b2.status, Status::Completed, "{:?}", b2.error);
     assert!(file_matches(std::path::Path::new(b2.file_path.as_ref().unwrap()), 2, 16 * MB));
@@ -83,7 +83,7 @@ async fn kucore_with_kuhttp() {
     assert!(log.iter().any(|l| l.message.contains("KuHTTP")), "log: {log:?} status {:?} done {}", c2.status, c2.done);
 
     // Remove with files.
-    core.remove(&[c.id.clone()], true).await.unwrap();
+    core.remove(std::slice::from_ref(&c.id), true).await.unwrap();
     assert!(!std::path::Path::new(c2.file_path.as_ref().unwrap()).exists());
     core.shutdown().await;
 }

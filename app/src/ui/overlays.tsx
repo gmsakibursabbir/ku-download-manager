@@ -202,6 +202,8 @@ export function Dialog({
   onSubmit?: () => void;
 }) {
   const ref = useRef<HTMLFormElement>(null);
+  // In a standalone popup window the dialog is the window: its header drags it.
+  const drag = document.documentElement.dataset.window === "prompt" ? { "data-tauri-drag-region": true } : {};
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null;
     const first = ref.current?.querySelector<HTMLElement>("[data-autofocus], input:not([type=checkbox]):not([type=radio]), textarea, select");
@@ -241,8 +243,8 @@ export function Dialog({
           onSubmit?.();
         }}
       >
-        <div className="dialog-header">
-          <div className="dialog-title" style={{ flex: 1, minWidth: 0 }}>
+        <div className="dialog-header" {...drag}>
+          <div className="dialog-title" style={{ flex: 1, minWidth: 0 }} {...drag}>
             {title}
           </div>
           <IconButton icon={X} label="Close" size="sm" onClick={onClose} />

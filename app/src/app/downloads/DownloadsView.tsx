@@ -1,21 +1,34 @@
-import { useCallback, useRef, useState } from "react";
-import { Plus, ClipboardPaste, Clapperboard, Play, Pause, Trash2, PanelRight, Ellipsis, Square, ListPlus, FileUp } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Plus,
+  Play,
+  Pause,
+  Trash2,
+  Ellipsis,
+  Square,
+  ListPlus,
+  ListStart,
+  ListX,
+  CalendarClock,
+  Hand,
+  Search,
+  Settings as SettingsIcon,
+  ChevronDown,
+  X,
+  FileUp,
+  PanelRight,
+} from "lucide-react";
 import { open } from "@tauri-apps/plugin-dialog";
-import { useApp, type View } from "../context";
-import { useDownloadIds, getDownload, queuesStore, settingsStore, updateSettings, useStructureVersion, allDownloads, useSpeed } from "../../lib/store";
+import { useApp } from "../context";
+import { useDownloadIds, getDownload, queuesStore, allDownloads } from "../../lib/store";
 import { api, errorText } from "../../lib/api";
 import type { Download } from "../../lib/types";
-import * as fmt from "../../lib/format";
-import { Button, IconButton, EmptyState, Select, Input } from "../../ui/primitives";
+import { Button, IconButton, EmptyState, Select, Input, Icon } from "../../ui/primitives";
 import { showMenuAt, toast, Dialog, type MenuItem } from "../../ui/overlays";
 import { DownloadList, compareBy, type SortState } from "./DownloadList";
 import { Inspector, VerifyDialog } from "./Inspector";
 import { SpeedControl } from "./SpeedPopover";
 import { canPause, canResume, run } from "./actions";
-
-type Mode = Extract<View, "downloads" | "finished" | "torrents" | "queue">;
-
-const TITLES: Record<Mode, string> = { downloads: "Downloads", finished: "Finished", torrents: "Torrents", queue: "Queue" };
 
 function toBase64(buf: ArrayBuffer): string {
   const bytes = new Uint8Array(buf);
@@ -40,28 +53,64 @@ export async function pickTorrent(openAdd: (p: Record<string, unknown>) => void)
   }
 }
 
-function QueueBar({ queueId, setQueueId }: { queueId: string; setQueueId: (id: string) => void }) {
+/** Toolbar button, optionally split with a dropdown arrow. */
+function TbButton({
+  icon,
+  label,
+  onClick,
+  menu,
+  disabled,
+  danger,
+  title,
+  secondary,
+}: {
+  icon: typeof Plus;
+  label: string;
+  onClick?: () => void;
+  menu?: () => MenuItem[];
+  disabled?: boolean;
+  danger?: boolean;
+  title?: string;
+  /** Collapses to icon-only first when space is tight. */
+  secondary?: boolean;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const main = onClick ?? (() => menu && showMenuAt(ref.current!, menu()));
+  return (
+    <div ref={ref} className={`tb-btn ${danger ? "is-danger" : ""} ${secondary ? "is-secondary" : ""}`} data-split={!!(onClick && menu) || undefined}>
+      <button type="button" className="tb-main" disabled={disabled} onClick={main} title={title ?? label}>
+        <Icon icon={icon} />
+        <span className="tb-label">{label}</span>
+        {menu && !onClick && <Icon icon={ChevronDown} size={12} className="tb-caret" />}
+      </button>
+      {menu && onClick && (
+        <button type="button" className="tb-arrow" aria-label={`${label} options`} onClick={() => showMenuAt(ref.current!, menu())}>
+          <Icon icon={ChevronDown} size={12} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function QueueBar({ queueId }: { queueId: string }) {
+  const { showList } = useApp();
   const queues = queuesStore.use();
   const q = queues.find((x) => x.id === queueId) ?? queues[0];
   const [naming, setNaming] = useState<string | null>(null);
   if (!q) return null;
   const save = (patch: Partial<typeof q>) => run(api.saveQueue({ ...q, ...patch }).then(() => queuesStore.refresh()), "Could not update the queue");
   return (
-    <div className="toolbar" style={{ background: "var(--bg-content)", gap: "var(--space-3)" }}>
-      {queues.length > 1 ? (
-        <Select value={q.id} onChange={(e) => setQueueId(e.target.value)} options={queues.map((x) => ({ value: x.id, label: x.name }))} style={{ width: 180 }} aria-label="Queue" />
-      ) : (
-        <span className="section-title">{q.name}</span>
-      )}
+    <div className="queue-bar card">
+      <span className="section-title">{q.name}</span>
       <span className="status" data-state={q.running ? "downloading" : "paused"}>
         {q.running ? "Running" : "Stopped"}
       </span>
       {q.running ? (
-        <Button icon={Square} onClick={() => void run(api.stopQueue(q.id), "Could not stop the queue")}>
+        <Button size="sm" icon={Square} onClick={() => void run(api.stopQueue(q.id), "Could not stop the queue")}>
           Stop queue
         </Button>
       ) : (
-        <Button variant="primary" icon={Play} onClick={() => void run(api.startQueue(q.id), "Could not start the queue")}>
+        <Button size="sm" variant="primary" icon={Play} onClick={() => void run(api.startQueue(q.id), "Could not start the queue")}>
           Start queue
         </Button>
       )}
@@ -69,13 +118,7 @@ function QueueBar({ queueId, setQueueId }: { queueId: string; setQueueId: (id: s
       <label className="muted" style={{ fontSize: "var(--text-xs)" }}>
         At a time
       </label>
-      <Select
-        value={q.maxConcurrent}
-        onChange={(e) => void save({ maxConcurrent: +e.target.value })}
-        options={[1, 2, 3, 4, 5, 6, 8, 10].map((n) => ({ value: n, label: String(n) }))}
-        style={{ width: 64 }}
-        aria-label="Downloads at a time"
-      />
+      <Select value={q.maxConcurrent} onChange={(e) => void save({ maxConcurrent: +e.target.value })} options={[1, 2, 3, 4, 5, 6, 8, 10].map((n) => ({ value: n, label: String(n) }))} style={{ width: 64, height: 28 }} aria-label="Downloads at a time" />
       <label className="muted" style={{ fontSize: "var(--text-xs)" }}>
         When done
       </label>
@@ -88,13 +131,14 @@ function QueueBar({ queueId, setQueueId }: { queueId: string; setQueueId: (id: s
           { value: "shutdown", label: "Shut down" },
           { value: "quit", label: "Quit KuDownloader" },
         ]}
-        style={{ width: 150 }}
+        style={{ width: 150, height: 28 }}
         aria-label="When the queue finishes"
       />
       <span className="spacer" />
       <IconButton
         icon={Ellipsis}
         label="Queue options"
+        size="sm"
         onClick={(e) =>
           showMenuAt(
             e.currentTarget,
@@ -106,14 +150,7 @@ function QueueBar({ queueId, setQueueId }: { queueId: string; setQueueId: (id: s
                 label: "Delete queue",
                 danger: true,
                 disabled: q.id === "main",
-                onSelect: () =>
-                  void run(
-                    api.deleteQueue(q.id).then(() => {
-                      setQueueId("main");
-                      return queuesStore.refresh();
-                    }),
-                    "Could not delete the queue",
-                  ),
+                onSelect: () => void run(api.deleteQueue(q.id).then(() => (showList({ scope: "queue", queueId: "main" }), queuesStore.refresh())), "Could not delete the queue"),
               },
             ],
             "end",
@@ -128,9 +165,9 @@ function QueueBar({ queueId, setQueueId }: { queueId: string; setQueueId: (id: s
           onSubmit={async () => {
             if (!naming.trim()) return;
             try {
-              const saved = await api.saveQueue(naming === "" || !q ? { name: naming, maxConcurrent: 2 } : { ...q, name: naming });
+              const saved = await api.saveQueue(naming === "" ? { name: naming, maxConcurrent: 2 } : { ...q, name: naming });
               await queuesStore.refresh();
-              setQueueId(saved.id);
+              showList({ scope: "queue", queueId: saved.id });
               setNaming(null);
             } catch (e) {
               toast({ level: "error", title: "Could not save the queue", message: errorText(e) });
@@ -153,55 +190,53 @@ function QueueBar({ queueId, setQueueId }: { queueId: string; setQueueId: (id: s
   );
 }
 
-export function DownloadsView({ mode }: { mode: Mode }) {
+export function DownloadsView() {
   const app = useApp();
-  const { selection, inspectorOpen, setInspectorOpen, search, openAdd, openMedia, confirmRemove } = app;
-  const [sort, setSort] = useState<SortState>(mode === "queue" ? { key: "queue", dir: 1 } : { key: "added", dir: -1 });
-  const [queueId, setQueueId] = useState("main");
+  const { filter, selection, inspectorOpen, setInspectorOpen, search, setSearch, openAdd, confirmRemove, navigate, openSettings } = app;
+  const [sort, setSort] = useState<SortState>({ key: "added", dir: -1 });
   const [verifyId, setVerifyId] = useState<string | null>(null);
+  const [searching, setSearching] = useState(!!search);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const queues = queuesStore.use();
+  useEffect(() => setSort(filter.scope === "queue" ? { key: "queue", dir: 1 } : { key: "added", dir: -1 }), [filter.scope]);
+  useEffect(() => {
+    if (searching) searchRef.current?.focus();
+  }, [searching]);
+  useEffect(() => {
+    const onFind = () => setSearching(true);
+    window.addEventListener("ku:find", onFind);
+    return () => window.removeEventListener("ku:find", onFind);
+  }, []);
+
   const q = search.trim().toLowerCase();
-  const filter = useCallback(
+  const filterFn = useCallback(
     (d: Download) => {
       const finished = d.status === "completed" || d.status === "seeding";
-      let ok: boolean;
-      switch (mode) {
-        case "downloads":
-          ok = true;
-          break;
-        case "finished":
-          ok = finished;
-          break;
-        case "torrents":
-          ok = d.kind === "torrent" || d.kind === "magnet";
-          break;
-        case "queue":
-          ok = d.queueId === queueId && !finished;
-          break;
-      }
+      let ok = true;
+      if (filter.scope === "unfinished") ok = !finished;
+      else if (filter.scope === "finished") ok = finished;
+      else if (filter.scope === "queue") ok = d.queueId === (filter.queueId ?? "main") && !finished;
+      if (ok && filter.category) ok = d.category === filter.category;
       return ok && (!q || d.name.toLowerCase().includes(q) || d.url.toLowerCase().includes(q));
     },
-    [mode, q, queueId],
+    [filter, q],
   );
-  // "All downloads": unfinished work first (like IDM), then finished, each by the chosen sort.
+  // All Downloads: unfinished work first (IDM style), then finished.
   const cmp = compareBy(sort);
   const order = useCallback(
     (a: Download, b: Download) => {
-      if (mode === "downloads" && sort.key === "added") {
+      if (filter.scope === "all" && sort.key === "added") {
         const fa = a.status === "completed" ? 1 : 0;
         const fb = b.status === "completed" ? 1 : 0;
         if (fa !== fb) return fa - fb;
       }
       return cmp(a, b);
     },
-    [mode, sort, cmp],
+    [filter.scope, sort, cmp],
   );
-  const ids = useDownloadIds(filter, order, [filter, order]);
-  useStructureVersion();
+  const ids = useDownloadIds(filterFn, order, [filterFn, order]);
   const sel = [...selection].map(getDownload).filter((d): d is Download => !!d);
   const one = selection.size === 1 ? [...selection][0] : null;
-  const settings = settingsStore.use();
-  const speed = useSpeed();
-  const moreRef = useRef<HTMLButtonElement>(null);
 
   const onDrop = async (dt: DataTransfer) => {
     const files = [...dt.files].filter((f) => f.name.toLowerCase().endsWith(".torrent"));
@@ -219,113 +254,119 @@ export function DownloadsView({ mode }: { mode: Mode }) {
       .split(/\r?\n/)
       .map((l) => l.trim())
       .filter((l) => l && !l.startsWith("#"));
-    if (links.length) openAdd({ url: links.join("\n"), queueId: mode === "queue" ? queueId : undefined });
+    if (links.length) openAdd({ url: links.join("\n"), queueId: filter.scope === "queue" ? filter.queueId : undefined });
     else if (dt.files.length) toast({ level: "warning", title: "Unsupported file", message: "Drop .torrent files or links." });
   };
 
-  const more: MenuItem[] = [
-    { label: "Pause all", icon: Pause, onSelect: () => void run(api.pauseAll(), "Could not pause") },
-    { label: "Resume all", icon: Play, onSelect: () => void run(api.resumeAll(), "Could not resume") },
-    "sep",
-    { label: "Open .torrent file…", icon: FileUp, onSelect: () => void pickTorrent(openAdd) },
-    {
-      label: "Clear finished",
-      disabled: !allDownloads().some((d) => d.status === "completed"),
-      onSelect: () => void run(api.clearFinished(), "Could not clear finished downloads"),
-    },
-    "sep",
-    {
-      label: "Compact rows",
-      checked: !!settings?.compact,
-      onSelect: () => void run(updateSettings({ compact: !settings?.compact }), "Could not change the layout"),
-    },
-  ];
+  const queueItems = (action: "start" | "stop"): MenuItem[] =>
+    queues.map((qq) => ({
+      label: qq.name,
+      icon: action === "start" ? ListStart : ListX,
+      disabled: action === "start" ? qq.running : !qq.running,
+      onSelect: () => void run(action === "start" ? api.startQueue(qq.id) : api.stopQueue(qq.id), `Could not ${action} the queue`),
+    }));
 
+  const scopeLabel = { all: "downloads", unfinished: "unfinished downloads", finished: "finished downloads", queue: "items in this queue" }[filter.scope];
   const empty = q ? (
-    <EmptyState title="No matches" text={`Nothing in ${TITLES[mode]} matches “${search}”.`} />
-  ) : mode === "downloads" ? (
+    <EmptyState title="No matches" text={`No ${scopeLabel} match “${search}”.`} />
+  ) : filter.scope === "finished" ? (
+    <EmptyState title="Nothing finished yet" text="Completed downloads appear here." />
+  ) : filter.scope === "queue" ? (
+    <EmptyState title="This queue is empty" text="Right-click a download and choose Move to queue, or use “Download Later”." />
+  ) : (
     <EmptyState
-      title="No downloads yet"
+      title={filter.category ? "Nothing in this category" : "No downloads yet"}
       text="Paste a link, drop a file here, or download from your browser."
       action={
         <Button variant="primary" icon={Plus} onClick={() => openAdd()}>
-          Add download
+          Add URL
         </Button>
       }
     />
-  ) : mode === "finished" ? (
-    <EmptyState title="Nothing finished yet" text="Completed downloads appear here." />
-  ) : mode === "torrents" ? (
-    <EmptyState
-      title="No torrents"
-      text="Open a .torrent file or paste a magnet link."
-      action={
-        <Button icon={FileUp} onClick={() => void pickTorrent(openAdd)}>
-          Open .torrent file
-        </Button>
-      }
-    />
-  ) : (
-    <EmptyState title="This queue is empty" text="Right-click a download and choose Move to queue, or use “Add to queue” when adding." />
-  );
-
-  const activeCount = allDownloads().filter((d) => d.status === "downloading" || d.status === "processing").length;
-  const footer = (
-    <div className="list-footer num">
-      <span>
-        {ids.length} {ids.length === 1 ? "item" : "items"}
-        {selection.size > 1 ? ` · ${selection.size} selected` : ""}
-      </span>
-      <span className="spacer" />
-      {activeCount > 0 && (
-        <span>
-          {activeCount} active · {fmt.speed(speed.down)}
-        </span>
-      )}
-    </div>
   );
 
   return (
-    <div className="main">
-      <div className="toolbar">
-        <span className="toolbar-title">{TITLES[mode]}</span>
-        <Button variant="primary" icon={Plus} onClick={() => openAdd(mode === "queue" ? { queueId } : undefined)} title="Add download (Ctrl N)">
-          Add download
-        </Button>
-        <Button variant="ghost" icon={ClipboardPaste} onClick={() => void pasteLink(openAdd)} title="Paste link (Ctrl V)">
-          <span className="btn-label-optional">Paste link</span>
-        </Button>
-        <Button variant="ghost" icon={Clapperboard} onClick={() => openMedia()} title="Download video or audio">
-          <span className="btn-label-optional">Media</span>
-        </Button>
+    <div className="main main-fluent">
+      <div className="toolbar-card card">
+        <TbButton icon={Plus} label="Add URL" onClick={() => openAdd(filter.scope === "queue" ? { queueId: filter.queueId } : undefined)} title="Add URL (Ctrl N)" />
         <span className="toolbar-sep" />
-        <IconButton icon={Play} label="Resume (Space)" disabled={!sel.some(canResume)} onClick={() => void run(api.resume([...selection]), "Could not resume")} />
-        <IconButton icon={Pause} label="Pause (Space)" disabled={!sel.some(canPause)} onClick={() => void run(api.pause([...selection]), "Could not pause")} />
-        <IconButton icon={Trash2} label="Remove (Del)" disabled={!sel.length} onClick={() => confirmRemove([...selection])} />
+        <TbButton icon={Play} label="Resume" disabled={!sel.some(canResume)} onClick={() => void run(api.resume([...selection]), "Could not resume")} title="Resume (Space)" />
+        <TbButton
+          icon={Pause}
+          label="Stop"
+          disabled={!sel.some(canPause) && !allDownloads().some(canPause)}
+          onClick={() => void run(api.pause([...selection]), "Could not stop")}
+          menu={() => [
+            { label: "Stop selected", icon: Pause, disabled: !sel.some(canPause), onSelect: () => void run(api.pause([...selection]), "Could not stop") },
+            { label: "Stop all", icon: Square, onSelect: () => void run(api.pauseAll(), "Could not stop") },
+          ]}
+          title="Stop (Space)"
+        />
+        <TbButton
+          icon={Trash2}
+          label="Delete"
+          danger
+          disabled={!sel.length && !allDownloads().some((d) => d.status === "completed")}
+          onClick={() => sel.length && confirmRemove([...selection])}
+          menu={() => [
+            { label: "Delete selected…", icon: Trash2, disabled: !sel.length, onSelect: () => confirmRemove([...selection]) },
+            { label: "Delete all completed", disabled: !allDownloads().some((d) => d.status === "completed"), onSelect: () => void run(api.clearFinished(), "Could not delete") },
+          ]}
+          title="Delete (Del)"
+        />
+        <span className="toolbar-sep" />
+        <TbButton icon={ListStart} label="Start Queue" secondary menu={() => queueItems("start")} />
+        <TbButton icon={ListX} label="Stop Queue" secondary menu={() => queueItems("stop")} />
+        <span className="toolbar-sep" />
+        <TbButton icon={CalendarClock} label="Scheduler" secondary onClick={() => navigate("scheduled")} />
+        <TbButton icon={Hand} label="Grabber" secondary onClick={() => navigate("grabber")} />
         <span className="spacer" />
+        {searching ? (
+          <div className="input-with-icon tb-search">
+            <Icon icon={Search} size={14} />
+            <input
+              ref={searchRef}
+              id="global-search"
+              className="input"
+              placeholder="Search downloads"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  setSearch("");
+                  setSearching(false);
+                }
+              }}
+              onBlur={() => !search && setSearching(false)}
+            />
+            {search && <IconButton icon={X} label="Clear search" size="sm" onMouseDown={(e) => e.preventDefault()} onClick={() => setSearch("")} />}
+          </div>
+        ) : (
+          <IconButton icon={Search} label="Search (Ctrl F)" onClick={() => setSearching(true)} />
+        )}
         <SpeedControl />
-        <IconButton icon={PanelRight} label="Details (Ctrl I)" on={inspectorOpen} onClick={() => setInspectorOpen(!inspectorOpen)} />
-        <IconButton ref={moreRef} icon={Ellipsis} label="More" onClick={(e) => showMenuAt(e.currentTarget, more, "end")} />
+        <IconButton
+          icon={SettingsIcon}
+          label="Settings"
+          onClick={(e) =>
+            showMenuAt(
+              e.currentTarget,
+              [
+                { label: "Settings…", icon: SettingsIcon, shortcut: "Ctrl ,", onSelect: () => openSettings("general") },
+                { label: "Details panel", icon: PanelRight, shortcut: "Ctrl I", checked: undefined, onSelect: () => setInspectorOpen(!inspectorOpen) },
+                { label: "Open .torrent file…", icon: FileUp, onSelect: () => void pickTorrent(openAdd) },
+              ],
+              "end",
+            )
+          }
+        />
       </div>
-      <div style={{ display: "grid", gridTemplateRows: mode === "queue" ? "auto 1fr" : "1fr", minHeight: 0 }}>
-        {mode === "queue" && <QueueBar queueId={queueId} setQueueId={setQueueId} />}
-        <div className="main-split">
-          <DownloadList
-            ids={ids}
-            empty={empty}
-            sort={sort}
-            onSort={setSort}
-            onVerify={setVerifyId}
-            onDropFiles={(dt) => void onDrop(dt)}
-            footer={footer}
-            reorderable={mode === "queue"}
-            finished={mode === "finished"}
-          />
-          {inspectorOpen && one && <Inspector id={one} onClose={() => setInspectorOpen(false)} onVerify={setVerifyId} />}
-        </div>
+      {filter.scope === "queue" && <QueueBar queueId={filter.queueId ?? "main"} />}
+      <div className="main-split">
+        <DownloadList ids={ids} empty={empty} sort={sort} onSort={setSort} onVerify={setVerifyId} onDropFiles={(dt) => void onDrop(dt)} reorderable={filter.scope === "queue"} />
+        {inspectorOpen && one && <Inspector id={one} onClose={() => setInspectorOpen(false)} onVerify={setVerifyId} />}
       </div>
       {verifyId && <VerifyDialog id={verifyId} onClose={() => setVerifyId(null)} />}
     </div>
   );
 }
-

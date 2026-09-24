@@ -23,7 +23,8 @@
         "visible": false,
         "center": true,
         "dragDropEnabled": false,
-        "backgroundColor": "#0F0F10"
+        "transparent": false,
+        "backgroundColor": "#161618"
       }
     ],
     "security": {

@@ -70,6 +70,13 @@ pub fn handler() -> impl Fn(tauri::ipc::Invoke) -> bool + Send + Sync + 'static 
         grab_page,
         extension_dirs,
         reveal_path,
+        set_window_theme,
+        detect_browsers,
+        install_extension,
+        extension_last_seen,
+        quit_app,
+        take_prompt,
+        open_media_in_main,
     ]
 }
 
@@ -441,24 +448,86 @@ async fn grab_page(state: State<'_, AppState>, url: String) -> R<Vec<GrabLink>> 
     kucore::grab::grab_page(&url, &state.core.settings()).await.map_err(e)
 }
 
-/// Where the unpacked browser extensions live (bundled resources, or the
-/// repository build output during development).
-#[tauri::command]
-fn extension_dirs(app: AppHandle) -> Value {
+/// Extension build output: unpacked folders plus packaged kudmx.crx / kudmx.xpi
+/// (bundled resources in installs, `extension/dist` during development).
+fn extension_paths(app: &AppHandle) -> (Option<PathBuf>, Option<PathBuf>, Option<PathBuf>, Option<PathBuf>) {
     let mut roots = Vec::new();
     if let Ok(r) = app.path().resource_dir() {
         roots.push(r.join("extension"));
     }
     roots.push(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../extension/dist"));
-    let find = |name: &str| {
-        roots
-            .iter()
-            .map(|r| r.join(name))
-            .find(|p| p.join("manifest.json").is_file())
-            .and_then(|p| p.canonicalize().ok())
-            .map(|p| p.display().to_string().trim_start_matches(r"\\?\").to_string())
-    };
-    json!({ "chrome": find("chrome"), "firefox": find("firefox") })
+    let clean = |p: PathBuf| p.canonicalize().ok().map(|p| PathBuf::from(p.display().to_string().trim_start_matches(r"\?\")));
+    let dir = |name: &str| roots.iter().map(|r| r.join(name)).find(|p| p.join("manifest.json").is_file()).and_then(clean);
+    let file = |name: &str| roots.iter().map(|r| r.join(name)).find(|p| p.is_file()).and_then(clean);
+    // A Mozilla-signed build (see extension/README) installs permanently.
+    let xpi = file("kudmx.signed.xpi").or_else(|| file("kudmx.xpi"));
+    (dir("chrome"), dir("firefox"), file("kudmx.crx"), xpi)
+}
+
+#[tauri::command]
+fn extension_dirs(app: AppHandle) -> Value {
+    let (chrome, firefox, crx, xpi) = extension_paths(&app);
+    let s = |p: Option<PathBuf>| p.map(|p| p.display().to_string());
+    let signed = xpi.as_ref().is_some_and(|p| p.to_string_lossy().ends_with(".signed.xpi"));
+    json!({ "chrome": s(chrome), "firefox": s(firefox), "crx": s(crx), "xpi": s(xpi), "xpiSigned": signed })
+}
+
+#[tauri::command]
+fn detect_browsers() -> Vec<kucore::browsers::Browser> {
+    kucore::browsers::detect()
+}
+
+fn launch(exe: &str, arg: &str) -> R<()> {
+    let mut c = std::process::Command::new(exe);
+    c.arg(arg);
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        c.creation_flags(0x0000_0008); // DETACHED_PROCESS
+    }
+    c.spawn().map(|_| ()).map_err(|err| format!("Could not start the browser: {err}"))
+}
+
+/// Guided install: opens the browser's extensions page and the folder to load.
+/// Chromium browsers on Windows only keep store extensions installed from a
+/// file, so "Load unpacked" is the reliable path; Firefox installs a signed
+/// .xpi directly, otherwise it offers a temporary add-on.
+#[tauri::command]
+fn install_extension(app: AppHandle, browser: String) -> R<Value> {
+    let b = kucore::browsers::by_id(&browser).ok_or("That browser was not found.")?;
+    let (chrome, firefox, _crx, xpi) = extension_paths(&app);
+    // A browser installed after KuDownloader started needs its host entry now.
+    let extra = app.state::<AppState>().core.settings().extra_extension_ids;
+    let _ = kucore::nativehost::register(&extra);
+    if b.family == "firefox" {
+        let signed = xpi.as_ref().filter(|p| p.to_string_lossy().ends_with(".signed.xpi"));
+        if let Some(x) = signed {
+            launch(&b.path, &x.to_string_lossy())?;
+            return Ok(json!({ "mode": "xpi" }));
+        }
+        launch(&b.path, "about:debugging#/runtime/this-firefox")?;
+        if let Some(f) = firefox {
+            let _ = app.opener().reveal_item_in_dir(f.join("manifest.json"));
+        }
+        return Ok(json!({ "mode": "temporary" }));
+    }
+    let folder = chrome.ok_or("The extension files are missing from this installation.")?;
+    launch(&b.path, &b.extensions_url)?;
+    // "Load unpacked" opens a folder picker: the path is ready to paste.
+    let copied = arboard::Clipboard::new().and_then(|mut c| c.set_text(folder.display().to_string())).is_ok();
+    Ok(json!({ "mode": "unpacked", "folder": folder.display().to_string(), "copied": copied }))
+}
+
+/// Last time the browser extension talked to KuDownloader (ms since epoch).
+#[tauri::command]
+fn extension_last_seen() -> i64 {
+    kucore::api::extension_last_seen()
+}
+
+/// Quit for real (closing the window only hides it to the tray).
+#[tauri::command]
+fn quit_app(app: AppHandle) {
+    app.exit(0);
 }
 
 /// Open a folder in the file manager (folders only).
@@ -469,4 +538,28 @@ fn reveal_path(app: AppHandle, path: String) -> R<()> {
         return Err("Folder not found".into());
     }
     app.opener().open_path(p.to_string_lossy(), None::<&str>).map_err(e)
+}
+
+/// Match the native window theme (resize edges, system menus) and the solid
+/// background shown before the webview paints.
+#[tauri::command]
+fn set_window_theme(app: AppHandle, dark: bool) {
+    let Some(w) = app.get_webview_window("main") else { return };
+    let _ = w.set_theme(Some(if dark { tauri::Theme::Dark } else { tauri::Theme::Light }));
+    let bg = if dark { (0x16, 0x16, 0x18, 255) } else { (0xF5, 0xF5, 0xF7, 255) };
+    let _ = w.set_background_color(Some(bg.into()));
+}
+
+/// The request a "Download File" popup window was opened for (taken once).
+#[tauri::command]
+fn take_prompt(state: State<'_, AppState>, id: String) -> Option<AddRequest> {
+    state.prompts.lock().unwrap().remove(&id)
+}
+
+/// From a popup: the link is a media page, continue in the main window's
+/// quality picker.
+#[tauri::command]
+fn open_media_in_main(app: AppHandle, state: State<'_, AppState>, url: String, cookies: Vec<BrowserCookie>) {
+    crate::show_main(&app);
+    state.core.emit(CoreEvent::PromptMedia { request: Box::new(MediaRequest { url, cookies, ..Default::default() }) });
 }

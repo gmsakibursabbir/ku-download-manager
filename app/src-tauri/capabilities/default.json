@@ -1,8 +1,11 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Permissions for the KuDownloader main window",
-  "windows": ["main"],
+  "description": "Permissions for the main window and the Download File popups",
+  "windows": [
+    "main",
+    "prompt-*"
+  ],
   "permissions": [
     "core:default",
     "core:window:allow-minimize",
@@ -14,6 +17,8 @@
     "core:window:allow-set-focus",
     "dialog:allow-open",
     "dialog:allow-message",
-    "dialog:allow-ask"
+    "dialog:allow-ask",
+    "core:window:allow-set-size",
+    "core:window:allow-show"
   ]
 }

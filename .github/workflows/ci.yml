@@ -42,17 +42,26 @@ jobs:
       - name: Rust tests (unit, aria2 end-to-end, KuHTTP failure suite)
         run: cargo test --workspace --release -- --test-threads 4
 
+  # Tag push (vX.Y.Z) → draft GitHub release with the Windows installer (.exe),
+  # Linux .deb/.rpm and an Arch Linux package. Publish the draft by hand.
   release:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: test
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-22.04]
+        include:
+          - os: windows-latest
+            bundle: src-tauri/tauri.bundle.conf.json
+          - os: ubuntu-22.04
+            bundle: src-tauri/tauri.bundle.linux.conf.json
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
       - uses: pnpm/action-setup@v4
         with: { version: 10 }
       - uses: actions/setup-node@v4
@@ -61,24 +70,75 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev aria2 ffmpeg
-          sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && sudo chmod +x /usr/local/bin/yt-dlp
-      - name: Windows engines
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev rpm
+      - name: Windows engines (bundled into the installer)
         if: runner.os == 'Windows'
         run: choco install aria2 yt-dlp ffmpeg -y --no-progress
       - run: pnpm install --frozen-lockfile
         working-directory: app
-      - run: node build.mjs
+      - name: Extension (unpacked + kudmx.xpi, kudmx.crx when KU_EXTENSION_KEY is set)
         working-directory: extension
+        env:
+          KU_EXTENSION_KEY: ${{ secrets.KU_EXTENSION_KEY }}
+        run: node build.mjs && node pack.mjs
       - run: node scripts/prepare-sidecars.mjs
+      - name: Updater signing (only when the key secret exists)
+        id: sign
+        shell: bash
+        env:
+          KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          if [ -n "$KEY" ]; then
+            echo "args=" >> "$GITHUB_OUTPUT"; echo "json=true" >> "$GITHUB_OUTPUT"
+          else
+            echo '{"bundle":{"createUpdaterArtifacts":false}}' > app/src-tauri/tauri.nosign.conf.json
+            echo "args=--config src-tauri/tauri.nosign.conf.json" >> "$GITHUB_OUTPUT"; echo "json=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: tauri-apps/tauri-action@v0
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           projectPath: app
-          args: --config src-tauri/tauri.bundle.conf.json
+          args: --config ${{ matrix.bundle }} ${{ steps.sign.outputs.args }}
           tagName: ${{ github.ref_name }}
           releaseName: KuDownloader ${{ github.ref_name }}
           releaseDraft: true
-          includeUpdaterJson: true
+          includeUpdaterJson: ${{ steps.sign.outputs.json }}
+      - name: Keep the .deb for the Arch package
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: deb
+          path: target/release/bundle/deb/*.deb
+          if-no-files-found: error
+
+  arch:
+    needs: release
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: deb, path: pkg }
+      - name: Build the pacman package
+        run: |
+          pacman -Syu --noconfirm github-cli
+          useradd -m builder
+          mv pkg/*.deb pkg/kudownloader.deb
+          cp packaging/arch/PKGBUILD pkg/
+          ver=$(sed -n 's/^  "version": *"\([^"]*\)".*/\1/p' app/src-tauri/tauri.conf.json | head -1)
+          sed -i "s/^pkgver=.*/pkgver=${ver//-/_}/" pkg/PKGBUILD
+          chown -R builder pkg
+          su builder -c "cd pkg && makepkg --nodeps --noconfirm"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arch
+          path: pkg/*.pkg.tar.zst
+      - name: Attach to the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.ref_name }}" pkg/*.pkg.tar.zst --clobber --repo "${{ github.repository }}"

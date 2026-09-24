@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
-import { CircleAlert, Folder, Search, TriangleAlert, ListVideo, Radio as RadioIcon } from "lucide-react";
+import { CircleAlert, Folder, Search, TriangleAlert, ListVideo, Radio as RadioIcon, X } from "lucide-react";
 import { api, errorText } from "../lib/api";
 import { settingsStore, queuesStore } from "../lib/store";
 import * as fmt from "../lib/format";
@@ -16,7 +16,7 @@ function pickDefault(info: MediaInfo, preferred: number): number | null {
 }
 
 export function VideoDownloaderView() {
-  const { mediaPrefill, navigate } = useApp();
+  const { mediaPrefill, showList } = useApp();
   const settings = settingsStore.use();
   const queues = queuesStore.use();
   const [url, setUrl] = useState(mediaPrefill?.url ?? "");
@@ -36,6 +36,24 @@ export function VideoDownloaderView() {
   const [dir, setDir] = useState("");
   const [busy, setBusy] = useState(false);
   const queueBtn = useRef<HTMLButtonElement>(null);
+  // Bumped on every analyze/cancel; stale responses are ignored.
+  const reqId = useRef(0);
+  const urlRef = useRef<HTMLInputElement>(null);
+
+  /** Stop a running lookup (the result is discarded when it arrives). */
+  const cancel = () => {
+    reqId.current++;
+    setLoading(false);
+  };
+  /** Clear the link and everything derived from it. */
+  const clear = () => {
+    cancel();
+    setUrl("");
+    setInfo(null);
+    setError(null);
+    setPlaylist(false);
+    urlRef.current?.focus();
+  };
   const cookies = mediaPrefill?.cookies ?? [];
 
   useEffect(() => {
@@ -48,19 +66,21 @@ export function VideoDownloaderView() {
       setError("Enter the address of a video or playlist page (http or https).");
       return;
     }
+    const id = ++reqId.current;
     setLoading(true);
     setError(null);
     setInfo(null);
     try {
       const r = await api.analyze(target, pl);
+      if (id !== reqId.current) return;
       setInfo(r);
       setHeight(pickDefault(r, settings?.videoHeight ?? 1080));
       setItems(new Set(r.entries.map((e) => e.index)));
       if (!r.video.length && r.audio.length) setMode("audio");
     } catch (e) {
-      setError(errorText(e));
+      if (id === reqId.current) setError(errorText(e));
     } finally {
-      setLoading(false);
+      if (id === reqId.current) setLoading(false);
     }
   };
 
@@ -117,7 +137,7 @@ export function VideoDownloaderView() {
         sizeHint: info.isPlaylist ? null : chosenSize ?? null,
         source: mediaPrefill?.source ?? "ui",
       });
-      toast({ level: "success", title: queueId ? "Added to queue" : "Download started", message: info.title, actions: [{ label: "View", onClick: () => navigate(queueId ? "queue" : "downloads") }] });
+      toast({ level: "success", title: queueId ? "Added to queue" : "Download started", message: info.title, actions: [{ label: "View", onClick: () => showList(queueId ? { scope: "queue", queueId } : { scope: "all" }) }] });
     } catch (e) {
       toast({ level: "error", title: "Could not start the download", message: errorText(e) });
     } finally {
@@ -141,11 +161,24 @@ export function VideoDownloaderView() {
           >
             <div className="input-with-icon" style={{ flex: 1 }}>
               <Icon icon={Search} size={14} />
-              <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Paste a video, channel or playlist link" autoFocus />
+              <Input
+                ref={urlRef}
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                onKeyDown={(e) => e.key === "Escape" && (loading ? cancel() : clear())}
+                placeholder="Paste a video, channel or playlist link"
+                style={{ paddingRight: 34 }}
+                autoFocus
+              />
+              {(url || info || error) && <IconButton icon={X} label="Clear link" size="sm" onClick={clear} style={{ position: "absolute", right: 4 }} />}
             </div>
-            <Button type="submit" variant="primary" busy={loading}>
-              Analyze
-            </Button>
+            {loading ? (
+              <Button onClick={cancel}>Cancel</Button>
+            ) : (
+              <Button type="submit" variant="primary">
+                Analyze
+              </Button>
+            )}
           </form>
           {hasListParam && (
             <Checkbox

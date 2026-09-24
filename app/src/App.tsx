@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Power } from "lucide-react";
-import { AppContext, type AppApi, type View } from "./app/context";
+import { AppContext, type AppApi, type ListFilter, type View } from "./app/context";
+import { invoke } from "@tauri-apps/api/core";
 import { Sidebar, TitleBar } from "./app/Shell";
 import { DownloadsView, pasteLink } from "./app/downloads/DownloadsView";
 import { AddDownloadDialog } from "./app/AddDownloadDialog";
@@ -20,16 +21,21 @@ const MediaView = lazy(() => import("./views/BrowserView").then((m) => ({ defaul
 const ScheduledView = lazy(() => import("./views/ScheduledView").then((m) => ({ default: m.ScheduledView })));
 const SettingsView = lazy(() => import("./views/SettingsView").then((m) => ({ default: m.SettingsView })));
 
-const NAV_ORDER: View[] = ["downloads", "queue", "finished", "scheduled", "torrents"];
+const NAV_ORDER: Partial<ListFilter>[] = [{ scope: "all" }, { scope: "unfinished" }, { scope: "finished" }, { scope: "queue", queueId: "main" }];
 
-function useTheme() {
+function useTheme(setMaterial: (m: string) => void) {
   const s = settingsStore.use();
   useEffect(() => {
     const root = document.documentElement;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const apply = () => {
       const theme = s?.theme ?? "system";
-      root.dataset.theme = theme === "system" ? (mq.matches ? "dark" : "light") : theme;
+      const resolved = theme === "system" ? (mq.matches ? "dark" : "light") : theme;
+      root.dataset.theme = resolved;
+      // Solid window surfaces; no Mica/Acrylic compositing.
+      root.dataset.material = "none";
+      void invoke("set_window_theme", { dark: resolved === "dark" }).catch(() => {});
+      setMaterial("none");
       try {
         localStorage.setItem("ku-theme", theme);
       } catch {
@@ -40,7 +46,7 @@ function useTheme() {
     root.dataset.density = s?.compact ? "compact" : "comfortable";
     mq.addEventListener("change", apply);
     return () => mq.removeEventListener("change", apply);
-  }, [s?.theme, s?.compact]);
+  }, [s?.theme, s?.compact, setMaterial]);
 }
 
 function PowerBanner({ action, seconds, onDone }: { action: string; seconds: number; onDone: () => void }) {
@@ -73,7 +79,9 @@ function PowerBanner({ action, seconds, onDone }: { action: string; seconds: num
 export default function App() {
   const [view, setView] = useState<View>("downloads");
   const [selection, setSelection] = useState<Set<string>>(new Set());
-  const [inspectorOpen, setInspectorOpen] = useState(true);
+  const [inspectorOpen, setInspectorOpen] = useState(false);
+  const [filter, setFilter] = useState<ListFilter>({ scope: "all", category: "" });
+  const [material, setMaterial] = useState("none");
   const [search, setSearch] = useState("");
   const [addPrefill, setAddPrefill] = useState<Partial<AddRequest> | null>(null);
   const [mediaPrefill, setMediaPrefill] = useState<Partial<MediaRequest> | null>(null);
@@ -84,10 +92,15 @@ export default function App() {
   const [settingsSection, setSettingsSection] = useState("general");
   const [narrow, setNarrow] = useState(() => window.innerWidth < 1100);
   const [sidebarPref, setSidebarPref] = useState<boolean | null>(null);
-  useTheme();
+  useTheme(setMaterial);
 
   const navigate = useCallback((v: View) => {
     setView(v);
+    setSelection(new Set());
+  }, []);
+  const showList = useCallback((f: Partial<ListFilter>) => {
+    setFilter({ scope: f.scope ?? "all", category: f.category ?? "", queueId: f.queueId });
+    setView("downloads");
     setSelection(new Set());
   }, []);
   const openAdd = useCallback((p?: Partial<AddRequest>) => setAddPrefill(p ?? {}), []);
@@ -108,6 +121,9 @@ export default function App() {
 
   const api_: AppApi = useMemo(
     () => ({
+      filter,
+      showList,
+      material,
       view,
       navigate,
       openAdd,
@@ -131,7 +147,7 @@ export default function App() {
         navigate("settings");
       },
     }),
-    [view, navigate, openAdd, openMedia, openGrabber, selection, inspectorOpen, search, mediaPrefill, grabPrefill, settingsSection],
+    [filter, showList, material, view, navigate, openAdd, openMedia, openGrabber, selection, inspectorOpen, search, mediaPrefill, grabPrefill, settingsSection],
   );
 
   // Core events that need UI decisions.
@@ -157,7 +173,7 @@ export default function App() {
                   {
                     label: "Show",
                     onClick: () => {
-                      navigate("downloads");
+                      showList({ scope: "all" });
                       setSelection(new Set([e.downloadId!]));
                       setInspectorOpen(true);
                     },
@@ -223,16 +239,17 @@ export default function App() {
         openAdd();
       } else if (ctrl && e.key.toLowerCase() === "f") {
         e.preventDefault();
-        document.getElementById("global-search")?.focus();
+        if (view !== "downloads") showList({ scope: "all" });
+        setTimeout(() => window.dispatchEvent(new Event("ku:find")), 0);
       } else if (ctrl && e.key === ",") {
         e.preventDefault();
         navigate("settings");
       } else if (ctrl && e.key.toLowerCase() === "i") {
         e.preventDefault();
         setInspectorOpen((v) => !v);
-      } else if (ctrl && e.key >= "1" && e.key <= "5") {
+      } else if (ctrl && e.key >= "1" && e.key <= "4") {
         e.preventDefault();
-        navigate(NAV_ORDER[+e.key - 1]);
+        showList(NAV_ORDER[+e.key - 1]);
       } else if (ctrl && e.shiftKey && e.key.toLowerCase() === "o" && selection.size === 1) {
         e.preventDefault();
         void run(api.openFolder([...selection][0]), "Could not open the folder");
@@ -243,7 +260,7 @@ export default function App() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [openAdd, navigate, selection]);
+  }, [openAdd, navigate, showList, view, selection]);
 
   // Block the webview's default context menu outside text fields.
   useEffect(() => {
@@ -262,10 +279,12 @@ export default function App() {
   let content;
   switch (view) {
     case "downloads":
+      content = <DownloadsView />;
+      break;
     case "finished":
     case "torrents":
     case "queue":
-      content = <DownloadsView key={view} mode={view} />;
+      content = <DownloadsView />;
       break;
     case "video":
       content = <VideoDownloaderView />;

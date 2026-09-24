@@ -72,6 +72,7 @@ for (let i = base.length + 1; i <= count; i++) {
 const settings: Settings = {
   theme: (params.get("theme") as Settings["theme"]) ?? "dark",
   compact: params.get("compact") === "1",
+  translucent: false,
   startWithOs: false,
   minimizeToTray: true,
   clipboardMonitor: true,
@@ -140,6 +141,13 @@ const settings: Settings = {
   httpEngine: "aria2",
 };
 
+const MOCK_BROWSERS = [
+  { id: "google-chrome", name: "Google Chrome", family: "chromium", path: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", extensionsUrl: "chrome://extensions/", key: "Software\\Google\\Chrome\\NativeMessagingHosts" },
+  { id: "helium", name: "Helium", family: "chromium", path: "C:\\Users\\sk\\AppData\\Local\\imput\\Helium\\Application\\chrome.exe", extensionsUrl: "chrome://extensions/", key: "Software\\imput\\Helium\\NativeMessagingHosts" },
+  { id: "microsoft-edge", name: "Microsoft Edge", family: "chromium", path: "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe", extensionsUrl: "edge://extensions/", key: "Software\\Microsoft\\Edge\\NativeMessagingHosts" },
+  { id: "zen", name: "Zen", family: "firefox", path: "C:\\Program Files\\Zen Browser\\zen.exe", extensionsUrl: "about:addons", key: "Software\\Mozilla\\NativeMessagingHosts" },
+];
+
 mockWindows("main");
 mockIPC(
   (cmd, args) => {
@@ -173,9 +181,29 @@ mockIPC(
       case "app_info":
         return { version: "0.1.0", dataDir: "C:\\Users\\sk\\AppData\\Roaming\\KuDownloader", apiPort: 64669, platform: "windows", defaultDownloadDir: "C:\\Users\\sk\\Downloads" };
       case "native_host_status":
-        return { hostPath: "C:\\Program Files\\KuDownloader\\ku-native-host.exe", hostExists: true, chromeExtensionId: "bmbpbbaapbbelemahbmnjhppdlpdgkdi", firefoxExtensionId: "kudownloader@kuduy.digital", browsers: ["Chrome", "Chromium", "Edge", "Brave", "Vivaldi", "Firefox"].map((b, i) => ({ browser: b, registered: i !== 4, location: `HKCU\\Software\\${b}\\NativeMessagingHosts\\com.kuduy.kudownloader` })) };
+        return {
+          hostPath: "C:\\Program Files\\KuDownloader\\ku-native-host.exe",
+          hostExists: true,
+          chromeExtensionId: "bmbpbbaapbbelemahbmnjhppdlpdgkdi",
+          firefoxExtensionId: "kudownloader@kuduy.digital",
+          browsers: MOCK_BROWSERS.map((b) => ({ browser: b.name, registered: true, installed: true, browserId: b.id, location: "HKCU\\" + b.key + "\\com.kuduy.kudownloader" })),
+        };
+      case "detect_browsers":
+        return MOCK_BROWSERS.map(({ key: _k, ...b }) => b);
+      case "take_prompt":
+        return { url: "https://download.example.org/releases/KuSetup-2.4.1-x64.exe", source: "browser", sizeHint: 88 * MB, options: { headers: [], cookies: [{ name: "s", value: "1", domain: "example.org" }], referer: "https://example.org/download" } };
+      case "extension_last_seen":
+        return Date.now() - 60000;
+      case "install_extension":
+        return { mode: (args as { browser?: string } | undefined)?.browser === "zen" ? "temporary" : "unpacked", copied: true };
       case "extension_dirs":
-        return { chrome: "C:\\Program Files\\KuDownloader\\extension\\chrome", firefox: "C:\\Program Files\\KuDownloader\\extension\\firefox" };
+        return {
+          chrome: "C:\\Program Files\\KuDownloader\\extension\\chrome",
+          firefox: "C:\\Program Files\\KuDownloader\\extension\\firefox",
+          crx: "C:\\Program Files\\KuDownloader\\extension\\kudmx.crx",
+          xpi: "C:\\Program Files\\KuDownloader\\extension\\kudmx.xpi",
+          xpiSigned: false,
+        };
       case "engine_info":
         return { aria2: { path: "C:\\Program Files\\KuDownloader\\aria2c.exe", version: "1.37.0", running: true }, ytdlp: { path: "C:\\Program Files\\KuDownloader\\yt-dlp.exe", version: "2026.08.19" }, ffmpeg: { path: null }, dataDir: "" };
       case "get_after_all":

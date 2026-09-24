@@ -3,7 +3,7 @@ import { File, FileArchive, FileAudio, FileImage, FileText, FileVideo, Disc3, Pa
 import { Icon } from "../../ui/primitives";
 import type { Download } from "../../lib/types";
 
-const BY_CATEGORY: Record<string, LucideIcon> = {
+export const CATEGORY_ICON: Record<string, LucideIcon> = {
   archives: FileArchive,
   "images-disk": Disc3,
   programs: Package,
@@ -17,7 +17,7 @@ const BY_CATEGORY: Record<string, LucideIcon> = {
 export function glyphFor(d: Pick<Download, "kind" | "category">): LucideIcon {
   if (d.kind === "torrent" || d.kind === "magnet") return Magnet;
   if (d.kind === "media") return d.category === "music" ? FileAudio : Clapperboard;
-  return BY_CATEGORY[d.category] ?? File;
+  return CATEGORY_ICON[d.category] ?? File;
 }
 
 /** File-type glyph, or the media thumbnail when one is known. */

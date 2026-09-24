@@ -27,6 +27,8 @@ pub struct Settings {
     // Appearance
     pub theme: String,
     pub compact: bool,
+    /// Mica / Acrylic window background where the OS supports it.
+    pub translucent: bool,
     // General
     pub start_with_os: bool,
     pub minimize_to_tray: bool,
@@ -131,6 +133,7 @@ impl Default for Settings {
         Settings {
             theme: "system".into(),
             compact: false,
+            translucent: false,
             start_with_os: false,
             minimize_to_tray: true,
             clipboard_monitor: true,

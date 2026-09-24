@@ -9,6 +9,6 @@
   "permissions": ["downloads", "contextMenus", "nativeMessaging", "cookies", "storage", "scripting", "webRequest", "tabs", "notifications"],
   "host_permissions": ["<all_urls>"],
   "content_scripts": [
-    { "matches": ["http://*/*", "https://*/*"], "js": ["content/adapters.js", "content/hover.js"], "run_at": "document_idle", "all_frames": false }
+    { "matches": ["http://*/*", "https://*/*"], "js": ["content/adapters.js", "content/hover.js"], "run_at": "document_idle", "all_frames": true }
   ]
 }

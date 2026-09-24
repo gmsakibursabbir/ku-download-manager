@@ -1,12 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
-import { Folder, ChevronDown, ChevronRight, CircleAlert, Clapperboard, Globe, Magnet, FileUp } from "lucide-react";
+import { Folder, ChevronDown, ChevronRight, CircleAlert, Clapperboard, Globe, FileUp, File as FileIcon, ArrowDownToLine } from "lucide-react";
 import { api, errorText } from "../lib/api";
-import { settingsStore, queuesStore } from "../lib/store";
+import { settingsStore, queuesStore, updateSettings } from "../lib/store";
 import * as fmt from "../lib/format";
 import type { AddRequest, ProbeInfo, Settings, TorrentInfo } from "../lib/types";
-import { Button, Checkbox, Icon, IconButton, Input, Notice, Select } from "../ui/primitives";
-import { Dialog, showMenuAt, toast } from "../ui/overlays";
+import { Button, Checkbox, Icon, IconButton, Input, Notice, Select, Switch } from "../ui/primitives";
+import { Dialog, toast } from "../ui/overlays";
+import { CATEGORY_ICON } from "./downloads/FileGlyph";
 import { useApp } from "./context";
 
 const CONNECTION_CHOICES = [
@@ -59,7 +60,6 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
   const [error, setError] = useState<string | null>(null);
   const [torrent, setTorrent] = useState<{ info: TorrentInfo; data: string } | null>(null);
   const [selected, setSelected] = useState<Set<number>>(new Set());
-  const queueBtn = useRef<HTMLButtonElement>(null);
 
   const lines = useMemo(
     () =>
@@ -215,120 +215,154 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
     }
   };
 
-  const title = torrent ? "Add torrent" : batch ? `Add ${validLines.length} downloads` : "Add download";
+  const [remember, setRemember] = useState(false);
+  const go = async (later: boolean) => {
+    if (remember && category && dir.trim()) {
+      // Remember this folder for the category (absolute path).
+      const cats = (settings?.categories ?? []).map((c) => (c.id === category ? { ...c, folder: dir.trim() } : c));
+      await updateSettings({ categories: cats }).catch(() => {});
+    }
+    // "Download Later" = the main queue, started by the user or a schedule.
+    await submit(later ? (prefill?.queueId ?? queues[0]?.id ?? "main") : (prefill?.queueId ?? null), true);
+  };
+  const CatIcon = CATEGORY_ICON[category || probe?.category || ""] ?? FileIcon;
+  const multi = batch || text.includes("\n");
+  const title = torrent ? "Add torrent" : batch ? `Download ${validLines.length} files` : "Download File";
 
   return (
     <Dialog
-      title={title}
-      onClose={onClose}
-      width={600}
-      onSubmit={() => void submit()}
-      footer={
-        <>
-          <Button variant="ghost" size="sm" icon={advanced ? ChevronDown : ChevronRight} onClick={() => setAdvanced(!advanced)}>
-            Options
-          </Button>
-          <span className="spacer" />
-          <Button onClick={onClose}>Cancel</Button>
-          <Button
-            ref={queueBtn}
-            disabled={!canSubmit}
-            onClick={() =>
-              queues.length === 1
-                ? void submit(queues[0].id, true)
-                : showMenuAt(
-                    queueBtn.current!,
-                    queues.map((q) => ({ label: q.name, onSelect: () => void submit(q.id, true) })),
-                  )
-            }
-          >
-            Add to queue
-          </Button>
-          <Button type="submit" variant="primary" disabled={!canSubmit} busy={busy}>
-            Download
-          </Button>
-        </>
+      title={
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+          <Icon icon={ArrowDownToLine} />
+          {title}
+        </span>
       }
+      onClose={onClose}
+      width={580}
+      onSubmit={() => void go(false)}
     >
       {fromBrowser && (
         <div className="faint" style={{ fontSize: "var(--text-xs)", display: "flex", gap: 6, alignItems: "center" }}>
           <Icon icon={Globe} size={13} /> Sent from your browser{prefill?.options?.cookies?.length ? " with your session cookies" : ""}
         </div>
       )}
-
-      {torrent ? (
-        <div className="card" style={{ padding: "var(--space-3)", display: "flex", flexDirection: "column", gap: 8 }}>
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <Icon icon={Magnet} />
-            <span className="truncate" style={{ fontWeight: 600, flex: 1 }}>
-              {torrent.info.name}
-            </span>
-            <span className="faint num" style={{ fontSize: "var(--text-xs)" }}>
-              {fmt.bytes(torrent.info.files.filter((f) => selected.has(f.index)).reduce((a, f) => a + f.length, 0))} of {fmt.bytes(torrent.info.total)}
-            </span>
-          </div>
-          {torrent.info.files.length > 1 && (
-            <div style={{ maxHeight: 180, overflow: "auto", display: "flex", flexDirection: "column", gap: 4 }}>
-              <Checkbox
-                checked={selected.size === torrent.info.files.length}
-                indeterminate={selected.size > 0 && selected.size < torrent.info.files.length}
-                onChange={(v) => setSelected(v ? new Set(torrent.info.files.map((f) => f.index)) : new Set())}
-              >
-                <span className="muted">All files ({torrent.info.files.length})</span>
-              </Checkbox>
-              {torrent.info.files.map((f) => (
-                <Checkbox
-                  key={f.index}
-                  checked={selected.has(f.index)}
-                  onChange={(v) => {
-                    const n = new Set(selected);
-                    if (v) n.add(f.index);
-                    else n.delete(f.index);
-                    setSelected(n);
-                  }}
-                >
-                  <span className="truncate" style={{ flex: 1 }} title={f.path}>
-                    {f.path.split("/").slice(1).join("/") || f.path}
-                  </span>
-                  <span className="faint num" style={{ fontSize: "var(--text-xs)" }}>
-                    {fmt.bytes(f.length)}
-                  </span>
-                </Checkbox>
-              ))}
+      <div className="dl-card">
+        {torrent ? (
+          <div className="dl-row" style={{ alignItems: "start" }}>
+            <label>Torrent</label>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <span className="truncate" style={{ fontWeight: 600, flex: 1 }}>
+                  {torrent.info.name}
+                </span>
+                <span className="faint num" style={{ fontSize: "var(--text-xs)" }}>
+                  {fmt.bytes(torrent.info.files.filter((f) => selected.has(f.index)).reduce((a, f) => a + f.length, 0))} of {fmt.bytes(torrent.info.total)}
+                </span>
+              </div>
+              {torrent.info.files.length > 1 && (
+                <div style={{ maxHeight: 160, overflow: "auto", display: "flex", flexDirection: "column", gap: 4 }}>
+                  <Checkbox
+                    checked={selected.size === torrent.info.files.length}
+                    indeterminate={selected.size > 0 && selected.size < torrent.info.files.length}
+                    onChange={(v) => setSelected(v ? new Set(torrent.info.files.map((f) => f.index)) : new Set())}
+                  >
+                    <span className="muted">All files ({torrent.info.files.length})</span>
+                  </Checkbox>
+                  {torrent.info.files.map((f) => (
+                    <Checkbox
+                      key={f.index}
+                      checked={selected.has(f.index)}
+                      onChange={(v) => {
+                        const n = new Set(selected);
+                        if (v) n.add(f.index);
+                        else n.delete(f.index);
+                        setSelected(n);
+                      }}
+                    >
+                      <span className="truncate" style={{ flex: 1 }} title={f.path}>
+                        {f.path.split("/").slice(1).join("/") || f.path}
+                      </span>
+                      <span className="faint num" style={{ fontSize: "var(--text-xs)" }}>
+                        {fmt.bytes(f.length)}
+                      </span>
+                    </Checkbox>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-          <div className="faint mono" style={{ fontSize: "var(--text-2xs)" }}>
-            {torrent.info.infoHash}
-            {torrent.info.private ? " · private" : ""} · {torrent.info.trackers.length} trackers
+          </div>
+        ) : (
+          <div className="dl-row" style={{ alignItems: multi ? "start" : "center" }}>
+            <label htmlFor="add-url" style={{ paddingTop: multi ? 6 : 0 }}>
+              URL
+            </label>
+            <div className="dl-control">
+              <textarea
+                id="add-url"
+                className="textarea"
+                rows={multi ? 4 : 1}
+                wrap={multi ? "soft" : "off"}
+                style={{ height: multi ? undefined : "var(--control-h)", paddingTop: multi ? undefined : 7, overflow: multi ? undefined : "hidden", fontFamily: "var(--font-ui)", fontSize: "var(--text-sm)", resize: "none" }}
+                placeholder="https://example.com/file.zip — or several links, one per line"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey && !text.includes("\n")) {
+                    e.preventDefault();
+                    void go(false);
+                  }
+                }}
+                data-autofocus
+                spellCheck={false}
+              />
+              <IconButton icon={FileUp} label="Open .torrent file" onClick={() => void pickTorrentFile()} />
+            </div>
+          </div>
+        )}
+        {!media && (
+          <div className="dl-row">
+            <label htmlFor="add-cat">Category</label>
+            <div className="dl-control">
+              <Icon icon={CatIcon} size={18} />
+              <Select
+                id="add-cat"
+                value={category}
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                  setDirTouched(false);
+                }}
+                options={[{ value: "", label: "Automatic" }, ...(settings?.categories ?? []).map((c) => ({ value: c.id, label: c.name }))]}
+                style={{ width: 180 }}
+              />
+            </div>
+          </div>
+        )}
+        <div className="dl-row">
+          <label htmlFor="add-dir">Save As</label>
+          <div className="dl-control">
+            <Input
+              id="add-dir"
+              value={dir}
+              onChange={(e) => {
+                setDir(e.target.value);
+                setDirTouched(true);
+              }}
+            />
+            <IconButton icon={Folder} label="Choose folder" onClick={() => void browse()} />
           </div>
         </div>
-      ) : (
-        <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-          <textarea
-            className="textarea"
-            rows={batch || text.includes("\n") ? 4 : 1}
-            style={{ height: batch || text.includes("\n") ? undefined : "var(--control-h)", paddingTop: batch || text.includes("\n") ? undefined : 7, fontFamily: "var(--font-ui)", fontSize: "var(--text-sm)", resize: "none" }}
-            placeholder="https://example.com/file.zip — or several links, one per line"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey && !text.includes("\n")) {
-                e.preventDefault();
-                void submit();
-              }
-            }}
-            data-autofocus
-            spellCheck={false}
-          />
-          <IconButton icon={FileUp} label="Open .torrent file" onClick={() => void pickTorrentFile()} />
-        </div>
-      )}
-
-      {lines.length > 0 && validLines.length < lines.length && (
-        <div style={{ color: "var(--danger)", fontSize: "var(--text-xs)" }}>
-          {lines.length - validLines.length} line{lines.length - validLines.length === 1 ? " is" : "s are"} not a valid link and will be skipped.
-        </div>
-      )}
+        {!media && (
+          <div className="dl-row">
+            <label>Remember path for this category</label>
+            <div className="dl-control">
+              <span className="muted" style={{ fontSize: "var(--text-sm)" }}>
+                {remember ? "Yes" : "No"}
+              </span>
+              <Switch label="Remember path for this category" checked={remember} disabled={!category} onChange={setRemember} />
+            </div>
+          </div>
+        )}
+      </div>
 
       {single && (
         <div className="faint" style={{ fontSize: "var(--text-xs)", display: "flex", gap: 8, alignItems: "center", minHeight: 18 }}>
@@ -340,15 +374,20 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
             <span style={{ color: "var(--warning)" }}>{probe.error} You can still try to download it.</span>
           ) : probe && !media ? (
             <>
-              <span className="num">{probe.size ? fmt.bytes(probe.size) : "Size unknown"}</span>
-              {probe.mime && <span>· {probe.mime}</span>}
+              <span className="num">
+                {filename ? `${filename} · ` : ""}
+                {probe.size ? fmt.bytes(probe.size) : "Size unknown"}
+              </span>
               <span>· {probe.resumable ? "Resumable" : probe.resumable === false ? "Not resumable" : "Resume unknown"}</span>
-              {probe.kind && probe.kind !== "http" && <span className="chip">{probe.kind.toUpperCase()}</span>}
             </>
           ) : null}
         </div>
       )}
-
+      {lines.length > 0 && validLines.length < lines.length && (
+        <div style={{ color: "var(--danger)", fontSize: "var(--text-xs)" }}>
+          {lines.length - validLines.length} line{lines.length - validLines.length === 1 ? " is" : "s are"} not a valid link and will be skipped.
+        </div>
+      )}
       {media && single && (
         <Notice
           icon={Clapperboard}
@@ -369,62 +408,34 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
         </Notice>
       )}
 
-      <div className="form-grid">
-        {!batch && !torrent && !media && (
-          <>
-            <label htmlFor="add-name">File name</label>
-            <Input
-              id="add-name"
-              value={filename}
-              placeholder={probing ? "…" : "Automatic"}
-              onChange={(e) => {
-                setFilename(e.target.value);
-                setNameTouched(true);
-              }}
-            />
-          </>
-        )}
-        <label htmlFor="add-dir">Save to</label>
-        <div className="input-group">
-          <Input
-            id="add-dir"
-            value={dir}
-            onChange={(e) => {
-              setDir(e.target.value);
-              setDirTouched(true);
-            }}
-          />
-          <IconButton icon={Folder} label="Choose folder" onClick={() => void browse()} />
-        </div>
-        {!media && (
-          <>
-            <label htmlFor="add-cat">Category</label>
-            <div className="input-group">
-              <Select
-                id="add-cat"
-                value={category}
-                onChange={(e) => {
-                  setCategory(e.target.value);
-                  setDirTouched(false);
-                }}
-                options={[{ value: "", label: "Automatic" }, ...(settings?.categories ?? []).map((c) => ({ value: c.id, label: c.name }))]}
-              />
-              {!torrent && (
-                <>
-                  <label className="muted" style={{ fontSize: "var(--text-sm)", whiteSpace: "nowrap", marginLeft: 8 }} htmlFor="add-conn">
-                    Connections
-                  </label>
-                  <Select id="add-conn" value={connections} onChange={(e) => setConnections(+e.target.value)} options={CONNECTION_CHOICES} style={{ width: 110 }} />
-                  {connections === -1 && <Input value={customConn} onChange={(e) => setCustomConn(e.target.value.replace(/\D/g, ""))} style={{ width: 56 }} aria-label="Custom connections (1-32)" />}
-                </>
-              )}
-            </div>
-          </>
-        )}
-      </div>
-
+      <button type="button" className="dl-more" onClick={() => setAdvanced(!advanced)} aria-expanded={advanced}>
+        <Icon icon={advanced ? ChevronDown : ChevronRight} size={14} /> More options
+      </button>
       {advanced && (
-        <div className="form-grid" style={{ borderTop: "1px solid var(--line)", paddingTop: "var(--space-3)" }}>
+        <div className="form-grid">
+          {!batch && !torrent && !media && (
+            <>
+              <label htmlFor="add-name">File name</label>
+              <Input
+                id="add-name"
+                value={filename}
+                placeholder={probing ? "…" : "Automatic"}
+                onChange={(e) => {
+                  setFilename(e.target.value);
+                  setNameTouched(true);
+                }}
+              />
+            </>
+          )}
+          {!torrent && !media && (
+            <>
+              <label htmlFor="add-conn">Connections</label>
+              <div className="input-group">
+                <Select id="add-conn" value={connections} onChange={(e) => setConnections(+e.target.value)} options={CONNECTION_CHOICES} style={{ width: 120 }} />
+                {connections === -1 && <Input value={customConn} onChange={(e) => setCustomConn(e.target.value.replace(/\D/g, ""))} style={{ width: 56 }} aria-label="Custom connections (1-32)" />}
+              </div>
+            </>
+          )}
           <label>Referer</label>
           <Input value={referer} onChange={(e) => setReferer(e.target.value)} placeholder="Page the link came from" />
           <label>User agent</label>
@@ -450,6 +461,16 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
           {error}
         </Notice>
       )}
+
+      <div className="dl-actions" style={{ padding: "var(--space-2) 0 0" }}>
+        <Button disabled={!canSubmit} onClick={() => void go(true)} title="Add to the queue without starting">
+          Download Later
+        </Button>
+        <Button type="submit" variant="primary" disabled={!canSubmit} busy={busy}>
+          Download Now
+        </Button>
+        <Button onClick={onClose}>Cancel</Button>
+      </div>
     </Dialog>
   );
 }

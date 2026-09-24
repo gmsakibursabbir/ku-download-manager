@@ -1604,7 +1604,6 @@ impl Core {
                 let snap = d.clone();
                 drop(st);
                 self.commit(&snap);
-                return;
             }
             YtEvent::Log(l) => {
                 drop(st);
@@ -1689,7 +1688,7 @@ impl Core {
         let calls = running
             .iter()
             .map(|(_, gid, no_path)| {
-                let with_files = *no_path || tick % 5 == 0;
+                let with_files = *no_path || tick.is_multiple_of(5);
                 let keys: Vec<&str> = STATUS_KEYS.iter().copied().chain(with_files.then_some("files")).collect();
                 ("aria2.tellStatus", vec![json!(gid), json!(keys)])
             })
@@ -2071,10 +2070,7 @@ impl Core {
         let aria = paths::find_binary("aria2c", Some(&s.aria2_path));
         let yt = paths::find_binary("yt-dlp", Some(&s.ytdlp_path));
         let ff = paths::find_binary("ffmpeg", Some(&s.ffmpeg_path));
-        let aria_version = match self.aria.read().await.clone() {
-            Some(a) => Some(a.version.clone()),
-            None => None,
-        };
+        let aria_version = self.aria.read().await.clone().map(|a| a.version.clone());
         let yt_version = match &yt {
             Some(p) => ytdlp::version(p).await,
             None => None,

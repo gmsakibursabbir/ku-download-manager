@@ -126,7 +126,15 @@ async fn stats(State(c): State<Ctx>) -> Json<ku_proto::Stats> {
     Json(c.core.stats())
 }
 
+static EXTENSION_SEEN: std::sync::atomic::AtomicI64 = std::sync::atomic::AtomicI64::new(0);
+
+/// When the extension last asked for its configuration (ms since epoch, 0 = never).
+pub fn extension_last_seen() -> i64 {
+    EXTENSION_SEEN.load(std::sync::atomic::Ordering::Relaxed)
+}
+
 async fn browser_config(State(c): State<Ctx>) -> Json<ku_proto::BrowserConfig> {
+    EXTENSION_SEEN.store(crate::core::now_ms(), std::sync::atomic::Ordering::Relaxed);
     Json(c.core.settings().browser_config())
 }
 
@@ -141,7 +149,6 @@ async fn get_one(State(c): State<Ctx>, Path(id): Path<String>) -> R<ku_proto::Do
 async fn add(State(c): State<Ctx>, Json(req): Json<AddRequest>) -> R<Value> {
     if req.prompt {
         // Let the user confirm in the app (browser interception with confirmation on).
-        c.core.emit(CoreEvent::Show);
         c.core.emit(CoreEvent::PromptAdd { request: Box::new(req) });
         return Ok(Json(json!({ "prompted": true })));
     }

@@ -1,0 +1,678 @@
+/* Fluent-style layout on solid premium surfaces: card surfaces,
+ * menu bar, Categories tree, speed monitor, IDM-style list. Loaded after
+ * app.css and overrides it where the layouts differ. */
+
+body {
+  background: var(--bg-window);
+}
+
+/* ───────── Title bar with menus ───────── */
+.titlebar {
+  grid-template-columns: auto auto 1fr auto;
+  background: transparent;
+  border-bottom: none;
+}
+
+.brand {
+  padding: 0 var(--space-3) 0 var(--space-4);
+}
+
+.wordmark {
+  font-family: var(--font-ui);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-md);
+}
+
+.menubar {
+  display: flex;
+  gap: 2px;
+  padding-left: var(--space-4);
+}
+
+.menubar-item {
+  height: 30px;
+  padding: 0 var(--space-3);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--fg-primary);
+  font-size: var(--text-md);
+}
+
+.menubar-item:hover {
+  background: var(--bg-hover);
+}
+
+.titlebar-fill {
+  height: 100%;
+}
+
+/* ───────── Categories tree ───────── */
+.sidebar {
+  background: transparent;
+  border-right: none;
+  width: 212px;
+}
+
+.sidebar .nav-title {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--fg-tertiary);
+  padding: var(--space-3) var(--space-3) var(--space-1);
+}
+
+.tree-row {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.tree-row .nav-item {
+  flex: 1;
+  height: 32px;
+  font-weight: var(--weight-regular);
+  color: var(--fg-primary);
+  padding-right: 30px;
+  position: relative;
+}
+
+.tree-row .nav-item[aria-current="page"] {
+  background: var(--bg-active);
+}
+
+.tree-row .nav-item[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--accent);
+}
+
+.tree-row .nav-item > svg {
+  color: var(--fg-secondary);
+}
+
+.tree-toggle {
+  position: absolute;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--fg-tertiary);
+}
+
+.tree-toggle:hover {
+  background: var(--bg-hover);
+  color: var(--fg-primary);
+}
+
+/* ───────── Network speed monitor ───────── */
+.speed-monitor {
+  margin: var(--space-2) var(--space-3) var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--card-radius);
+  background: var(--bg-content);
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.speed-monitor-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--fg-secondary);
+}
+
+.speed-monitor-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+}
+
+.speed-monitor-value svg {
+  color: var(--accent-fg);
+}
+
+.speed-monitor-graph {
+  width: 100%;
+  height: 48px;
+  display: block;
+}
+
+.speed-monitor-graph .area {
+  fill: var(--accent);
+  opacity: 0.16;
+}
+
+.speed-monitor-graph .line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
+}
+
+:root[data-theme="dark"] .speed-monitor-graph .line {
+  stroke: var(--highlight);
+}
+
+:root[data-theme="dark"] .speed-monitor-graph .area {
+  fill: var(--highlight);
+  opacity: 0.1;
+}
+
+.speed-monitor-foot {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-2xs);
+}
+
+/* ───────── Main column ───────── */
+.main {
+  background: transparent;
+}
+
+.main-fluent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 0 var(--space-3) var(--space-3) 0;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* Flex, not grid: a closed details panel must not leave a gap, so the
+   list card lines up exactly with the toolbar card. */
+.main-fluent .main-split {
+  flex: 1;
+  display: flex;
+  gap: var(--space-3);
+  min-height: 0;
+  min-width: 0;
+}
+
+.main-fluent .main-split > .list {
+  flex: 1;
+  min-width: 0;
+}
+
+.main-fluent .main-split > .inspector {
+  flex: none;
+}
+
+.card {
+  background: var(--bg-content);
+  border: 1px solid var(--line);
+  border-radius: var(--card-radius);
+}
+
+.toolbar-card {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 52px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-toolbar);
+  min-width: 0;
+  flex: none;
+}
+
+.queue-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  flex: none;
+}
+
+.queue-bar .spacer,
+.toolbar-card .spacer {
+  flex: 1;
+}
+
+.tb-btn {
+  display: inline-flex;
+  align-items: stretch;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  flex: none;
+}
+
+.tb-btn button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: none;
+  background: transparent;
+  color: var(--fg-primary);
+  font-size: var(--text-md);
+  border-radius: var(--radius-sm);
+  transition: background var(--dur-fast), color var(--dur-fast);
+}
+
+.tb-btn .tb-main {
+  padding: 0 var(--space-3);
+}
+
+.tb-btn .tb-main > svg:first-child {
+  color: var(--fg-secondary);
+}
+
+.tb-btn[data-split] .tb-main {
+  padding-right: var(--space-1);
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.tb-btn .tb-arrow {
+  padding: 0 6px 0 2px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  color: var(--fg-secondary);
+}
+
+.tb-btn .tb-caret {
+  color: var(--fg-secondary);
+  margin-left: -2px;
+}
+
+.tb-btn button:hover:not(:disabled),
+.tb-btn[data-split]:hover button:not(:disabled) {
+  background: var(--bg-hover);
+}
+
+.tb-btn button:active:not(:disabled) {
+  background: var(--bg-active);
+}
+
+.tb-btn button:disabled,
+.tb-btn button:disabled > svg {
+  color: var(--fg-disabled) !important;
+}
+
+/* Delete: red background on hover (Fluent critical colour). */
+.tb-btn.is-danger button:hover:not(:disabled),
+.tb-btn.is-danger[data-split]:hover button:not(:disabled) {
+  background: #c42b1c;
+  color: #fff;
+}
+
+.tb-btn.is-danger button:hover:not(:disabled) > svg,
+.tb-btn.is-danger[data-split]:hover button:not(:disabled) > svg {
+  color: #fff !important;
+}
+
+.tb-btn.is-danger button:active:not(:disabled) {
+  background: #a82417;
+}
+
+.toolbar-card .toolbar-sep {
+  height: 22px;
+  margin: 0 var(--space-2);
+}
+
+.tb-search {
+  width: 240px;
+}
+
+.tb-search .input {
+  height: 30px;
+  padding-right: 30px;
+}
+
+.tb-search .icon-btn {
+  position: absolute;
+  right: 3px;
+}
+
+/* Progressive collapse: secondary labels first, then all. */
+@media (max-width: 1440px) {
+  .tb-btn.is-secondary .tb-label {
+    display: none;
+  }
+  .tb-btn.is-secondary .tb-main {
+    padding: 0 var(--space-2);
+  }
+}
+
+@media (max-width: 1180px) {
+  .tb-btn .tb-label {
+    display: none;
+  }
+  .tb-btn .tb-main {
+    padding: 0 var(--space-2);
+  }
+  .tb-search {
+    width: 180px;
+  }
+}
+
+/* ───────── Download list: IDM-style columns ───────── */
+.list.card {
+  overflow: hidden;
+  position: relative;
+}
+
+.list-grid {
+  grid-template-columns: 28px minmax(200px, 1fr) 28px 96px 120px 88px 104px 150px;
+  column-gap: var(--space-2);
+  padding: 0 var(--space-3) 0 var(--space-2);
+}
+
+.list-header {
+  height: 34px;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+  color: var(--fg-secondary);
+}
+
+.list-header .hcell {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-left: var(--space-2);
+}
+
+.list-header .hcell + .hcell::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: 9px;
+  bottom: 9px;
+  width: 1px;
+  background: var(--line-strong);
+}
+
+.row {
+  height: var(--row-h);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--text-md);
+}
+
+.row > .cell,
+.row > .cell-q,
+.row > .row-name {
+  padding-left: var(--space-2);
+}
+
+.row .cell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--fg-primary);
+}
+
+.row .cell.faint {
+  color: var(--fg-secondary);
+}
+
+.row-check {
+  display: grid;
+  place-items: center;
+  height: 100%;
+}
+
+.row-check input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--accent);
+  opacity: 0.5;
+}
+
+.row:hover .row-check input,
+.row[aria-selected="true"] .row-check input,
+.list-header .row-check input {
+  opacity: 1;
+}
+
+.row-name {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-2);
+}
+
+.row-name .row-icon {
+  width: 20px;
+  height: 20px;
+  background: transparent;
+}
+
+.row-name .row-title {
+  font-weight: var(--weight-regular);
+}
+
+.cell-q {
+  display: grid;
+  place-items: center;
+  color: var(--fg-secondary);
+}
+
+.cell-status {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+}
+
+.cell-status[data-tone="accent"] {
+  color: var(--accent-fg) !important;
+}
+
+.cell-status[data-tone="danger"] {
+  color: var(--danger) !important;
+}
+
+.cell-status[data-tone="muted"] {
+  color: var(--fg-secondary) !important;
+}
+
+.status-bar {
+  display: block;
+  height: 2px;
+  width: 88px;
+  border-radius: 2px;
+  background: var(--track);
+  overflow: hidden;
+}
+
+.status-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--progress);
+  transition: width 900ms linear;
+}
+
+.row[data-status="paused"] .status-bar > span,
+.row[data-status="queued"] .status-bar > span {
+  background: var(--progress-paused);
+}
+
+.inspector {
+  border: 1px solid var(--line);
+  border-radius: var(--card-radius);
+  background: var(--bg-content);
+  overflow: hidden;
+}
+
+:root[data-theme="dark"] .inspector {
+  background: var(--bg-content);
+}
+
+/* Secondary pages sit on one card too. */
+.main:not(.main-fluent) {
+  margin: 0 var(--space-3) var(--space-3) 0;
+  border-radius: var(--card-radius);
+  border: 1px solid var(--line);
+  background: var(--bg-content);
+  overflow: hidden;
+}
+
+.main:not(.main-fluent) > .toolbar,
+.settings-nav {
+  background: transparent;
+}
+
+/* ───────── Download File dialog ───────── */
+.dl-card {
+  border: 1px solid var(--line);
+  border-radius: var(--card-radius);
+  background: var(--bg-raised);
+  overflow: hidden;
+}
+
+.dl-row {
+  display: grid;
+  grid-template-columns: 136px 1fr;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 46px;
+  padding: var(--space-2) var(--space-3);
+}
+
+.dl-row + .dl-row {
+  border-top: 1px solid var(--line);
+}
+
+.dl-row > label {
+  font-size: var(--text-md);
+  white-space: nowrap;
+}
+
+.dl-control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.dl-control > .input,
+.dl-control > .textarea {
+  flex: 1;
+}
+
+.dl-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-5) var(--space-4);
+}
+
+.dl-actions .btn {
+  height: 34px;
+}
+
+.dl-more {
+  border: none;
+  background: none;
+  color: var(--accent-fg);
+  font-size: var(--text-sm);
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Frameless window edge: a hairline so the window is distinguishable from
+   whatever is behind it (none when maximised). */
+.app {
+  position: relative;
+}
+
+.app::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  border: 1px solid var(--line-strong);
+  z-index: 100;
+}
+
+:root[data-maximized="true"] .app::after {
+  display: none;
+}
+
+/* Solid surfaces: a soft hairline shadow instead of material tint. */
+.card,
+.inspector,
+.speed-monitor,
+.toolbar-card,
+.main:not(.main-fluent) {
+  box-shadow: var(--shadow-card);
+}
+
+/* ───────── Standalone "Download File" popup window ───────── */
+:root[data-window="prompt"] body {
+  background: var(--bg-popover);
+  overflow: hidden;
+}
+:root[data-window="prompt"] .overlay {
+  position: static;
+  padding: 0;
+  background: none;
+  animation: none;
+  display: block;
+}
+:root[data-window="prompt"] .dialog {
+  width: 100% !important;
+  max-height: none;
+  border-radius: 0;
+  box-shadow: none;
+  animation: none;
+  border: 1px solid var(--line-strong);
+}
+:root[data-window="prompt"] .dialog-header {
+  cursor: default;
+  user-select: none;
+}
+
+/* ───────── Responsive list: drop the least important columns first ───────── */
+.list.card {
+  container: dlist / inline-size;
+}
+@container dlist (max-width: 900px) {
+  .list-grid {
+    grid-template-columns: 28px minmax(160px, 1fr) 28px 88px 116px 80px 100px;
+  }
+  .list-grid > :nth-child(8) {
+    display: none;
+  }
+}
+@container dlist (max-width: 720px) {
+  .list-grid {
+    grid-template-columns: 28px minmax(140px, 1fr) 28px 84px 112px 96px;
+  }
+  .list-grid > :nth-child(6) {
+    display: none;
+  }
+}
+@container dlist (max-width: 540px) {
+  .list-grid {
+    grid-template-columns: 28px minmax(120px, 1fr) 80px 108px;
+  }
+  .list-grid > :nth-child(3),
+  .list-grid > :nth-child(7) {
+    display: none;
+  }
+}
+:root[data-window="prompt"] #root {
+  height: 0;
+  min-height: 0;
+}

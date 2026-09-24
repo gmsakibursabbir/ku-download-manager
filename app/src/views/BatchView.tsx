@@ -39,7 +39,7 @@ export function expandPattern(p: string, limit = 5000): string[] {
 }
 
 export function BatchView() {
-  const { navigate } = useApp();
+  const { showList } = useApp();
   const settings = settingsStore.use();
   const queues = queuesStore.use();
   const [text, setText] = useState("");
@@ -71,7 +71,7 @@ export function BatchView() {
         level: r.failed.length ? "warning" : "success",
         title: `${r.added.length} added${r.failed.length ? `, ${r.failed.length} failed` : ""}`,
         message: r.failed[0] ? `${fmt.host(r.failed[0].url)}: ${r.failed[0].error}` : undefined,
-        actions: [{ label: "View", onClick: () => navigate(queueId ? "queue" : "downloads") }],
+        actions: [{ label: "View", onClick: () => showList(queueId ? { scope: "queue", queueId } : { scope: "all" }) }],
       });
       if (!r.failed.length) setText("");
     } catch (e) {

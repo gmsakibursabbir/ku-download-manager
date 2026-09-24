@@ -4,8 +4,9 @@
 
 (() => {
   const api = globalThis.browser ?? globalThis.chrome;
-  if (window.top !== window || globalThis.__kuHover) return;
+  if (globalThis.__kuHover) return;
   globalThis.__kuHover = true;
+  const isTop = window.top === window;
 
   const ask = async (msg) => {
     // Promise form works on Chromium MV3 and Firefox alike.
@@ -77,6 +78,7 @@
   let current = null; // { url, kind, anchor }
   let hideTimer = 0;
   let adapters = [];
+  let generic = null; // pointer-position fallback for any <video>
 
   function mount() {
     host = document.createElement("ku-downloader");
@@ -95,7 +97,6 @@
     root.append(style, btn, panel);
     document.documentElement.appendChild(host);
     btn.addEventListener("mouseenter", () => clearTimeout(hideTimer));
-    btn.addEventListener("mouseleave", scheduleHide);
     btn.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -122,22 +123,91 @@
     }, 350);
   }
 
+  function show(hit) {
+    if (!hit?.url || !place(hit.anchor)) return false;
+    current = hit;
+    clearTimeout(hideTimer);
+    btn.style.display = "inline-flex";
+    return true;
+  }
+
+  /** Largest content-sized <video> under the point (players often cover it with overlays). */
+  function videoAt(x, y) {
+    let best = null;
+    let area = 0;
+    for (const v of document.getElementsByTagName("video")) {
+      const r = v.getBoundingClientRect();
+      if (r.width < generic.minWidth || r.height < generic.minHeight) continue;
+      if (x < r.left || x > r.right || y < r.top || y > r.bottom) continue;
+      if (r.width * r.height > area) {
+        best = v;
+        area = r.width * r.height;
+      }
+    }
+    return best;
+  }
+
   function onOver(e) {
-    if (!adapters.length || panel.style.display === "block") return;
+    if ((!adapters.length && !generic) || panel.style.display === "block") return;
     const path = e.composedPath ? e.composedPath() : [e.target];
     if (path.includes(host)) return;
     for (const a of adapters) {
       const el = e.target.closest?.(a.selector);
-      if (!el) continue;
-      const hit = a.resolve(el);
-      if (!hit || !hit.url) continue;
-      if (!place(hit.anchor)) continue;
-      current = hit;
-      clearTimeout(hideTimer);
-      btn.style.display = "inline-flex";
-      el.addEventListener("mouseleave", scheduleHide, { once: true });
-      return;
+      if (el && show(a.resolve(el))) return;
     }
+    if (generic) {
+      const v = videoAt(e.clientX, e.clientY);
+      if (v && (current?.anchor !== v || btn.style.display === "none")) show(generic.resolve(v));
+    }
+  }
+
+  // Like IDM: a video that starts playing gets the button without hovering;
+  // it fades out after a few seconds unless the pointer is on it.
+  function onPlay(e) {
+    const v = e.target;
+    if (!(v instanceof HTMLVideoElement) || panel.style.display === "block") return;
+    if (btn.style.display !== "none" && current?.anchor && current.anchor.contains?.(v)) return;
+    let hit = null;
+    for (const a of adapters) {
+      const el = v.closest?.(a.selector);
+      if (el && (hit = a.resolve(el))) break;
+    }
+    if (!hit && generic) hit = generic.resolve(v);
+    if (!show(hit)) return;
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => {
+      if (!pointerInside() && panel.style.display !== "block") btn.style.display = "none";
+    }, 4000);
+  }
+
+  // Keep the button visible in fullscreen players (not for a bare <video>,
+  // which cannot hold children).
+  function onFullscreen() {
+    const fs = document.fullscreenElement;
+    const parent = fs && !(fs instanceof HTMLVideoElement) ? fs : document.documentElement;
+    if (host.parentNode !== parent) parent.appendChild(host);
+    if (current && btn.style.display !== "none") place(current.anchor);
+  }
+
+  // Hide by pointer position rather than mouseleave: sites swap or overlay
+  // the hovered element (YouTube's inline preview covers the thumbnail once
+  // it plays), which fires mouseleave while the pointer never moved away.
+  let px = -1;
+  let py = -1;
+  let moveQueued = false;
+  const within = (r, pad) => r.width > 0 && px >= r.left - pad && px <= r.right + pad && py >= r.top - pad && py <= r.bottom + pad;
+  const pointerInside = () => !!current && (within(btn.getBoundingClientRect(), 6) || within(current.anchor.getBoundingClientRect(), 2));
+
+  function onMove(e) {
+    px = e.clientX;
+    py = e.clientY;
+    if (moveQueued || btn.style.display === "none" || panel.style.display === "block") return;
+    moveQueued = true;
+    requestAnimationFrame(() => {
+      moveQueued = false;
+      if (pointerInside()) clearTimeout(hideTimer);
+      else scheduleHide();
+    });
   }
 
   function closePanel() {
@@ -299,13 +369,37 @@
     if (!cfg.hoverButton) return;
     const all = globalThis.__kuAdapters || [];
     const site = all.filter((a) => !a.generic && cfg.adapters.includes(a.id) && a.match());
-    const generic = all.filter((a) => a.generic && cfg.adapters.includes(a.id));
-    adapters = site.length ? site : generic;
-    if (!adapters.length) return;
+    // Site adapters know the real video URL; elsewhere any <video> counts.
+    generic = site.length ? null : (all.find((a) => a.generic && cfg.adapters.includes(a.id)) ?? null);
+    adapters = site;
+    if (!adapters.length && !generic) return;
     mount();
     document.addEventListener("mouseover", onOver, { passive: true, capture: true });
+    document.addEventListener("play", onPlay, { passive: true, capture: true });
+    document.addEventListener("fullscreenchange", onFullscreen);
+    document.addEventListener("mousemove", onMove, { passive: true, capture: true });
+    const pointerGone = () => {
+      px = py = -1;
+      scheduleHide();
+    };
+    document.documentElement.addEventListener("mouseleave", pointerGone);
+    // Pointer moved into an iframe: this document stops seeing mousemove.
+    document.addEventListener("mouseout", (e) => e.relatedTarget?.tagName === "IFRAME" && pointerGone(), { passive: true, capture: true });
     addEventListener("scroll", () => btn.style.display !== "none" && current && !place(current.anchor) && (btn.style.display = "none"), { passive: true });
   }
 
-  void init();
+  // Top page: start now. Frames (ads, widgets, embedded players): start only
+  // once the frame actually has a video, so idle frames cost nothing.
+  if (isTop || document.getElementsByTagName("video").length) {
+    void init();
+  } else {
+    const kick = (e) => {
+      if (!(e.target instanceof HTMLVideoElement)) return;
+      document.removeEventListener("loadedmetadata", kick, true);
+      document.removeEventListener("play", kick, true);
+      void init().then(() => btn && onPlay(e));
+    };
+    document.addEventListener("loadedmetadata", kick, true);
+    document.addEventListener("play", kick, true);
+  }
 })();

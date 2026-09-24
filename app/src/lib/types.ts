@@ -243,6 +243,7 @@ export interface BandwidthProfile {
 export interface Settings {
   theme: "light" | "dark" | "system";
   compact: boolean;
+  translucent: boolean;
   startWithOs: boolean;
   minimizeToTray: boolean;
   clipboardMonitor: boolean;
@@ -364,7 +365,7 @@ export interface HostStatus {
   hostExists: boolean;
   chromeExtensionId: string;
   firefoxExtensionId: string;
-  browsers: { browser: string; registered: boolean; location: string }[];
+  browsers: { browser: string; registered: boolean; location: string; browserId?: string | null; installed: boolean }[];
 }
 
 export interface EngineInfo {

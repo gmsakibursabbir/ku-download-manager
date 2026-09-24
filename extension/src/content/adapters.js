@@ -22,6 +22,8 @@
   function youtubeUrl(href) {
     const u = new URL(href, location.href);
     if (u.pathname.startsWith("/shorts/")) return `https://www.youtube.com${u.pathname}`;
+    const embed = u.pathname.match(/^\/embed\/([\w-]{6,})/);
+    if (embed) return `https://www.youtube.com/watch?v=${embed[1]}`;
     const v = u.searchParams.get("v");
     if (v) return `https://www.youtube.com/watch?v=${encodeURIComponent(v)}`;
     if (u.pathname === "/playlist" && u.searchParams.get("list")) return `https://www.youtube.com/playlist?list=${encodeURIComponent(u.searchParams.get("list"))}`;
@@ -30,8 +32,11 @@
 
   adapters.push({
     id: "youtube",
-    match: () => /(^|\.)youtube\.com$/.test(location.hostname),
+    match: () => /(^|\.)youtube(-nocookie)?\.com$/.test(location.hostname),
     selector: [
+      // Hover preview that YouTube lays over a thumbnail once it starts playing.
+      "ytd-video-preview",
+      "#video-preview",
       "a#thumbnail[href]",
       "ytd-thumbnail a[href]",
       "a.reel-item-endpoint[href]",
@@ -40,6 +45,12 @@
       "#movie_player",
     ].join(","),
     resolve(el) {
+      const preview = el.closest("ytd-video-preview, #video-preview");
+      if (preview) {
+        const link = preview.querySelector("a[href*='/watch'], a[href*='/shorts/']");
+        const url = link && youtubeUrl(link.getAttribute("href"));
+        return url ? { url, kind: "media", anchor: preview } : null;
+      }
       if (el.id === "movie_player") {
         const url = youtubeUrl(location.href);
         return url ? { url, kind: "media", anchor: el } : null;
@@ -64,15 +75,19 @@
     resolve: (el) => ({ url: location.href.split("#")[0], kind: "media", anchor: el }),
   });
 
-  // Any other page: HTML5 video big enough to be content (not a decoration).
+  // Any other page or embedded frame: HTML5 video big enough to be content
+  // (not a decoration). hover.js also finds it by pointer position, so player
+  // overlays that cover the <video> element still count.
   adapters.push({
     id: "generic",
     generic: true,
     match: () => true,
     selector: "video",
+    minWidth: 240,
+    minHeight: 135,
     resolve(el) {
       const r = el.getBoundingClientRect();
-      if (r.width < 320 || r.height < 180) return null;
+      if (r.width < this.minWidth || r.height < this.minHeight) return null;
       const src = el.currentSrc || el.src;
       if (src && /^https?:/i.test(src) && !/\.m3u8|\.mpd/i.test(src)) {
         return { url: abs(src), kind: "file", anchor: el };

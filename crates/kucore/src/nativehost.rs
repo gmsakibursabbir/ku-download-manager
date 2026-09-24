@@ -15,6 +15,9 @@ pub struct BrowserRegistration {
     pub browser: String,
     pub registered: bool,
     pub location: String,
+    /// Detected browser this entry belongs to (see browsers::detect).
+    pub browser_id: Option<String>,
+    pub installed: bool,
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -65,6 +68,10 @@ fn write_manifests(host: &Path, extra_ids: &[String]) -> Result<(PathBuf, PathBu
     Ok((chrome, firefox))
 }
 
+/// (name, key or dir, firefox?, detected browser id)
+#[cfg(windows)]
+type Target = (String, String, bool, Option<String>);
+
 #[cfg(windows)]
 const WIN_KEYS: &[(&str, &str, bool)] = &[
     ("Chrome", r"Software\Google\Chrome\NativeMessagingHosts", false),
@@ -75,6 +82,34 @@ const WIN_KEYS: &[(&str, &str, bool)] = &[
     ("Firefox", r"Software\Mozilla\NativeMessagingHosts", true),
 ];
 
+/// Every place a browser on this machine reads the host from: detected
+/// browsers (Helium, Zen, Opera, …) first, then the well-known keys so a
+/// browser installed later works too.
+#[cfg(windows)]
+fn win_targets() -> Vec<Target> {
+    let mut out: Vec<Target> = Vec::new();
+    let mut add = |name: String, key: String, ff: bool, id: Option<String>| {
+        if let Some(t) = out.iter_mut().find(|t| t.1.eq_ignore_ascii_case(&key)) {
+            // Several browsers can share a key (Firefox forks): keep the first name.
+            if t.3.is_none() && id.is_some() {
+                t.3 = id;
+                t.0 = name;
+            }
+        } else {
+            out.push((name, key, ff, id));
+        }
+    };
+    for b in crate::browsers::detect() {
+        if let Some(k) = b.host_location.clone() {
+            add(b.name.clone(), k, b.family == "firefox", Some(b.id.clone()));
+        }
+    }
+    for (n, k, ff) in WIN_KEYS {
+        add(n.to_string(), k.to_string(), *ff, None);
+    }
+    out
+}
+
 #[cfg(windows)]
 pub fn register(extra_ids: &[String]) -> Result<HostStatus> {
     use winreg::enums::HKEY_CURRENT_USER;
@@ -82,9 +117,9 @@ pub fn register(extra_ids: &[String]) -> Result<HostStatus> {
     let host = host_executable().context("ku-native-host executable not found next to KuDownloader")?;
     let (chrome, firefox) = write_manifests(&host, extra_ids)?;
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-    for (_, base, is_ff) in WIN_KEYS {
+    for (_, base, is_ff, _) in win_targets() {
         let (key, _) = hkcu.create_subkey(format!(r"{base}\{NATIVE_HOST_NAME}"))?;
-        let manifest = if *is_ff { &firefox } else { &chrome };
+        let manifest = if is_ff { &firefox } else { &chrome };
         key.set_value("", &manifest.to_string_lossy().to_string())?;
     }
     Ok(status())
@@ -95,7 +130,7 @@ pub fn unregister() -> Result<HostStatus> {
     use winreg::enums::HKEY_CURRENT_USER;
     use winreg::RegKey;
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-    for (_, base, _) in WIN_KEYS {
+    for (_, base, _, _) in win_targets() {
         let _ = hkcu.delete_subkey_all(format!(r"{base}\{NATIVE_HOST_NAME}"));
     }
     Ok(status())
@@ -106,15 +141,17 @@ pub fn status() -> HostStatus {
     use winreg::enums::HKEY_CURRENT_USER;
     use winreg::RegKey;
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-    let browsers = WIN_KEYS
-        .iter()
-        .map(|(name, base, _)| {
+    let browsers = win_targets()
+        .into_iter()
+        .map(|(name, base, _, id)| {
             let key = format!(r"{base}\{NATIVE_HOST_NAME}");
             let manifest: Option<String> = hkcu.open_subkey(&key).ok().and_then(|k| k.get_value("").ok());
             BrowserRegistration {
-                browser: name.to_string(),
+                browser: name,
                 registered: manifest.as_deref().is_some_and(|m| Path::new(m).is_file()),
                 location: format!(r"HKCU\{key}"),
+                installed: id.is_some(),
+                browser_id: id,
             }
         })
         .collect();
@@ -123,6 +160,19 @@ pub fn status() -> HostStatus {
 
 #[cfg(not(windows))]
 fn unix_dirs() -> Vec<(&'static str, PathBuf, bool)> {
+    let mut v = unix_base_dirs();
+    #[cfg(not(target_os = "macos"))]
+    {
+        let home = dirs::home_dir().unwrap_or_default();
+        for (n, d) in [("LibreWolf", ".librewolf"), ("Zen", ".zen"), ("Floorp", ".floorp"), ("Waterfox", ".waterfox")] {
+            v.push((n, home.join(d).join("native-messaging-hosts"), true));
+        }
+    }
+    v
+}
+
+#[cfg(not(windows))]
+fn unix_base_dirs() -> Vec<(&'static str, PathBuf, bool)> {
     let home = dirs::home_dir().unwrap_or_default();
     #[cfg(target_os = "macos")]
     let (cfg, ff) = (home.join("Library/Application Support"), home.join("Library/Application Support/Mozilla/NativeMessagingHosts"));
@@ -131,7 +181,7 @@ fn unix_dirs() -> Vec<(&'static str, PathBuf, bool)> {
     #[cfg(target_os = "macos")]
     let chrome = [("Chrome", "Google/Chrome"), ("Chromium", "Chromium"), ("Edge", "Microsoft Edge"), ("Brave", "BraveSoftware/Brave-Browser"), ("Vivaldi", "Vivaldi")];
     #[cfg(not(target_os = "macos"))]
-    let chrome = [("Chrome", "google-chrome"), ("Chromium", "chromium"), ("Edge", "microsoft-edge"), ("Brave", "BraveSoftware/Brave-Browser"), ("Vivaldi", "vivaldi")];
+    let chrome = [("Chrome", "google-chrome"), ("Chromium", "chromium"), ("Edge", "microsoft-edge"), ("Brave", "BraveSoftware/Brave-Browser"), ("Vivaldi", "vivaldi"), ("Opera", "opera"), ("Thorium", "thorium"), ("Helium", "net.imput.helium")];
     let mut v: Vec<_> = chrome.iter().map(|(n, d)| (*n, cfg.join(d).join("NativeMessagingHosts"), false)).collect();
     v.push(("Firefox", ff, true));
     v
@@ -161,11 +211,15 @@ pub fn unregister() -> Result<HostStatus> {
 
 #[cfg(not(windows))]
 pub fn status() -> HostStatus {
+    let detected = crate::browsers::detect();
     let browsers = unix_dirs()
         .into_iter()
         .map(|(name, dir, _)| {
             let f = dir.join(format!("{NATIVE_HOST_NAME}.json"));
-            BrowserRegistration { browser: name.into(), registered: f.is_file(), location: f.display().to_string() }
+            let installed = dir.parent().is_some_and(|p| p.exists());
+            // "Chrome" ↔ detected "Google Chrome", "Firefox" ↔ "Mozilla Firefox".
+            let browser_id = detected.iter().find(|b| b.name.contains(name)).map(|b| b.id.clone());
+            BrowserRegistration { browser: name.into(), registered: f.is_file(), location: f.display().to_string(), browser_id, installed }
         })
         .collect();
     base_status(browsers)

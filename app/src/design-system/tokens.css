@@ -189,3 +189,54 @@
     --dur-slow: 0ms;
   }
 }
+
+/* ───────────────── Solid premium surfaces ─────────────────
+ * Opaque, Apple-style neutral ladder (no window translucency: cheaper to
+ * composite and steady while dragging/resizing). */
+:root {
+  --font-ui: "Segoe UI Variable Text", "Segoe UI Variable", "Segoe UI", "Inter Variable", "Inter", system-ui, sans-serif;
+  --font-display: "Segoe UI Variable Display", "Segoe UI Variable", "Segoe UI", "Bricolage Grotesque Variable", var(--font-ui);
+  --card-radius: 10px;
+}
+
+:root,
+:root[data-theme="light"] {
+  --bg-window: #F5F5F7;
+  --bg-sidebar: #F0F0F2;
+  --bg-toolbar: #FFFFFF;
+  --bg-content: #FFFFFF;
+  --bg-raised: #FFFFFF;
+  --bg-sunken: #F2F2F4;
+  --bg-popover: #FFFFFF;
+  --bg-hover: rgba(0, 0, 0, 0.04);
+  --bg-active: rgba(0, 0, 0, 0.07);
+  --fg-primary: #1D1D1F;
+  --fg-secondary: #6E6E73;
+  --fg-tertiary: #86868B;
+  --fg-disabled: #C7C7CC;
+  --line: rgba(0, 0, 0, 0.07);
+  --line-strong: rgba(0, 0, 0, 0.12);
+  --track: rgba(0, 0, 0, 0.07);
+  --shadow-control: 0 1px 1px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 0 0 0.5px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+:root[data-theme="dark"] {
+  --bg-window: #161618;
+  --bg-sidebar: #1C1C1E;
+  --bg-toolbar: #232325;
+  --bg-content: #1E1E20;
+  --bg-raised: #2C2C2E;
+  --bg-sunken: #121214;
+  --bg-popover: #2C2C2E;
+  --bg-hover: rgba(255, 255, 255, 0.05);
+  --bg-active: rgba(255, 255, 255, 0.085);
+  --fg-primary: #F5F5F7;
+  --fg-secondary: #A1A1A6;
+  --fg-tertiary: #6E6E73;
+  --fg-disabled: #48484A;
+  --line: rgba(255, 255, 255, 0.075);
+  --line-strong: rgba(255, 255, 255, 0.12);
+  --track: rgba(255, 255, 255, 0.08);
+  --shadow-card: 0 0 0 0.5px rgba(255, 255, 255, 0.06), 0 1px 2px rgba(0, 0, 0, 0.4);
+}

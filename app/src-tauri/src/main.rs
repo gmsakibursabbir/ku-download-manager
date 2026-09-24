@@ -6,9 +6,10 @@ mod tray;
 
 use ku_proto::{paths, AddRequest};
 use kucore::{api, db::Db, Core, CoreEvent};
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::collections::HashMap;
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
-use tauri::{AppHandle, Emitter, Manager, RunEvent, WindowEvent};
+use tauri::{AppHandle, Emitter, Manager, RunEvent, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 use tauri_plugin_notification::NotificationExt;
 
 pub struct AppState {
@@ -18,6 +19,9 @@ pub struct AppState {
     pub pending: Mutex<Vec<CoreEvent>>,
     pub ui_ready: AtomicBool,
     pub api_port: Mutex<Option<u16>>,
+    /// Requests waiting for their "Download File" popup window to pick them up.
+    pub prompts: Mutex<HashMap<String, AddRequest>>,
+    pub prompt_seq: AtomicU64,
 }
 
 fn init_logging() {
@@ -43,8 +47,39 @@ pub fn show_main(app: &AppHandle) {
     }
 }
 
+/// IDM-style "Download File" window for a download caught in the browser:
+/// small, always on top, independent of the main window (which may be in the tray).
+fn open_prompt_window(app: &AppHandle, request: AddRequest) {
+    let state = app.state::<AppState>();
+    let id = state.prompt_seq.fetch_add(1, Ordering::Relaxed).to_string();
+    state.prompts.lock().unwrap().insert(id.clone(), request);
+    let dark = !matches!(state.core.settings().theme.as_str(), "light");
+    let bg = if dark { (0x16, 0x16, 0x18, 255) } else { (0xF5, 0xF5, 0xF7, 255) };
+    let built = WebviewWindowBuilder::new(app, format!("prompt-{id}"), WebviewUrl::App(format!("index.html#prompt={id}").into()))
+        .title("Download File")
+        .inner_size(600.0, 400.0)
+        .min_inner_size(460.0, 260.0)
+        .decorations(false)
+        .always_on_top(true)
+        .center()
+        .focused(true)
+        .visible(false)
+        .background_color(bg.into())
+        .build();
+    if let Err(e) = built {
+        // Fall back to the dialog inside the main window.
+        tracing::warn!("prompt window: {e}");
+        if let Some(r) = state.prompts.lock().unwrap().remove(&id) {
+            show_main(app);
+            let _ = app.emit("ku", &CoreEvent::PromptAdd { request: Box::new(r) });
+        }
+    }
+}
+
 fn window_visible(app: &AppHandle) -> bool {
-    app.get_webview_window("main").and_then(|w| w.is_visible().ok()).unwrap_or(false)
+    app.get_webview_window("main")
+        .map(|w| w.is_visible().unwrap_or(false) && !w.is_minimized().unwrap_or(false))
+        .unwrap_or(false)
 }
 
 /// Launch arguments: URLs, magnet links or .torrent paths (also forwarded
@@ -90,6 +125,10 @@ fn forward_events(app: AppHandle, core: Arc<Core>) {
             match &ev {
                 CoreEvent::Progress { download_speed, upload_speed, items } => {
                     tray::update_tooltip(&app, *download_speed, *upload_speed, items.len());
+                    // Hidden or minimised: nothing to paint, so skip the webview.
+                    if !window_visible(&app) {
+                        continue;
+                    }
                 }
                 CoreEvent::Completed { name, .. } if s.notify_complete => notify(&app, "Download complete", name),
                 CoreEvent::Notice { level, title, message, .. } if level == "error" && s.notify_error && !window_visible(&app) => {
@@ -101,6 +140,11 @@ fn forward_events(app: AppHandle, core: Arc<Core>) {
                     notify(&app, "Downloads finished", &format!("Your computer will {} in {seconds} seconds.", if action == "sleep" { "sleep" } else { "shut down" }));
                 }
                 CoreEvent::Show => show_main(&app),
+                CoreEvent::PromptAdd { request } if request.source.as_deref() == Some("browser") => {
+                    open_prompt_window(&app, (**request).clone());
+                    continue;
+                }
+                CoreEvent::PromptAdd { .. } => show_main(&app),
                 CoreEvent::ClipboardUrl { url } if !window_visible(&app) => notify(&app, "Link copied", &format!("{url}\nOpen KuDownloader to download it.")),
                 _ => {}
             }
@@ -149,6 +193,8 @@ fn main() {
             pending: Mutex::new(Vec::new()),
             ui_ready: AtomicBool::new(false),
             api_port: Mutex::new(None),
+            prompts: Mutex::new(HashMap::new()),
+            prompt_seq: AtomicU64::new(1),
         })
         .invoke_handler(commands::handler())
         .setup(move |app| {
@@ -177,6 +223,9 @@ fn main() {
             Ok(())
         })
         .on_window_event(|window, event| {
+            if window.label() != "main" {
+                return;
+            }
             if let WindowEvent::CloseRequested { api, .. } = event {
                 let state = window.state::<AppState>();
                 if state.core.settings().minimize_to_tray {

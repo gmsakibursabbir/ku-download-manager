@@ -40,11 +40,25 @@ cd extension && node build.mjs                # extension → extension/dist/{ch
 cargo build --release -p ku-cli -p ku-native-host
 ```
 
-Install the unpacked extension from **Browser Integration** in the app (it
-shows the exact folder). The Chromium extension id is fixed by the key in the
-manifest (`bmbpbbaapbbelemahbmnjhppdlpdgkdi`); the app registers the native
-host for Chrome, Chromium, Edge, Brave, Vivaldi and Firefox under the current
-user at startup.
+**Browser Integration** in the app lists every installed browser — anything
+registered with Windows (Chrome, Edge, Brave, Helium, Opera, Vivaldi, Zen,
+Floorp, …) plus known install folders — and installs the extension per browser
+or in all of them: it opens the browser's extensions page and copies the
+extension folder path for *Load unpacked*. The native host is registered where
+each browser actually reads it (e.g. `HKCU\Software\imput\Helium\NativeMessagingHosts`),
+under the current user, at startup and before each install.
+
+Chromium browsers on Windows refuse `.crx` files that don't come from their
+web store (`CRX_REQUIRED_PROOF_MISSING`), so `kudmx.crx` is for store upload or
+policy deployment; *Load unpacked* is the direct path. Release Firefox installs
+only Mozilla-signed add-ons permanently (`npm run sign:firefox` in `extension/`
+with AMO API keys); otherwise use *Load Temporary Add-on*. The Chromium
+extension id is fixed by the manifest key (`bmbpbbaapbbelemahbmnjhppdlpdgkdi`).
+
+Downloads caught in the browser open a small always-on-top **Download File**
+window (the main window can stay in the tray). On any site the extension shows
+a **KuDownload** button over videos — on hover, and for a few seconds when a
+video starts playing — including players inside iframes and in fullscreen.
 
 ### CLI
 
@@ -75,16 +89,27 @@ cargo test --workspace --release
 ## Packaging
 
 ```bash
-node scripts/prepare-sidecars.mjs             # stages aria2c, yt-dlp, ffmpeg, ku-native-host, ku
-cd app && pnpm tauri build --config src-tauri/tauri.bundle.conf.json
+cd extension && node build.mjs && node pack.mjs   # unpacked builds + dist/packages (kudmx.xpi, kudmx.crx)
+node scripts/prepare-sidecars.mjs                 # Windows: aria2c, yt-dlp, ffmpeg + ku-native-host, ku
+cd app && pnpm tauri build --config src-tauri/tauri.bundle.conf.json          # Windows .exe (NSIS)
+cd app && pnpm tauri build --config src-tauri/tauri.bundle.linux.conf.json    # Linux .deb / .rpm
 ```
 
-Windows: NSIS (per-user). Linux: deb, rpm, AppImage. CI
-(`.github/workflows/ci.yml`) runs the test suite on Windows and Linux and
-builds signed releases with an updater feed on tags. The updater public key
-is in `tauri.conf.json`; the private key lives in `.secrets/` (not committed)
-and must be provided to CI as `TAURI_SIGNING_PRIVATE_KEY`. The update feed URL
-defaults to GitHub releases and can be changed in Settings › Advanced.
+Windows: per-user NSIS installer with the engines bundled. Linux: `.deb`,
+`.rpm` and an Arch package (`packaging/arch/PKGBUILD`, repackaged from the
+`.deb`) that depend on the distribution's `aria2`, `ffmpeg` and `yt-dlp`.
+
+CI (`.github/workflows/ci.yml`) runs the tests on Windows and Linux. Pushing a
+`v*` tag builds the `.exe`, `.deb`, `.rpm` and `.pkg.tar.zst` into a **draft**
+GitHub release. Optional repository secrets:
+
+| Secret | Enables |
+|---|---|
+| `TAURI_SIGNING_PRIVATE_KEY` (+ `_PASSWORD`) | signed updater artifacts and `latest.json` (key in `.secrets/updater.key`) |
+| `KU_EXTENSION_KEY` | `kudmx.crx` in the installers (PEM text of `.secrets/extension-key.pem`) |
+
+The update feed URL defaults to GitHub releases and can be changed in
+Settings › Advanced.
 
 ## Security model
 
