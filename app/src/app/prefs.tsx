@@ -213,7 +213,8 @@ export function EngineStatus({ compact }: { compact?: boolean }) {
   const load = () => void api.engineInfo().then(setInfo).catch(() => {});
   useEffect(load, []);
   const tools = useToolInstaller(load);
-  const windows = navigator.userAgent.includes("Windows");
+  // FFmpeg on demand: Windows and Linux (macOS: Homebrew).
+  const windows = !navigator.userAgent.includes("Mac");
   const get = (t: "yt-dlp" | "ffmpeg") =>
     compact ? undefined : (
       <Button size="sm" icon={Download} busy={tools.busy === t} disabled={!!tools.busy} onClick={() => void tools.install([t])}>
@@ -258,7 +259,7 @@ export function EngineStatus({ compact }: { compact?: boolean }) {
       {row(
         "FFmpeg",
         !!info?.ffmpeg.path,
-        info?.ffmpeg.path ?? (windows ? "Needed to merge high-quality video with audio and to convert audio." : "Needed to merge video with audio. Install it with your package manager (for example: sudo apt install ffmpeg)."),
+        info?.ffmpeg.path ?? (windows ? "Needed to merge high-quality video with audio and to convert audio." : "Needed to merge video with audio. Install it with Homebrew: brew install ffmpeg"),
         info && !info.ffmpeg.path && windows ? get("ffmpeg") : undefined,
       )}
     </PrefGroup>

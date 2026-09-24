@@ -197,6 +197,32 @@ const BN: Record<string, string> = {
   Download: "ডাউনলোড",
   Available: "আছে",
   "Not found": "পাওয়া যায়নি",
+
+  // First-run guide
+  "Getting started…": "শুরু করার গাইড…",
+  "Welcome to KuDownloader": "KuDownloader-এ স্বাগতম",
+  "Fast downloads that resume after anything — from your browser, video sites and links.": "দ্রুত ডাউনলোড, যা যেকোনো বাধার পরেও আবার চালু হয় — ব্রাউজার, ভিডিও সাইট আর লিংক থেকে।",
+  "Paste a link or press Add URL to download with several connections at once.": "লিংক পেস্ট করুন বা URL যোগ করুন চাপুন — একসাথে কয়েকটি সংযোগে ডাউনলোড হবে।",
+  "Downloads you start in the browser open a small Download File window.": "ব্রাউজারে শুরু করা ডাউনলোড একটি ছোট “ফাইল ডাউনলোড” উইন্ডোতে খুলবে।",
+  "A KuDownload button appears on videos on web pages.": "ওয়েব পেজের ভিডিওতে একটি KuDownload বোতাম দেখা যাবে।",
+  "Two quick steps get everything ready.": "দুটি ছোট ধাপে সব প্রস্তুত হয়ে যাবে।",
+  "Video and audio tools": "ভিডিও ও অডিও টুল",
+  "Video downloads use yt-dlp, and FFmpeg merges the best video with its audio. Both come from their official releases and are checked before use.": "ভিডিও ডাউনলোডে yt-dlp লাগে, আর FFmpeg সেরা ভিডিওর সাথে অডিও জুড়ে দেয়। দুটোই অফিসিয়াল রিলিজ থেকে আসে এবং ব্যবহারের আগে যাচাই করা হয়।",
+  "Everything is installed.": "সব ইনস্টল করা আছে।",
+  "Installing…": "ইনস্টল হচ্ছে…",
+  "Install yt-dlp and FFmpeg": "yt-dlp ও FFmpeg ইনস্টল করুন",
+  Install: "ইনস্টল",
+  Installed: "ইনস্টল করা আছে",
+  "Not installed": "ইনস্টল নেই",
+  "You can skip this and install them later from the Video Downloader.": "চাইলে এখন বাদ দিয়ে পরে ভিডিও ডাউনলোডার থেকে ইনস্টল করতে পারবেন।",
+  "Add the browser extension": "ব্রাউজার এক্সটেনশন যোগ করুন",
+  "The extension sends downloads and videos from your browser to KuDownloader. Choose Install next to each browser you use:": "এক্সটেনশনটি ব্রাউজার থেকে ডাউনলোড ও ভিডিও KuDownloader-এ পাঠায়। আপনার প্রতিটি ব্রাউজারের পাশে ইনস্টল চাপুন:",
+  "the extensions page opens: turn on Developer mode, choose Load unpacked, paste the folder path (already copied) and press Enter.": "এক্সটেনশন পেজ খুলবে: Developer mode চালু করুন, Load unpacked বাছুন, ফোল্ডারের পথ পেস্ট করুন (আগেই কপি করা) এবং Enter চাপুন।",
+  "about:debugging opens: choose Load Temporary Add-on and pick manifest.json in the folder that opened.": "about:debugging খুলবে: Load Temporary Add-on বাছুন এবং খোলা ফোল্ডার থেকে manifest.json নির্বাচন করুন।",
+  Back: "পেছনে",
+  Skip: "বাদ দিন",
+  Next: "পরবর্তী",
+  Finish: "শেষ",
 };
 
 const DICTS: Record<string, Record<string, string>> = { bn: BN };

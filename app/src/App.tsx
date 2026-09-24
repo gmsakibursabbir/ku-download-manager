@@ -7,6 +7,7 @@ import { DownloadsView, pasteLink } from "./app/downloads/DownloadsView";
 import { AddDownloadDialog } from "./app/AddDownloadDialog";
 import { applyAppearance } from "./lib/appearance";
 import { syncLanguage } from "./lib/i18n";
+import { WelcomeGuide } from "./app/WelcomeGuide";
 import { applyEvent, getDownload, onCoreEvent, settingsStore, startStore } from "./lib/store";
 import { api } from "./lib/api";
 import type { AddRequest, CoreEvent, GrabRequest, MediaRequest } from "./lib/types";
@@ -95,6 +96,17 @@ export default function App() {
   const [settingsSection, setSettingsSection] = useState("general");
   const [narrow, setNarrow] = useState(() => window.innerWidth < 1100);
   const [sidebarPref, setSidebarPref] = useState<boolean | null>(null);
+  // First-run guide (media tools, browser extension); Help › Getting started reopens it.
+  const settingsNow = settingsStore.use();
+  const [welcome, setWelcome] = useState(false);
+  useEffect(() => {
+    if (settingsNow && !settingsNow.onboarded) setWelcome(true);
+  }, [settingsNow?.onboarded, !!settingsNow]);
+  useEffect(() => {
+    const open = () => setWelcome(true);
+    window.addEventListener("ku:welcome", open);
+    return () => window.removeEventListener("ku:welcome", open);
+  }, []);
   useTheme(setMaterial);
 
   const navigate = useCallback((v: View) => {
@@ -352,6 +364,7 @@ export default function App() {
         </ConfirmDialog>
       )}
       <MenuHost />
+      {welcome && <WelcomeGuide onClose={() => setWelcome(false)} />}
       <ToastHost />
     </AppContext.Provider>
   );

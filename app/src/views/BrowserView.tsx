@@ -8,7 +8,7 @@ import { toast } from "../ui/overlays";
 import { BrowserPrefs, EngineStatus, MediaPrefs } from "../app/prefs";
 import * as fmt from "../lib/format";
 
-interface ExtensionDirs {
+export interface ExtensionDirs {
   chrome?: string | null;
   firefox?: string | null;
   crx?: string | null;
@@ -33,7 +33,7 @@ function nextStep(b: Browser, r: { mode: string; copied?: boolean }): string {
   return `In ${b.name}: turn on Developer mode (top right), choose “Load unpacked”${r.copied ? ", paste the folder path (already copied) and press Enter" : " and select the KuDownloader extension folder"}. Then restart ${b.name}.`;
 }
 
-function YourBrowsers({ dirs, status, onChanged }: { dirs: ExtensionDirs; status: HostStatus | null; onChanged: () => void }) {
+export function YourBrowsers({ dirs, status, onChanged, compact }: { dirs: ExtensionDirs; status: HostStatus | null; onChanged: () => void; compact?: boolean }) {
   const [browsers, setBrowsers] = useState<Browser[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [lastSeen, setLastSeen] = useState(0);
@@ -127,7 +127,7 @@ function YourBrowsers({ dirs, status, onChanged }: { dirs: ExtensionDirs; status
           </PrefRow>
         )}
       </div>
-      {(dirs.crx || dirs.xpi) && (
+      {!compact && (dirs.crx || dirs.xpi) && (
         <div className="faint" style={{ fontSize: "var(--text-xs)", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
           <Icon icon={Package} size={13} /> Packages for store or policy deployment:
           {dirs.crx && (

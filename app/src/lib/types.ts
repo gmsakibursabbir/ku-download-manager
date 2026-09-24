@@ -258,6 +258,7 @@ export interface Settings {
   notifyError: boolean;
   notifyQueueDone: boolean;
   showProgressWindow: boolean;
+  onboarded: boolean;
   downloadDir: string;
   useCategories: boolean;
   categories: Category[];

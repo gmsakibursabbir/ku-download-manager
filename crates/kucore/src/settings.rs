@@ -46,6 +46,8 @@ pub struct Settings {
     pub notify_queue_done: bool,
     /// IDM-style progress window when a single download is started.
     pub show_progress_window: bool,
+    /// The first-run guide (media tools, browser extension) was completed or skipped.
+    pub onboarded: bool,
     // Downloads
     pub download_dir: String,
     pub use_categories: bool,
@@ -160,6 +162,7 @@ impl Default for Settings {
             check_updates: true,
             notify_complete: true,
             show_progress_window: true,
+            onboarded: false,
             notify_error: true,
             notify_queue_done: true,
             download_dir: dl.to_string_lossy().into_owned(),

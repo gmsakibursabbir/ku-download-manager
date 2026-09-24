@@ -84,6 +84,7 @@ const settings: Settings = {
   notifyError: true,
   notifyQueueDone: true,
   showProgressWindow: true,
+  onboarded: params.get("welcome") !== "1",
   downloadDir: "C:\\Users\\you\\Downloads",
   useCategories: true,
   categories: [

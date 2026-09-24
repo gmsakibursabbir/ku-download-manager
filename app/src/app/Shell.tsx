@@ -141,6 +141,7 @@ export function TitleBar() {
       { label: t("Media detection"), onSelect: () => app.navigate("media") },
     ],
     Help: () => [
+      { label: t("Getting started…"), onSelect: () => window.dispatchEvent(new Event("ku:welcome")) },
       { label: t("Browser integration setup"), onSelect: () => app.navigate("browser") },
       { label: t("Keyboard shortcuts"), onSelect: () => app.openSettings("general") },
       { label: t("Check for updates…"), onSelect: () => app.openSettings("general") },

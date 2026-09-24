@@ -57,8 +57,8 @@ export function MediaToolsNotice({ info, onInstalled }: { info: EngineInfo | nul
   if (!info) return null;
   const missing: ToolName[] = [];
   if (!info.ytdlp.path) missing.push("yt-dlp");
-  // Linux packages depend on the distribution's ffmpeg instead.
-  if (!info.ffmpeg.path && navigator.userAgent.includes("Windows")) missing.push("ffmpeg");
+  // macOS has no official FFmpeg build to fetch (Homebrew instead).
+  if (!info.ffmpeg.path && !navigator.userAgent.includes("Mac")) missing.push("ffmpeg");
   if (!missing.length) return null;
   const needsYt = missing.includes("yt-dlp");
   return (
