@@ -454,7 +454,9 @@ async fn t21_unknown_length() {
     r.ranges = false;
     r.advertise_ranges = false;
     r.chunked = true;
-    r.per_conn_rate = 4 * MB;
+    // Slow enough (≈6 s) that the mid-transfer check can't race completion
+    // on a loaded CI runner.
+    r.per_conn_rate = MB;
     srv.state.set("a.bin", r);
     e.download(req("21", srv.url("/r/a.bin"), dir.path())).unwrap();
     wait_progress(&e, "21", MB).await;
