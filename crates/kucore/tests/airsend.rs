@@ -206,3 +206,47 @@ async fn hands_a_download_to_another_device_now_or_later() {
 fn chrono_ms() -> i64 {
     std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as i64
 }
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn trusting_a_device_asks_it_once_then_nothing_prompts() {
+    let tmp = tempfile::tempdir().unwrap();
+    let (phone_core, phone) = device(tmp.path(), "phone", false).await;
+    let (pc_core, pc) = device(tmp.path(), "pc", false).await;
+    let pc_peer = phone.add_address(&format!("127.0.0.1:{}", pc.status().port)).await.unwrap();
+    let phone_peer = pc.add_address(&format!("127.0.0.1:{}", phone.status().port)).await.unwrap();
+    let mut pc_rx = pc_core.subscribe();
+    let mut phone_rx = phone_core.subscribe();
+
+    // The phone trusts the PC: the PC is asked (once) to trust back.
+    phone.set_trusted(&pc_peer.fingerprint, true).await.unwrap();
+    let ask = tokio::time::timeout(Duration::from_secs(5), async {
+        loop {
+            if let Ok(CoreEvent::AirSendTrust { request }) = pc_rx.recv().await {
+                return request;
+            }
+        }
+    })
+    .await
+    .expect("the PC is asked to trust back");
+    assert_eq!(ask.peer, "phone");
+
+    // It does; the phone already trusts the PC, so it is not asked again.
+    pc.set_trusted(&phone_peer.fingerprint, true).await.unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+    while let Ok(e) = phone_rx.try_recv() {
+        assert!(!matches!(e, CoreEvent::AirSendTrust { .. }), "a device that already trusts is not asked");
+    }
+
+    // Now links go through without a prompt, both ways.
+    let dl = kucore::airsend::RemoteDownload { url: "https://example.org/files/movie.mkv".into(), ..Default::default() };
+    let id = phone.send_download(&pc_peer.fingerprint, dl, None).unwrap();
+    assert_eq!(finished(&phone, &id, 10).await.state, "done");
+    while let Ok(e) = pc_rx.try_recv() {
+        assert!(!matches!(e, CoreEvent::AirSendDownload { .. }), "a trusted device is not asked");
+    }
+    assert!(pc_core.list().iter().any(|d| d.url.ends_with("movie.mkv")));
+    let dl = kucore::airsend::RemoteDownload { url: "https://example.org/files/back.zip".into(), ..Default::default() };
+    let id = pc.send_download(&phone_peer.fingerprint, dl, None).unwrap();
+    assert_eq!(finished(&pc, &id, 10).await.state, "done");
+    assert!(phone_core.list().iter().any(|d| d.url.ends_with("back.zip")));
+}

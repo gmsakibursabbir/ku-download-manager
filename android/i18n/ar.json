@@ -328,5 +328,11 @@
  "Download video ({count})": "تنزيل الفيديو ({count})",
  "Streams on this page": "البث في هذه الصفحة",
  "yt-dlp is up to date.": "yt-dlp محدَّث.",
- "yt-dlp {version} installed": "ثُبّت yt-dlp {version}"
+ "yt-dlp {version} installed": "ثُبّت yt-dlp {version}",
+ "Files, links and scheduled downloads go through without asking. It will be asked to trust this phone too.": "تصل الملفات والروابط والتنزيلات المجدولة دون سؤال. وسيُسأل الجهاز الآخر أيضًا إن كان يثق بهذا الهاتف.",
+ "Not now": "ليس الآن",
+ "Trust": "وثوق",
+ "Trust it too, so nothing asks again?": "الوثوق به أيضًا حتى لا يُسأل مجددًا؟",
+ "Trust {name} too? Files, links and scheduled downloads between you will then go through without asking.": "الوثوق بـ {name} أيضًا؟ عندها تصل الملفات والروابط والتنزيلات المجدولة بينكما دون سؤال.",
+ "{name} trusts this phone": "{name} يثق بهذا الهاتف"
 }

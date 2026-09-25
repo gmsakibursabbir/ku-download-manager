@@ -913,6 +913,12 @@ const zh: Record<string, string> = {
   "In {browser}, choose “Load Temporary Add-on…” and pick manifest.json in the folder that opened. It stays until {browser} restarts; a Mozilla-signed kudmx.xpi installs permanently.": "在 {browser} 中选择“临时载入附加组件…”，然后选择打开的文件夹中的 manifest.json。它会保留到 {browser} 重启；经 Mozilla 签名的 kudmx.xpi 可永久安装。",
   "In {browser}: turn on Developer mode (top right), choose “Load unpacked”, paste the folder path (already copied) and press Enter. Then restart {browser}.": "在 {browser} 中：打开开发者模式（右上角），选择“加载已解压的扩展程序”，粘贴文件夹路径（已复制）并按回车。然后重启 {browser}。",
   "In {browser}: turn on Developer mode (top right), choose “Load unpacked” and select the KuDownloader extension folder. Then restart {browser}.": "在 {browser} 中：打开开发者模式（右上角），选择“加载已解压的扩展程序”，然后选择 KuDownloader 扩展文件夹。然后重启 {browser}。",
+  // KuAirSend: trust both ways
+  "Not now": "以后再说",
+  "Trust": "信任",
+  "{peer} trusts this computer": "{peer} 信任这台电脑",
+  "Trust {peer} too? Files, links and scheduled downloads between you will then go through without asking.": "也信任 {peer} 吗？这样你们之间的文件、链接和计划下载都无需询问。",
+  "{peer} trusts this computer. Trust it too?": "{peer} 信任这台电脑。也信任它吗？",
 };
 
 export default zh;

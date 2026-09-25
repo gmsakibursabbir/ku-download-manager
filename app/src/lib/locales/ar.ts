@@ -913,6 +913,12 @@ const ar: Record<string, string> = {
   "In {browser}, choose “Load Temporary Add-on…” and pick manifest.json in the folder that opened. It stays until {browser} restarts; a Mozilla-signed kudmx.xpi installs permanently.": "في {browser} اختر «تحميل إضافة مؤقتة…» ثم manifest.json في المجلد الذي فُتح. تبقى حتى إعادة تشغيل {browser}؛ أما kudmx.xpi الموقَّع من Mozilla فيُثبَّت دائمًا.",
   "In {browser}: turn on Developer mode (top right), choose “Load unpacked”, paste the folder path (already copied) and press Enter. Then restart {browser}.": "في {browser}: فعّل وضع المطوّر (أعلى اليمين)، واختر «تحميل ملحق غير مضغوط»، والصق مسار المجلد (نُسخ مسبقًا) واضغط Enter. ثم أعد تشغيل {browser}.",
   "In {browser}: turn on Developer mode (top right), choose “Load unpacked” and select the KuDownloader extension folder. Then restart {browser}.": "في {browser}: فعّل وضع المطوّر (أعلى اليمين)، واختر «تحميل ملحق غير مضغوط» ثم مجلد ملحق KuDownloader. ثم أعد تشغيل {browser}.",
+  // KuAirSend: trust both ways
+  "Not now": "ليس الآن",
+  "Trust": "وثوق",
+  "{peer} trusts this computer": "{peer} يثق بهذا الحاسوب",
+  "Trust {peer} too? Files, links and scheduled downloads between you will then go through without asking.": "الوثوق بـ {peer} أيضًا؟ عندها تصل الملفات والروابط والتنزيلات المجدولة بينكما دون سؤال.",
+  "{peer} trusts this computer. Trust it too?": "{peer} يثق بهذا الحاسوب. الوثوق به أيضًا؟",
 };
 
 export default ar;

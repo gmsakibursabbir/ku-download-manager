@@ -913,6 +913,12 @@ const es: Record<string, string> = {
   "In {browser}, choose “Load Temporary Add-on…” and pick manifest.json in the folder that opened. It stays until {browser} restarts; a Mozilla-signed kudmx.xpi installs permanently.": "En {browser}, elige «Cargar complemento temporal…» y selecciona manifest.json en la carpeta que se abrió. Se mantiene hasta reiniciar {browser}; un kudmx.xpi firmado por Mozilla se instala de forma permanente.",
   "In {browser}: turn on Developer mode (top right), choose “Load unpacked”, paste the folder path (already copied) and press Enter. Then restart {browser}.": "En {browser}: activa el modo de desarrollador (arriba a la derecha), elige «Cargar descomprimida», pega la ruta de la carpeta (ya copiada) y pulsa Intro. Después reinicia {browser}.",
   "In {browser}: turn on Developer mode (top right), choose “Load unpacked” and select the KuDownloader extension folder. Then restart {browser}.": "En {browser}: activa el modo de desarrollador (arriba a la derecha), elige «Cargar descomprimida» y selecciona la carpeta de la extensión KuDownloader. Después reinicia {browser}.",
+  // KuAirSend: trust both ways
+  "Not now": "Ahora no",
+  "Trust": "Confiar",
+  "{peer} trusts this computer": "{peer} confía en este ordenador",
+  "Trust {peer} too? Files, links and scheduled downloads between you will then go through without asking.": "¿Confiar también en {peer}? Así los archivos, enlaces y descargas programadas entre vosotros pasarán sin preguntar.",
+  "{peer} trusts this computer. Trust it too?": "{peer} confía en este ordenador. ¿Confiar también en él?",
 };
 
 export default es;

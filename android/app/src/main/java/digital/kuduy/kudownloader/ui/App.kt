@@ -129,6 +129,11 @@ private fun Main() {
             when (str("type")) {
                 "notice" -> UiState.toast(listOfNotNull(str("title")?.let { te(it) }, str("message")?.let { te(it) }).filter { it.isNotBlank() }.joinToString(": "))
                 "airSendRequest" -> UiState.airRequests.add(Ku.json.decodeFromJsonElement<AirRequest>(e["request"]!!))
+                "airSendTrust" -> {
+                    val r = Ku.json.decodeFromJsonElement<digital.kuduy.kudownloader.core.AirTrustRequest>(e["request"]!!)
+                    UiState.airTrusts.removeAll { it.peerFingerprint == r.peerFingerprint }
+                    UiState.airTrusts.add(r)
+                }
                 "airSendDownload" -> UiState.airDownloads.add(Ku.json.decodeFromJsonElement<digital.kuduy.kudownloader.core.AirDownloadRequest>(e["request"]!!))
                 "airSendMessage" -> UiState.airMessages.add(Ku.json.decodeFromJsonElement<AirMessage>(e["message"]!!))
                 "toolDone" -> if (e["ok"]?.jsonPrimitive?.contentOrNull == "false") UiState.toast(te(str("message") ?: ""))

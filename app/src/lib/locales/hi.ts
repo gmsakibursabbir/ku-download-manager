@@ -913,6 +913,12 @@ const hi: Record<string, string> = {
   "In {browser}, choose “Load Temporary Add-on…” and pick manifest.json in the folder that opened. It stays until {browser} restarts; a Mozilla-signed kudmx.xpi installs permanently.": "{browser} में “Load Temporary Add-on…” चुनें और खुले फ़ोल्डर में manifest.json चुनें। यह {browser} रीस्टार्ट होने तक रहता है; Mozilla-हस्ताक्षरित kudmx.xpi स्थायी रूप से इंस्टॉल होता है।",
   "In {browser}: turn on Developer mode (top right), choose “Load unpacked”, paste the folder path (already copied) and press Enter. Then restart {browser}.": "{browser} में: Developer mode चालू करें (ऊपर दाएं), “Load unpacked” चुनें, फ़ोल्डर का पाथ पेस्ट करें (पहले से कॉपी है) और Enter दबाएं। फिर {browser} रीस्टार्ट करें।",
   "In {browser}: turn on Developer mode (top right), choose “Load unpacked” and select the KuDownloader extension folder. Then restart {browser}.": "{browser} में: Developer mode चालू करें (ऊपर दाएं), “Load unpacked” चुनें और KuDownloader एक्सटेंशन का फ़ोल्डर चुनें। फिर {browser} रीस्टार्ट करें।",
+  // KuAirSend: trust both ways
+  "Not now": "अभी नहीं",
+  "Trust": "भरोसा करें",
+  "{peer} trusts this computer": "{peer} इस कंप्यूटर पर भरोसा करता है",
+  "Trust {peer} too? Files, links and scheduled downloads between you will then go through without asking.": "{peer} पर भी भरोसा करें? फिर आपके बीच फ़ाइलें, लिंक और शेड्यूल किए डाउनलोड बिना पूछे पहुंचेंगे।",
+  "{peer} trusts this computer. Trust it too?": "{peer} इस कंप्यूटर पर भरोसा करता है। आप भी भरोसा करेंगे?",
 };
 
 export default hi;

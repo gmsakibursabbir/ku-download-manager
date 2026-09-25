@@ -328,5 +328,11 @@
  "Download video ({count})": "Скачать видео ({count})",
  "Streams on this page": "Потоки на этой странице",
  "yt-dlp is up to date.": "yt-dlp обновлён.",
- "yt-dlp {version} installed": "yt-dlp {version} установлен"
+ "yt-dlp {version} installed": "yt-dlp {version} установлен",
+ "Files, links and scheduled downloads go through without asking. It will be asked to trust this phone too.": "Файлы, ссылки и запланированные загрузки проходят без вопросов. Устройству также предложат доверять этому телефону.",
+ "Not now": "Не сейчас",
+ "Trust": "Доверять",
+ "Trust it too, so nothing asks again?": "Доверять ему тоже, чтобы больше не спрашивать?",
+ "Trust {name} too? Files, links and scheduled downloads between you will then go through without asking.": "Доверять {name} тоже? Тогда файлы, ссылки и запланированные загрузки между вами будут проходить без вопросов.",
+ "{name} trusts this phone": "{name} доверяет этому телефону"
 }

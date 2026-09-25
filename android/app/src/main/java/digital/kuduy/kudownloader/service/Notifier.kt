@@ -124,6 +124,17 @@ object Notifier {
         post(ctx, r.id.hashCode(), b.build())
     }
 
+    fun airTrust(ctx: Context, r: digital.kuduy.kudownloader.core.AirTrustRequest) {
+        val b = NotificationCompat.Builder(ctx, CH_AIRSEND)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(tf("{name} trusts this phone", "name" to r.peer))
+            .setContentText(t("Trust it too, so nothing asks again?"))
+            .setAutoCancel(true)
+            .setContentIntent(openApp(ctx, MainActivity.ACTION_AIRSEND, r.peerFingerprint))
+            .addAction(0, t("Trust"), broadcast(ctx, ActionReceiver.AIR_TRUST, r.peerFingerprint))
+        post(ctx, r.peerFingerprint.hashCode(), b.build())
+    }
+
     fun airDownload(ctx: Context, r: digital.kuduy.kudownloader.core.AirDownloadRequest) {
         val at = r.download.at?.takeIf { it > System.currentTimeMillis() + 30_000 }
         val text = r.download.filename ?: r.download.url

@@ -218,6 +218,9 @@ class KuService : LifecycleService() {
                         "airSendRequest" -> if (!MainActivity.visible) {
                             Notifier.airRequest(app, Ku.json.decodeFromJsonElement<AirRequest>(e["request"]!!))
                         }
+                        "airSendTrust" -> if (!MainActivity.visible) {
+                            Notifier.airTrust(app, Ku.json.decodeFromJsonElement(e["request"]!!))
+                        }
                         "airSendDownload" -> if (!MainActivity.visible) {
                             Notifier.airDownload(app, Ku.json.decodeFromJsonElement(e["request"]!!))
                         }

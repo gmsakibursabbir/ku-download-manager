@@ -39,6 +39,10 @@ class ActionReceiver : BroadcastReceiver() {
                         Notifier.cancel(ctx, it)
                     }
                     AIR_OFF -> Ku.airSetEnabled(false)
+                    AIR_TRUST -> id?.let {
+                        Ku.airTrust(it, true)
+                        Notifier.cancel(ctx, it)
+                    }
                     COPY -> id?.let {
                         ctx.getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText("KuAirSend", it))
                     }
@@ -63,6 +67,7 @@ class ActionReceiver : BroadcastReceiver() {
         const val AIR_ACCEPT = "digital.kuduy.kudownloader.AIR_ACCEPT"
         const val AIR_DECLINE = "digital.kuduy.kudownloader.AIR_DECLINE"
         const val AIR_OFF = "digital.kuduy.kudownloader.AIR_OFF"
+        const val AIR_TRUST = "digital.kuduy.kudownloader.AIR_TRUST"
         const val COPY = "digital.kuduy.kudownloader.COPY"
     }
 }

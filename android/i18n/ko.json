@@ -328,5 +328,11 @@
  "Download video ({count})": "동영상 다운로드({count})",
  "Streams on this page": "이 페이지의 스트림",
  "yt-dlp is up to date.": "yt-dlp가 최신 버전입니다.",
- "yt-dlp {version} installed": "yt-dlp {version} 설치됨"
+ "yt-dlp {version} installed": "yt-dlp {version} 설치됨",
+ "Files, links and scheduled downloads go through without asking. It will be asked to trust this phone too.": "파일, 링크, 예약 다운로드가 묻지 않고 전달됩니다. 상대 기기에도 이 휴대폰을 신뢰할지 묻습니다.",
+ "Not now": "나중에",
+ "Trust": "신뢰",
+ "Trust it too, so nothing asks again?": "상대도 신뢰해서 더 이상 묻지 않을까요?",
+ "Trust {name} too? Files, links and scheduled downloads between you will then go through without asking.": "{name}도 신뢰할까요? 그러면 서로 간의 파일, 링크, 예약 다운로드가 묻지 않고 전달됩니다.",
+ "{name} trusts this phone": "{name}에서 이 휴대폰을 신뢰합니다"
 }

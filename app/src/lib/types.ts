@@ -361,6 +361,7 @@ export type CoreEvent =
   | { type: "airSendTransfer"; transfer: import("./airsend").AirTransfer }
   | { type: "airSendRequest"; request: import("./airsend").AirRequest }
   | { type: "airSendDownload"; request: import("./airsend").AirDownloadRequest }
+  | { type: "airSendTrust"; request: import("./airsend").AirTrustRequest }
   | { type: "airSendMessage"; message: import("./airsend").AirMessage };
 
 export interface Details {

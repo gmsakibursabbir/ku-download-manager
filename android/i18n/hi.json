@@ -328,5 +328,11 @@
  "Download video ({count})": "वीडियो डाउनलोड करें ({count})",
  "Streams on this page": "इस पेज की स्ट्रीम",
  "yt-dlp is up to date.": "yt-dlp अप टू डेट है।",
- "yt-dlp {version} installed": "yt-dlp {version} इंस्टॉल हुआ"
+ "yt-dlp {version} installed": "yt-dlp {version} इंस्टॉल हुआ",
+ "Files, links and scheduled downloads go through without asking. It will be asked to trust this phone too.": "फ़ाइलें, लिंक और शेड्यूल किए डाउनलोड बिना पूछे पहुंचेंगे। उस डिवाइस से भी इस फ़ोन पर भरोसा करने को कहा जाएगा।",
+ "Not now": "अभी नहीं",
+ "Trust": "भरोसा करें",
+ "Trust it too, so nothing asks again?": "उस पर भी भरोसा करें, ताकि फिर न पूछा जाए?",
+ "Trust {name} too? Files, links and scheduled downloads between you will then go through without asking.": "{name} पर भी भरोसा करें? फिर आपके बीच फ़ाइलें, लिंक और शेड्यूल किए डाउनलोड बिना पूछे पहुंचेंगे।",
+ "{name} trusts this phone": "{name} इस फ़ोन पर भरोसा करता है"
 }

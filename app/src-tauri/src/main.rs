@@ -212,6 +212,10 @@ fn forward_events(app: AppHandle, core: Arc<Core>) {
                     };
                     notify(&app, "KuAirSend", &i18n::trf("{peer} wants to send you {files}.", &[("peer", &request.peer), ("files", &what)]));
                 }
+                CoreEvent::AirSendTrust { request } => {
+                    show_main(&app);
+                    notify(&app, "KuAirSend", &i18n::trf("{peer} trusts this computer. Trust it too?", &[("peer", &request.peer)]));
+                }
                 CoreEvent::AirSendDownload { request } => {
                     show_main(&app);
                     notify(&app, "KuAirSend", &i18n::trf("{peer} wants this computer to download {url}", &[("peer", &request.peer), ("url", &request.download.url)]));

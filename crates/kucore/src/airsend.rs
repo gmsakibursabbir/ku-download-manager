@@ -113,6 +113,9 @@ struct Offer {
     /// "Download this": the receiver downloads the link itself.
     #[serde(skip_serializing_if = "Option::is_none")]
     download: Option<RemoteDownload>,
+    /// "I trust you": the receiver is asked once whether to trust back.
+    #[serde(skip_serializing_if = "is_false")]
+    trust: bool,
 }
 
 /// A download handed to another device (for example from a phone to a PC).
@@ -205,6 +208,16 @@ pub struct AirRequest {
     pub files: Vec<AirFile>,
     pub file_count: usize,
     pub total: u64,
+}
+
+/// A nearby device now trusts this one: trust it back? (once per device)
+#[derive(Serialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct AirTrustRequest {
+    pub peer: String,
+    pub peer_fingerprint: String,
+    pub peer_avatar: String,
+    pub peer_os: String,
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -987,6 +1000,22 @@ impl AirSend {
             return Err(StatusCode::FORBIDDEN);
         }
         let Some(peer) = self.add_peer(from, caller.ip) else { return Err(StatusCode::FORBIDDEN) };
+        // "I trust you": ask once whether to trust back (nothing else happens).
+        if offer.trust {
+            if !peer.trusted {
+                let mut g = self.lock();
+                let now = Instant::now();
+                if g.last_message.get(&peer.fingerprint).is_some_and(|t| now.duration_since(*t) < MESSAGE_GAP) {
+                    return Err(StatusCode::TOO_MANY_REQUESTS);
+                }
+                g.last_message.insert(peer.fingerprint.clone(), now);
+                drop(g);
+                self.core.emit(CoreEvent::AirSendTrust {
+                    request: Box::new(AirTrustRequest { peer: peer.alias, peer_fingerprint: peer.fingerprint, peer_avatar: peer.avatar, peer_os: peer.os }),
+                });
+            }
+            return Ok(None);
+        }
         let s = self.core.settings();
         let pin = s.airsend_pin.trim();
         if !pin.is_empty() {
@@ -1246,10 +1275,29 @@ impl AirSend {
             s.airsend_trusted.push(fingerprint.to_string());
         }
         self.core.save_settings(s).await?;
-        if let Some(p) = self.lock().peers.get_mut(fingerprint) {
-            p.trusted = trusted;
-        }
+        let peer = {
+            let mut g = self.lock();
+            let p = g.peers.get_mut(fingerprint);
+            if let Some(p) = p {
+                p.trusted = trusted;
+                Some(p.clone())
+            } else {
+                None
+            }
+        };
         self.emit_peers();
+        // Tell the other device, which asks its user once to trust back:
+        // then files and links go through without prompts both ways.
+        if let (true, Some(peer)) = (trusted, peer) {
+            let _ = tokio::time::timeout(Duration::from_secs(5), self.offer_trust(&peer)).await;
+        }
+        Ok(())
+    }
+
+    async fn offer_trust(&self, peer: &AirPeer) -> Result<()> {
+        let (c, _) = client(&self.id, Some(&peer.fingerprint))?;
+        let offer = Offer { from: self.info(false), trust: true, ..Default::default() };
+        c.post(format!("https://{}:{}{API}/offer", peer.ip, peer.port)).json(&offer).send().await?;
         Ok(())
     }
 
@@ -1470,7 +1518,7 @@ impl AirSend {
             t.file_count = offer_files.len();
             t.total = total;
         });
-        let offer = Offer { from: self.info(false), files: offer_files.clone(), text, pin, download };
+        let offer = Offer { from: self.info(false), files: offer_files.clone(), text, pin, download, trust: false };
         let resp = c
             .post(format!("{base}/offer"))
             .timeout(ACCEPT_TIMEOUT + Duration::from_secs(30))

@@ -328,5 +328,11 @@
  "Download video ({count})": "Baixar vídeo ({count})",
  "Streams on this page": "Streams desta página",
  "yt-dlp is up to date.": "O yt-dlp está atualizado.",
- "yt-dlp {version} installed": "yt-dlp {version} instalado"
+ "yt-dlp {version} installed": "yt-dlp {version} instalado",
+ "Files, links and scheduled downloads go through without asking. It will be asked to trust this phone too.": "Arquivos, links e downloads agendados passam sem perguntar. Ele também será convidado a confiar neste telefone.",
+ "Not now": "Agora não",
+ "Trust": "Confiar",
+ "Trust it too, so nothing asks again?": "Confiar nele também, para não perguntar mais?",
+ "Trust {name} too? Files, links and scheduled downloads between you will then go through without asking.": "Confiar em {name} também? Assim arquivos, links e downloads agendados entre vocês passam sem perguntar.",
+ "{name} trusts this phone": "{name} confia neste telefone"
 }

@@ -390,7 +390,22 @@ private fun PeerSheet(p: AirPeer, onDismiss: () -> Unit, onFiles: () -> Unit, on
             ClickRow(tf("Download on {name}", "name" to p.alias), t("It downloads the link itself, now or later"), Icons.Filled.CloudDownload) { onRemote() }
             HorizontalDivider()
             val scope = rememberCoroutineScope()
-            SwitchRow(t("Trust this device"), p.trusted, t("Accept its files without asking.")) { on -> scope.act { Ku.airTrust(p.fingerprint, on) } }
+            // The live device (the sheet was opened with a snapshot), switched at once.
+            val peers by Ku.airPeers.collectAsStateWithLifecycle()
+            val live = peers.firstOrNull { it.fingerprint == p.fingerprint } ?: p
+            var trusted by remember(live.trusted) { mutableStateOf(live.trusted) }
+            SwitchRow(t("Trust this device"), trusted, t("Files, links and scheduled downloads go through without asking. It will be asked to trust this phone too.")) { on ->
+                trusted = on
+                scope.launch {
+                    try {
+                        Ku.airTrust(p.fingerprint, on)
+                        Ku.airPeers.value = Ku.airPeers.value.map { if (it.fingerprint == p.fingerprint) it.copy(trusted = on) else it }
+                    } catch (e: Exception) {
+                        trusted = !on
+                        UiState.toast(e.message ?: "")
+                    }
+                }
+            }
         }
     }
 }
@@ -588,6 +603,23 @@ fun AirSendPrompts() {
     }
     UiState.airDownloads.firstOrNull()?.let { r ->
         DownloadRequestDialog(r)
+        return
+    }
+    UiState.airTrusts.firstOrNull()?.let { r ->
+        AlertDialog(
+            onDismissRequest = { UiState.airTrusts.remove(r) },
+            icon = { PixelAnimal(avatarOf(r.peerAvatar, r.peerFingerprint), 56.dp) },
+            title = { Text(tf("{name} trusts this phone", "name" to r.peer), textAlign = TextAlign.Center) },
+            text = { Text(tf("Trust {name} too? Files, links and scheduled downloads between you will then go through without asking.", "name" to r.peer)) },
+            confirmButton = {
+                TextButton({
+                    UiState.airTrusts.remove(r)
+                    digital.kuduy.kudownloader.service.Notifier.cancel(ctx, r.peerFingerprint)
+                    scope.act { Ku.airTrust(r.peerFingerprint, true) }
+                }) { Text(t("Trust")) }
+            },
+            dismissButton = { TextButton({ UiState.airTrusts.remove(r) }) { Text(t("Not now")) } },
+        )
         return
     }
     UiState.airMessages.firstOrNull()?.let { m ->

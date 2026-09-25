@@ -75,6 +75,7 @@ object UiState {
     val airRequests = mutableStateListOf<AirRequest>()
     val airMessages = mutableStateListOf<AirMessage>()
     val airDownloads = mutableStateListOf<digital.kuduy.kudownloader.core.AirDownloadRequest>()
+    val airTrusts = mutableStateListOf<digital.kuduy.kudownloader.core.AirTrustRequest>()
     var remoteSend by mutableStateOf<RemoteSend?>(null)
 
     /** Short messages at the bottom of the screen. */

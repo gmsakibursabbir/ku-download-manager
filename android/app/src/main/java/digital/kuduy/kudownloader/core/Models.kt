@@ -292,6 +292,15 @@ data class RemoteDownload(
     val cookies: List<BrowserCookie> = emptyList(),
 )
 
+/** A nearby device now trusts this one: trust it back? */
+@Serializable
+data class AirTrustRequest(
+    val peer: String = "",
+    val peerFingerprint: String = "",
+    val peerAvatar: String = "",
+    val peerOs: String = "",
+)
+
 @Serializable
 data class AirDownloadRequest(
     val id: String = "",

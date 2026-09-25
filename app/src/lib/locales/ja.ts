@@ -913,6 +913,12 @@ const ja: Record<string, string> = {
   "In {browser}, choose “Load Temporary Add-on…” and pick manifest.json in the folder that opened. It stays until {browser} restarts; a Mozilla-signed kudmx.xpi installs permanently.": "{browser} で「一時的なアドオンを読み込む…」を選び、開いたフォルダーの manifest.json を選択してください。{browser} を再起動するまで有効です。Mozilla 署名済みの kudmx.xpi なら永続的にインストールされます。",
   "In {browser}: turn on Developer mode (top right), choose “Load unpacked”, paste the folder path (already copied) and press Enter. Then restart {browser}.": "{browser} で：デベロッパー モードをオン（右上）にし、「パッケージ化されていない拡張機能を読み込む」を選んで、フォルダーのパス（コピー済み）を貼り付けて Enter を押します。その後 {browser} を再起動してください。",
   "In {browser}: turn on Developer mode (top right), choose “Load unpacked” and select the KuDownloader extension folder. Then restart {browser}.": "{browser} で：デベロッパー モードをオン（右上）にし、「パッケージ化されていない拡張機能を読み込む」を選んで KuDownloader 拡張機能のフォルダーを選択します。その後 {browser} を再起動してください。",
+  // KuAirSend: trust both ways
+  "Not now": "後で",
+  "Trust": "信頼する",
+  "{peer} trusts this computer": "{peer} がこのコンピューターを信頼しました",
+  "Trust {peer} too? Files, links and scheduled downloads between you will then go through without asking.": "{peer} も信頼しますか？お互いのファイル、リンク、予約ダウンロードが確認なしで届くようになります。",
+  "{peer} trusts this computer. Trust it too?": "{peer} がこのコンピューターを信頼しました。こちらも信頼しますか？",
 };
 
 export default ja;

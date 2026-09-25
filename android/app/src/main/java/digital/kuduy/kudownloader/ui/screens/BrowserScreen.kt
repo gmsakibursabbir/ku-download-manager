@@ -126,8 +126,10 @@ fun BrowserScreen() {
     LaunchedEffect(Unit) { BrowserState.load() }
     val tab = BrowserState.current ?: return
     val focus = LocalFocusManager.current
-    var address by remember(tab.id, tab.url) { mutableStateOf(tab.url) }
+    var address by remember(tab.id) { mutableStateOf(tab.url) }
     var editing by remember { mutableStateOf(false) }
+    // Follow the page's address, but never while the user is typing.
+    LaunchedEffect(tab.url, editing) { if (!editing) address = tab.url }
     var menu by remember { mutableStateOf(false) }
     var tabsOpen by remember { mutableStateOf(false) }
     var mediaOpen by remember { mutableStateOf(false) }
@@ -153,7 +155,11 @@ fun BrowserScreen() {
     // Pages stop playing and running scripts while another screen is shown.
     DisposableEffect(tab) {
         tab.view?.onResume()
-        onDispose { tab.view?.onPause() }
+        onDispose {
+            tab.view?.onPause()
+            // Keep sign-ins when the app is closed right after.
+            android.webkit.CookieManager.getInstance().flush()
+        }
     }
 
     BackHandler(enabled = tab.canBack || !tab.isStart) {
@@ -168,7 +174,9 @@ fun BrowserScreen() {
     }
     LaunchedEffect(chooser) {
         chooser?.let { (_, params) ->
-            val type = params.acceptTypes?.firstOrNull { it.isNotBlank() } ?: "*/*"
+            // Pages may ask for ".jpg" or "image/*,.pdf": the picker needs one MIME type.
+            val types = params.acceptTypes.orEmpty().flatMap { it.split(",") }.map { it.trim() }.filter { it.isNotEmpty() }
+            val type = types.singleOrNull { "/" in it } ?: types.firstOrNull { "/" in it }?.let { t -> if (types.all { it.substringBefore("/") == t.substringBefore("/") && "/" in it }) t.substringBefore("/") + "/*" else "*/*" } ?: "*/*"
             runCatching { filePicker.launch(type) }.onFailure {
                 BrowserSignals.chooser?.first?.onReceiveValue(null)
                 BrowserSignals.chooser = null

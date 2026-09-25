@@ -53,6 +53,14 @@ export interface RemoteDownload {
   cookies?: unknown[];
 }
 
+/** A nearby device now trusts this one: trust it back? */
+export interface AirTrustRequest {
+  peer: string;
+  peerFingerprint: string;
+  peerAvatar: string;
+  peerOs: string;
+}
+
 /** A nearby device asks this one to download a link: Accept / Decline. */
 export interface AirDownloadRequest {
   id: string;
@@ -124,10 +132,11 @@ interface Snapshot {
   transfers: AirTransfer[];
   requests: AirRequest[];
   downloads: AirDownloadRequest[];
+  trusts: AirTrustRequest[];
   messages: AirMessage[];
 }
 
-let snap: Snapshot = { peers: [], transfers: [], requests: [], downloads: [], messages: [] };
+let snap: Snapshot = { peers: [], transfers: [], requests: [], downloads: [], trusts: [], messages: [] };
 const listeners = new Set<() => void>();
 
 function set(p: Partial<Snapshot>) {
@@ -153,6 +162,9 @@ onCoreEvent((e) => {
     case "airSendRequest":
       set({ requests: [...snap.requests.filter((r) => r.id !== e.request.id), e.request] });
       break;
+    case "airSendTrust":
+      set({ trusts: [...snap.trusts.filter((r) => r.peerFingerprint !== e.request.peerFingerprint), e.request] });
+      break;
     case "airSendDownload":
       set({ downloads: [...snap.downloads.filter((r) => r.id !== e.request.id), e.request] });
       break;
@@ -177,6 +189,10 @@ export function reloadTransfers() {
 
 export function dismissRequest(id: string) {
   set({ requests: snap.requests.filter((r) => r.id !== id) });
+}
+
+export function dismissTrust(fingerprint: string) {
+  set({ trusts: snap.trusts.filter((r) => r.peerFingerprint !== fingerprint) });
 }
 
 export function dismissDownload(id: string) {

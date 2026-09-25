@@ -913,6 +913,12 @@ const ko: Record<string, string> = {
   "In {browser}, choose “Load Temporary Add-on…” and pick manifest.json in the folder that opened. It stays until {browser} restarts; a Mozilla-signed kudmx.xpi installs permanently.": "{browser}에서 ‘임시 부가 기능 로드…’를 선택하고 열린 폴더의 manifest.json을 고르세요. {browser}를 다시 시작할 때까지 유지되며, Mozilla 서명 kudmx.xpi는 영구 설치됩니다.",
   "In {browser}: turn on Developer mode (top right), choose “Load unpacked”, paste the folder path (already copied) and press Enter. Then restart {browser}.": "{browser}에서: 개발자 모드를 켜고(오른쪽 위) ‘압축해제된 확장 프로그램 로드’를 선택한 뒤 폴더 경로(이미 복사됨)를 붙여넣고 Enter를 누르세요. 그런 다음 {browser}를 다시 시작하세요.",
   "In {browser}: turn on Developer mode (top right), choose “Load unpacked” and select the KuDownloader extension folder. Then restart {browser}.": "{browser}에서: 개발자 모드를 켜고(오른쪽 위) ‘압축해제된 확장 프로그램 로드’를 선택한 뒤 KuDownloader 확장 프로그램 폴더를 고르세요. 그런 다음 {browser}를 다시 시작하세요.",
+  // KuAirSend: trust both ways
+  "Not now": "나중에",
+  "Trust": "신뢰",
+  "{peer} trusts this computer": "{peer}에서 이 컴퓨터를 신뢰합니다",
+  "Trust {peer} too? Files, links and scheduled downloads between you will then go through without asking.": "{peer}도 신뢰할까요? 그러면 서로 간의 파일, 링크, 예약 다운로드가 묻지 않고 전달됩니다.",
+  "{peer} trusts this computer. Trust it too?": "{peer}에서 이 컴퓨터를 신뢰합니다. 함께 신뢰할까요?",
 };
 
 export default ko;

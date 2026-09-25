@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Copy, Download } from "lucide-react";
-import { airApi, dismissDownload, dismissMessage, dismissRequest, useAir, type AirDownloadRequest, type AirMessage, type AirRequest } from "../../lib/airsend";
+import { airApi, dismissDownload, dismissMessage, dismissRequest, dismissTrust, useAir, type AirDownloadRequest, type AirMessage, type AirRequest, type AirTrustRequest } from "../../lib/airsend";
 import { errorText } from "../../lib/api";
 import * as fmt from "../../lib/format";
 import { t, tf } from "../../lib/i18n";
@@ -123,6 +123,49 @@ function DownloadDialog({ r }: { r: AirDownloadRequest }) {
   );
 }
 
+/** A device now trusts this computer: trust it back, once, and nothing asks again. */
+function TrustDialog({ r }: { r: AirTrustRequest }) {
+  const [busy, setBusy] = useState(false);
+  const answer = async (yes: boolean) => {
+    setBusy(true);
+    try {
+      if (yes) await airApi.trust(r.peerFingerprint, true);
+    } catch (e) {
+      toast({ level: "error", title: "KuAirSend", message: errorText(e) });
+    } finally {
+      dismissTrust(r.peerFingerprint);
+    }
+  };
+  return (
+    <Dialog
+      title="KuAirSend"
+      width={440}
+      onClose={() => void answer(false)}
+      footer={
+        <>
+          <Button disabled={busy} onClick={() => void answer(false)}>
+            {t("Not now")}
+          </Button>
+          <Button variant="primary" busy={busy} onClick={() => void answer(true)} data-autofocus>
+            {t("Trust")}
+          </Button>
+        </>
+      }
+    >
+      <div className="air-offer">
+        <span className="air-peer-ring">
+          <PixelAnimal animal={r.peerAvatar} size={64} seed={hashPick(r.peerFingerprint, 97)} />
+          <OsBadge os={r.peerOs} />
+        </span>
+        <div className="air-offer-text">
+          <b>{tf("{peer} trusts this computer", { peer: r.peer })}</b>
+          <span className="faint">{tf("Trust {peer} too? Files, links and scheduled downloads between you will then go through without asking.", { peer: r.peer })}</span>
+        </div>
+      </div>
+    </Dialog>
+  );
+}
+
 function MessageDialog({ m }: { m: AirMessage }) {
   const app = useApp();
   const link = isLink(m.text);
@@ -173,9 +216,10 @@ function MessageDialog({ m }: { m: AirMessage }) {
 
 /** Incoming offers and messages, over whatever screen is open (one at a time). */
 export function AirSendPrompts() {
-  const { requests, downloads, messages } = useAir();
+  const { requests, downloads, trusts, messages } = useAir();
   if (requests[0]) return <RequestDialog key={requests[0].id} r={requests[0]} />;
   if (downloads[0]) return <DownloadDialog key={downloads[0].id} r={downloads[0]} />;
+  if (trusts[0]) return <TrustDialog key={trusts[0].peerFingerprint} r={trusts[0]} />;
   if (messages[0]) return <MessageDialog key={messages[0].id} m={messages[0]} />;
   return null;
 }
