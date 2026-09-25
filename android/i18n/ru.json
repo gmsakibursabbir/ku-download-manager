@@ -305,5 +305,22 @@
  "{name} downloads it at {time}": "{name} скачает это в {time}",
  "All": "Все",
  "Balanced": "Сбалансированный",
- "Background": "Фоновый"
+ "Background": "Фоновый",
+ "Diagnostics": "Диагностика",
+ "Downloading yt-dlp…": "Загрузка yt-dlp…",
+ "Install video tools": "Установить инструменты для видео",
+ "KuDownloader needs yt-dlp to read video sites. It is about 3 MB.": "KuDownloader нужен yt-dlp, чтобы читать видеосайты. Около 3 МБ.",
+ "Missing": "Нет",
+ "Paste link": "Вставить ссылку",
+ "Preparing…": "Подготовка…",
+ "Queue for “Add to queue”": "Очередь для «Добавить в очередь»",
+ "Ready": "Готово",
+ "Repair video tools": "Восстановить инструменты для видео",
+ "Send it with a bug report": "Отправьте его с сообщением об ошибке",
+ "Share the log": "Поделиться журналом",
+ "Video tools": "Инструменты для видео",
+ "Video tools are not installed yet": "Инструменты для видео ещё не установлены",
+ "Video tools are ready.": "Инструменты для видео готовы.",
+ "Video tools, yt-dlp, log": "Инструменты для видео, yt-dlp, журнал",
+ "Waiting for {queue}": "Ждёт очередь «{queue}»"
 }

@@ -51,7 +51,7 @@ class KuService : LifecycleService() {
         lifecycleScope.launch {
             combine(Ku.downloads, Ku.airStatus) { d, a -> d to a }.collect { (map, air) ->
                 val running = map.values.any { it.isRunning }
-                val pending = map.values.any { it.status == "queued" }
+                val pending = map.values.any { Ku.active(it) && !it.isRunning }
                 locks(running, air.running)
                 if (!running && !pending && !air.running) {
                     stop()
@@ -95,7 +95,7 @@ class KuService : LifecycleService() {
     private fun build(): Notification {
         val all = Ku.downloads.value.values
         val running = all.filter { it.isRunning }
-        val queued = all.count { it.status == "queued" }
+        val queued = all.count { Ku.active(it) && !it.isRunning }
         val air = Ku.airStatus.value.running
         val b = NotificationCompat.Builder(this, Notifier.CH_PROGRESS)
             .setSmallIcon(R.drawable.ic_notification)
@@ -180,7 +180,7 @@ class KuService : LifecycleService() {
         /** Start the service if there is work for it (safe to call often). */
         fun ensure(ctx: Context) {
             if (running) return
-            val work = Ku.downloads.value.values.any { it.isRunning || it.status == "queued" } || Ku.airStatus.value.running
+            val work = Ku.downloads.value.values.any { Ku.active(it) } || Ku.airStatus.value.running
             if (!work) return
             try {
                 ContextCompat.startForegroundService(ctx, Intent(ctx, KuService::class.java))
@@ -196,7 +196,7 @@ class KuService : LifecycleService() {
         fun watch(ctx: Context) {
             val app = ctx.applicationContext
             Ku.launch {
-                combine(Ku.downloads.map { m -> m.values.any { it.isRunning || it.status == "queued" } }, Ku.airStatus.map { it.running }) { a, b -> a || b }
+                combine(Ku.downloads.map { m -> m.values.any { Ku.active(it) } }, Ku.airStatus.map { it.running }) { a, b -> a || b }
                     .distinctUntilChanged()
                     .collect { work -> if (work) ensure(app) }
             }

@@ -54,6 +54,10 @@ object Ku {
     val startError = MutableStateFlow<String?>(null)
     var tools: Tools.Found? = null
         private set
+    /** The video tools as last checked (for Settings › Advanced and the Video screen). */
+    val toolsState = MutableStateFlow<Tools.Found?>(null)
+    /** yt-dlp download progress while repairing: (done, total). */
+    val toolsRepair = MutableStateFlow<Pair<Long, Long>?>(null)
 
     private val _downloads = MutableStateFlow<Map<String, Download>>(emptyMap())
     val downloads: StateFlow<Map<String, Download>> = _downloads
@@ -90,6 +94,7 @@ object Ku {
             try {
                 val t = Tools.prepare(app)
                 tools = t
+                toolsState.value = t
                 val data = File(app.filesDir, "kucore").apply { mkdirs() }
                 val env = t.env + mapOf("KU_DATA_DIR" to data.absolutePath, "KU_DOWNLOAD_DIR" to downloadDir().absolutePath)
                 val config = buildJsonObject {
@@ -107,6 +112,8 @@ object Ku {
                 I18n.pushToEngine()
                 reloadAllBlocking()
                 phase.value = Phase.Ready
+                // yt-dlp missing (first start without it, or a failed unpack): fetch it now.
+                if (!t.videoReady) scope.launch { runCatching { repairTools(app) } }
                 pump()
             } catch (e: Throwable) {
                 Log.e(TAG, "start", e)
@@ -119,6 +126,25 @@ object Ku {
     private fun deviceName(ctx: Context): String =
         (if (Build.VERSION.SDK_INT >= 25) runCatching { Global.getString(ctx.contentResolver, Global.DEVICE_NAME) }.getOrNull() else null)?.takeIf { it.isNotBlank() }
             ?: "${Build.MANUFACTURER.replaceFirstChar { it.uppercase() }} ${Build.MODEL}"
+
+    /** Unpack the tools again, download yt-dlp if needed, and point KuCore at them. */
+    suspend fun repairTools(ctx: Context): Tools.Found = withContext(Dispatchers.IO) {
+        toolsRepair.value = 0L to 0L
+        try {
+            val t = Tools.repair(ctx.applicationContext) { done, total -> toolsRepair.value = done to total }
+            tools = t
+            toolsState.value = t
+            call("setEnv", args("env" to t.env))
+            saveSettings(buildMap {
+                t.ytdlp?.let { put("ytdlpPath", it) }
+                t.ffmpeg?.let { put("ffmpegPath", it) }
+                t.aria2?.let { put("aria2Path", it) }
+            })
+            t
+        } finally {
+            toolsRepair.value = null
+        }
+    }
 
     // ───────── requests ─────────
 
@@ -267,6 +293,26 @@ object Ku {
         val saved = call("saveSettings", args("settings" to merged)).jsonObject
         settings.value = saved
         return saved
+    }
+
+    /** Waiting for a queue that is not running (only starting the queue, or "Start now", runs it). */
+    fun heldByQueue(d: Download): Boolean =
+        d.status == "queued" && d.queueId != null && queues.value.none { it.id == d.queueId && it.running }
+
+    /** Ready to run or running: work that keeps the background service alive. */
+    fun active(d: Download): Boolean = d.isRunning || (d.status == "queued" && !heldByQueue(d))
+
+    /** Start now, outside any queue. */
+    suspend fun startNow(ids: Collection<String>) {
+        call("moveToQueue", args("ids" to ids.toList(), "queueId" to null))
+        resume(ids)
+    }
+
+    /** Start every paused download and every queue that has downloads waiting. */
+    suspend fun startAll() {
+        resumeAll()
+        val waiting = downloads.value.values.filter { heldByQueue(it) }.mapNotNull { it.queueId }.toSet()
+        waiting.forEach { runCatching { startQueue(it) } }
     }
 
     suspend fun pause(ids: Collection<String>) = call("pause", args("ids" to ids.toList()))

@@ -305,5 +305,22 @@
  "{name} downloads it at {time}": "{name} が {time} にダウンロードします",
  "All": "すべて",
  "Balanced": "バランス",
- "Background": "バックグラウンド"
+ "Background": "バックグラウンド",
+ "Diagnostics": "診断",
+ "Downloading yt-dlp…": "yt-dlp をダウンロード中…",
+ "Install video tools": "動画ツールをインストール",
+ "KuDownloader needs yt-dlp to read video sites. It is about 3 MB.": "動画サイトを読み込むには yt-dlp が必要です。約 3 MB です。",
+ "Missing": "なし",
+ "Paste link": "リンクを貼り付け",
+ "Preparing…": "準備中…",
+ "Queue for “Add to queue”": "「キューに追加」で使うキュー",
+ "Ready": "準備完了",
+ "Repair video tools": "動画ツールを修復",
+ "Send it with a bug report": "バグ報告と一緒に送ってください",
+ "Share the log": "ログを共有",
+ "Video tools": "動画ツール",
+ "Video tools are not installed yet": "動画ツールはまだインストールされていません",
+ "Video tools are ready.": "動画ツールの準備ができました。",
+ "Video tools, yt-dlp, log": "動画ツール、yt-dlp、ログ",
+ "Waiting for {queue}": "{queue} を待機中"
 }

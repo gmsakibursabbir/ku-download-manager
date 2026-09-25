@@ -116,7 +116,9 @@ fn first_run_defaults(rt: &Runtime, core: &Arc<Core>, cfg: &Value) {
             }
         }
     }
+    // Once: afterwards the user's own choices stand.
     if !s.onboarded {
+        s.onboarded = true;
         s.http_engine = "kuhttp".into();
         s.max_concurrent = 3;
         s.minimize_to_tray = false;
@@ -206,6 +208,9 @@ fn air(a: &App) -> Result<&Arc<AirSend>> {
 fn dispatch(a: &App, method: &str, args: &Value) -> Result<Value> {
     let core = &a.core;
     let rt = &a.rt;
+    // Calls arrive on Java threads; engine code that spawns tasks (KuAirSend
+    // sends, queue changes) needs the runtime as its context.
+    let _runtime = rt.enter();
     match method {
         "appInfo" => Ok(json!({
             "version": env!("CARGO_PKG_VERSION"),
@@ -324,6 +329,17 @@ fn dispatch(a: &App, method: &str, args: &Value) -> Result<Value> {
             Ok(Value::Null)
         }
 
+        // The bundled tools were (re)installed: new paths for the processes KuCore starts.
+        "setEnv" => {
+            if let Some(env) = args["env"].as_object() {
+                for (k, v) in env {
+                    if let Some(v) = v.as_str() {
+                        std::env::set_var(k, v);
+                    }
+                }
+            }
+            Ok(Value::Null)
+        }
         "setStrings" => {
             i18n::set(arg::<HashMap<String, String>>(args, "strings")?);
             Ok(Value::Null)

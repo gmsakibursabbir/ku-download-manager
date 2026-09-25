@@ -174,6 +174,7 @@ fun DetailsSheet(id: String, onClose: () -> Unit) {
                         FilledTonalButton({ Files.openFolder(ctx, File(d.path).parentFile ?: File(d.dir)) }) { Icon(Icons.Filled.FolderOpen, null); Spacer(Modifier.width(6.dp)); Text(t("Folder")) }
                         FilledTonalButton({ scope.act { Ku.redownload(listOf(d.id)); KuService.ensure(ctx) } }) { Icon(Icons.Filled.Refresh, null); Spacer(Modifier.width(6.dp)); Text(t("Download again")) }
                     }
+                    Ku.heldByQueue(d) -> Button({ scope.act { Ku.startNow(listOf(d.id)); KuService.ensure(ctx) } }) { Icon(Icons.Filled.PlayArrow, null); Spacer(Modifier.width(6.dp)); Text(t("Start now")) }
                     d.isRunning || d.status == "queued" -> Button({ scope.act { Ku.pause(listOf(d.id)) } }) { Icon(Icons.Filled.Pause, null); Spacer(Modifier.width(6.dp)); Text(t("Pause")) }
                     else -> {
                         Button({ scope.act { Ku.resume(listOf(d.id)); KuService.ensure(ctx) } }) { Icon(Icons.Filled.PlayArrow, null); Spacer(Modifier.width(6.dp)); Text(if (d.status == "error") t("Retry") else t("Resume")) }

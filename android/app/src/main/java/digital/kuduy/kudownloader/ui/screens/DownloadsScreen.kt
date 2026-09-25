@@ -295,7 +295,19 @@ fun DownloadsScreen() {
                         Icons.Filled.Download,
                         if (map.isEmpty()) t("No downloads yet") else t("Nothing here"),
                         if (map.isEmpty()) t("Tap Add URL, share a link to KuDownloader, or browse to a file.") else t("No download matches these filters."),
-                    )
+                    ) {
+                        if (map.isEmpty()) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                androidx.compose.material3.FilledTonalButton({
+                                    val cm = ctx.getSystemService(android.content.ClipboardManager::class.java)
+                                    val text = cm?.primaryClip?.getItemAt(0)?.coerceToText(ctx)?.toString()?.trim().orEmpty()
+                                    UiState.add = AddPrefill(url = text.takeIf { digital.kuduy.kudownloader.ui.looksLikeLink(it) } ?: "")
+                                }) { Text(t("Paste link")) }
+                                androidx.compose.material3.OutlinedButton({ UiState.go(Screen.Browser) }) { Text(t("Browser")) }
+                                androidx.compose.material3.OutlinedButton({ UiState.go(Screen.Video) }) { Text(t("Video")) }
+                            }
+                        }
+                    }
                 }
             }
             items(list, key = { it.id }) { d ->
@@ -315,6 +327,10 @@ fun DownloadsScreen() {
                         scope.act {
                             when {
                                 d.isFinished -> if (!Files.open(ctx, File(d.path))) UiState.toast(t("No app on this phone can open this file."))
+                                Ku.heldByQueue(d) -> {
+                                    Ku.startNow(listOf(d.id))
+                                    KuService.ensure(ctx)
+                                }
                                 d.isRunning || d.status == "queued" -> Ku.pause(listOf(d.id))
                                 else -> {
                                     Ku.resume(listOf(d.id))
@@ -418,8 +434,11 @@ private fun SpeedCard(down: Long, up: Long, active: Int, history: List<Pair<Long
                     }
                 }
             }
-            Spacer(Modifier.height(10.dp))
-            SpeedGraph(history, Modifier.fillMaxWidth().height(64.dp))
+            // The graph only while something moves (or just did): more room for the list.
+            if (active > 0 || history.any { it.first > 0 || it.second > 0 }) {
+                Spacer(Modifier.height(10.dp))
+                SpeedGraph(history, Modifier.fillMaxWidth().height(64.dp))
+            }
         }
     }
 }
@@ -457,6 +476,7 @@ fun DownloadRow(d: Download, selected: Boolean, selecting: Boolean, onClick: () 
                 IconButton(onAction) {
                     when {
                         d.isFinished -> Icon(Icons.Filled.FolderOpen, t("Open"), tint = MaterialTheme.colorScheme.primary)
+                        Ku.heldByQueue(d) -> Icon(Icons.Filled.PlayArrow, t("Start now"), tint = MaterialTheme.colorScheme.primary)
                         d.isRunning || d.status == "queued" -> Icon(Icons.Filled.Pause, t("Pause"))
                         d.status == "error" -> Icon(Icons.Filled.ErrorOutline, t("Retry"), tint = ku.danger)
                         else -> Icon(Icons.Filled.PlayArrow, t("Resume"), tint = MaterialTheme.colorScheme.primary)
@@ -488,7 +508,7 @@ fun statusLine(d: Download): String {
         }
         "error" -> parts += te(d.error ?: t("Error"))
         else -> {
-            parts += Fmt.status(d)
+            parts += if (Ku.heldByQueue(d)) tf("Waiting for {queue}", "queue" to (Ku.queues.value.firstOrNull { it.id == d.queueId }?.let { queueName(it.id, it.name) } ?: "")) else Fmt.status(d)
             if (d.total > 0) parts += "${Fmt.size(d.done)} / ${Fmt.size(d.total)}" else if (d.done > 0) parts += Fmt.size(d.done)
         }
     }

@@ -121,7 +121,7 @@ fun BatchScreen() {
                 val template = buildJsonObject {
                     put("url", "")
                     dir?.let { put("dir", it) }
-                    (queueId ?: "main").let { put("queueId", it) }
+                    if (!start) put("queueId", queueId ?: "main")
                     put("start", start)
                     put("source", "batch")
                 }

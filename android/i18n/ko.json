@@ -305,5 +305,22 @@
  "{name} downloads it at {time}": "{name}에서 {time}에 다운로드합니다",
  "All": "전체",
  "Balanced": "균형",
- "Background": "백그라운드"
+ "Background": "백그라운드",
+ "Diagnostics": "진단",
+ "Downloading yt-dlp…": "yt-dlp 다운로드 중…",
+ "Install video tools": "동영상 도구 설치",
+ "KuDownloader needs yt-dlp to read video sites. It is about 3 MB.": "동영상 사이트를 읽으려면 yt-dlp가 필요합니다. 약 3MB입니다.",
+ "Missing": "없음",
+ "Paste link": "링크 붙여넣기",
+ "Preparing…": "준비 중…",
+ "Queue for “Add to queue”": "‘대기열에 추가’에 쓸 대기열",
+ "Ready": "준비됨",
+ "Repair video tools": "동영상 도구 복구",
+ "Send it with a bug report": "버그 보고와 함께 보내 주세요",
+ "Share the log": "로그 공유",
+ "Video tools": "동영상 도구",
+ "Video tools are not installed yet": "동영상 도구가 아직 설치되지 않았습니다",
+ "Video tools are ready.": "동영상 도구가 준비되었습니다.",
+ "Video tools, yt-dlp, log": "동영상 도구, yt-dlp, 로그",
+ "Waiting for {queue}": "{queue} 대기 중"
 }

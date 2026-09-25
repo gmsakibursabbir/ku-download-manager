@@ -108,6 +108,8 @@ fun VideoScreen() {
     val scope = rememberCoroutineScope()
     val prefill = UiState.media
     val queues by Ku.queues.collectAsStateWithLifecycle()
+    val tools by Ku.toolsState.collectAsStateWithLifecycle()
+    val repair by Ku.toolsRepair.collectAsStateWithLifecycle()
     var url by rememberSaveable { mutableStateOf(prefill?.url ?: "") }
     var playlist by rememberSaveable { mutableStateOf(false) }
     var info by remember { mutableStateOf<MediaInfo?>(null) }
@@ -245,6 +247,38 @@ fun VideoScreen() {
                 }
             }
             error?.let { e -> item { Notice(e) } }
+            if (tools?.videoReady != true) {
+                item {
+                    digital.kuduy.kudownloader.ui.Card {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(t("Video tools are not installed yet"), style = MaterialTheme.typography.titleSmall)
+                            Text(t("KuDownloader needs yt-dlp to read video sites. It is about 3 MB."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            repair?.let { (done, total) ->
+                                if (total > 0) androidx.compose.material3.LinearProgressIndicator(progress = { (done.toFloat() / total).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
+                                else androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth())
+                            }
+                            Button(
+                                {
+                                    scope.launch {
+                                        try {
+                                            val r = Ku.repairTools(ctx)
+                                            if (r.videoReady) {
+                                                error = null
+                                                UiState.toast(t("Video tools are ready."))
+                                            } else {
+                                                UiState.toast(r.problems.joinToString("; "))
+                                            }
+                                        } catch (e: Exception) {
+                                            UiState.toast(e.message ?: "")
+                                        }
+                                    }
+                                },
+                                enabled = repair == null,
+                            ) { Text(t("Install video tools")) }
+                        }
+                    }
+                }
+            }
             val i = info
             if (i == null && !loading && error == null) {
                 item {

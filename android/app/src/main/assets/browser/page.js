@@ -11,7 +11,11 @@
   var LABEL = __KU_LABEL__;
   var bridge = window.KuBridge;
   if (!bridge) return;
-  delete window.KuBridge;
+  // Hide the bridge from the page where the browser allows it (it is
+  // non-configurable on some WebViews; deleting it then throws in strict mode).
+  try {
+    delete window.KuBridge;
+  } catch (e) {}
 
   // ───────── element hiding ─────────
   function style(id, css) {

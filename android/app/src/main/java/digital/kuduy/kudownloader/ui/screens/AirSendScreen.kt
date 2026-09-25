@@ -406,7 +406,13 @@ private fun TransferRow(tr: AirTransfer) {
                 PixelAnimal(avatarOf(tr.peerAvatar, tr.peerFingerprint), 36.dp, still = true)
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
-                    val what = tr.text?.let { t("Text") } ?: if (tr.fileCount == 1) tr.files.firstOrNull()?.name ?: "" else tf("{count} files", "count" to tr.fileCount)
+                    val what = when {
+                        tr.download != null -> tr.download.filename ?: tr.download.url
+                        tr.text != null -> t("Text")
+                        tr.fileCount == 0 -> t("Preparing…")
+                        tr.fileCount == 1 -> tr.files.firstOrNull()?.name ?: ""
+                        else -> tf("{count} files", "count" to tr.fileCount)
+                    }
                     Text(
                         if (tr.direction == "send") tf("To {name}", "name" to tr.peer) else tf("From {name}", "name" to tr.peer),
                         style = MaterialTheme.typography.labelMedium,
@@ -497,15 +503,23 @@ private fun AirSettingsSheet(onClose: () -> Unit) {
             item {
                 TextRow(t("Device name"), Ku.settingString("airsendName"), placeholder = status.alias) { v -> scope.act { Ku.saveSettings(mapOf("airsendName" to v)); Ku.airRefreshStatus() } }
                 SectionTitle(t("Your animal"))
-                FlowRow(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                // Four even columns, same spacing across and down.
+                FlowRow(
+                    Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    maxItemsInEachRow = 4,
+                ) {
                     AVATARS.forEach { a ->
                         val chosen = a == current
-                        Box(
-                            Modifier.clip(CircleShape)
-                                .border(if (chosen) 3.dp else 0.dp, if (chosen) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface, CircleShape)
-                                .padding(3.dp)
-                                .clickable { scope.act { Ku.saveSettings(mapOf("airsendAvatar" to a)); Ku.airRefreshStatus() } },
-                        ) { PixelAnimal(a, 52.dp, still = !chosen) }
+                        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                            Box(
+                                Modifier.size(64.dp).clip(CircleShape)
+                                    .border(3.dp, if (chosen) MaterialTheme.colorScheme.primary else androidx.compose.ui.graphics.Color.Transparent, CircleShape)
+                                    .clickable { scope.act { Ku.saveSettings(mapOf("airsendAvatar" to a)); Ku.airRefreshStatus() } },
+                                contentAlignment = Alignment.Center,
+                            ) { PixelAnimal(a, 54.dp, still = !chosen) }
+                        }
                     }
                 }
                 Text(animalName(current), Modifier.padding(16.dp), style = MaterialTheme.typography.bodySmall)

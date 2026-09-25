@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -27,6 +28,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Hub
@@ -95,6 +97,7 @@ fun SettingsScreen() {
         Section("torrent", t("Torrents"), t("Seeding, peers, DHT"), Icons.Filled.Hub),
         Section("browser", t("Browser"), t("Ad blocking, KuDownload button, search"), Icons.Filled.Public),
         Section("notifications", t("Notifications"), t("Finished, failed, queues"), Icons.Filled.Notifications),
+        Section("advanced", t("Advanced"), t("Video tools, yt-dlp, log"), Icons.Filled.Build),
     )
     BackHandler(section != null) { UiState.settingsSection = null }
     val current = sections.firstOrNull { it.id == section }
@@ -111,6 +114,7 @@ fun SettingsScreen() {
                 "torrent" -> TorrentSettings()
                 "browser" -> BrowserSettings()
                 "notifications" -> NotificationSettings()
+                "advanced" -> AdvancedSettings()
             }
             Spacer(Modifier.height(32.dp))
         }
@@ -382,4 +386,72 @@ val SEARCH_ENGINES = listOf(
     SearchEngine("startpage", "Startpage", "https://www.startpage.com/do/search?q=%s"),
     SearchEngine("yandex", "Yandex", "https://yandex.com/search/?text=%s"),
 )
+
+
+/** The video tools (yt-dlp with its Python, FFmpeg, aria2): status, repair, update; the log. */
+@Composable
+fun AdvancedSettings() {
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val tools by Ku.toolsState.collectAsStateWithLifecycle()
+    val repair by Ku.toolsRepair.collectAsStateWithLifecycle()
+    var version by remember { mutableStateOf<String?>(null) }
+    var updating by remember { mutableStateOf(false) }
+    LaunchedEffect(tools) {
+        version = runCatching { Ku.call("engineInfo").jsonObject["ytdlp"]?.jsonObject?.get("version")?.jsonPrimitive?.contentOrNull }.getOrNull()
+    }
+    SectionTitle(t("Video tools"))
+    val ok = t("Ready")
+    val missing = t("Missing")
+    ClickRow("yt-dlp", if (tools?.ytdlp != null) listOfNotNull(ok, version).joinToString(" · ") else missing) {}
+    ClickRow("Python", if (tools?.python != null) ok else missing) {}
+    ClickRow("FFmpeg", if (tools?.ffmpeg != null) ok else missing) {}
+    ClickRow("aria2", if (tools?.aria2 != null) ok else missing) {}
+    tools?.problems?.takeIf { it.isNotEmpty() && tools?.videoReady != true }?.let { p ->
+        Text(p.joinToString("\n"), Modifier.padding(horizontal = 16.dp, vertical = 6.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+    }
+    repair?.let { (done, total) ->
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Text(if (done > 0) t("Downloading yt-dlp…") + " " + Fmt.size(done) + (if (total > 0) " / " + Fmt.size(total) else "") else t("Checking…"), style = MaterialTheme.typography.bodySmall)
+            if (total > 0) androidx.compose.material3.LinearProgressIndicator(progress = { (done.toFloat() / total).coerceIn(0f, 1f) }, modifier = Modifier.padding(top = 6.dp).fillMaxWidth())
+            else androidx.compose.material3.LinearProgressIndicator(Modifier.padding(top = 6.dp).fillMaxWidth())
+        }
+    }
+    Row(Modifier.padding(horizontal = 8.dp)) {
+        TextButton(
+            {
+                scope.launch {
+                    try {
+                        val r = Ku.repairTools(ctx)
+                        UiState.toast(if (r.videoReady) t("Video tools are ready.") else r.problems.joinToString("; "))
+                    } catch (e: Exception) {
+                        UiState.toast(e.message ?: "")
+                    }
+                }
+            },
+            enabled = repair == null,
+        ) { Text(if (tools?.videoReady == true) t("Repair video tools") else t("Install video tools")) }
+        TextButton(
+            {
+                scope.launch {
+                    updating = true
+                    try {
+                        UiState.toast(Ku.call("updateYtdlp").jsonPrimitive.contentOrNull ?: t("Updated"))
+                        version = runCatching { Ku.call("engineInfo").jsonObject["ytdlp"]?.jsonObject?.get("version")?.jsonPrimitive?.contentOrNull }.getOrNull()
+                    } catch (e: Exception) {
+                        UiState.toast(e.message ?: "")
+                    } finally {
+                        updating = false
+                    }
+                }
+            },
+            enabled = !updating && tools?.videoReady == true,
+        ) { Text(if (updating) t("Updating…") else t("Update yt-dlp")) }
+    }
+    SectionTitle(t("Diagnostics"))
+    ClickRow(t("Share the log"), t("Send it with a bug report")) {
+        val log = java.io.File(ctx.filesDir, "kucore/kudownloader.log")
+        if (log.isFile) Files.share(ctx, log) else UiState.toast(t("Nothing logged yet."))
+    }
+}
 

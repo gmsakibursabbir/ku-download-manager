@@ -305,5 +305,22 @@
  "{name} downloads it at {time}": "{name} 将在 {time} 下载",
  "All": "全部",
  "Balanced": "均衡",
- "Background": "后台"
+ "Background": "后台",
+ "Diagnostics": "诊断",
+ "Downloading yt-dlp…": "正在下载 yt-dlp…",
+ "Install video tools": "安装视频工具",
+ "KuDownloader needs yt-dlp to read video sites. It is about 3 MB.": "KuDownloader 需要 yt-dlp 来读取视频网站，约 3 MB。",
+ "Missing": "缺失",
+ "Paste link": "粘贴链接",
+ "Preparing…": "正在准备…",
+ "Queue for “Add to queue”": "“加入队列”使用的队列",
+ "Ready": "就绪",
+ "Repair video tools": "修复视频工具",
+ "Send it with a bug report": "随错误报告一起发送",
+ "Share the log": "分享日志",
+ "Video tools": "视频工具",
+ "Video tools are not installed yet": "视频工具尚未安装",
+ "Video tools are ready.": "视频工具已就绪。",
+ "Video tools, yt-dlp, log": "视频工具、yt-dlp、日志",
+ "Waiting for {queue}": "等待 {queue}"
 }

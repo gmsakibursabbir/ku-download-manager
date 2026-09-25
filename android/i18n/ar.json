@@ -305,5 +305,22 @@
  "{name} downloads it at {time}": "سيُنزّله {name} في {time}",
  "All": "الكل",
  "Balanced": "متوازن",
- "Background": "الخلفية"
+ "Background": "الخلفية",
+ "Diagnostics": "التشخيص",
+ "Downloading yt-dlp…": "جارٍ تنزيل yt-dlp…",
+ "Install video tools": "تثبيت أدوات الفيديو",
+ "KuDownloader needs yt-dlp to read video sites. It is about 3 MB.": "يحتاج KuDownloader إلى yt-dlp لقراءة مواقع الفيديو. حجمه نحو 3 م.ب.",
+ "Missing": "مفقود",
+ "Paste link": "لصق رابط",
+ "Preparing…": "جارٍ التحضير…",
+ "Queue for “Add to queue”": "قائمة الانتظار لـ «إضافة إلى قائمة الانتظار»",
+ "Ready": "جاهز",
+ "Repair video tools": "إصلاح أدوات الفيديو",
+ "Send it with a bug report": "أرسله مع بلاغ الخطأ",
+ "Share the log": "مشاركة السجل",
+ "Video tools": "أدوات الفيديو",
+ "Video tools are not installed yet": "لم تُثبَّت أدوات الفيديو بعد",
+ "Video tools are ready.": "أدوات الفيديو جاهزة.",
+ "Video tools, yt-dlp, log": "أدوات الفيديو، yt-dlp، السجل",
+ "Waiting for {queue}": "بانتظار {queue}"
 }

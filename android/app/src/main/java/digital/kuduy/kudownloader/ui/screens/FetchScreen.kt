@@ -133,7 +133,7 @@ fun FetchScreen() {
             try {
                 val template = buildJsonObject {
                     put("url", "")
-                    put("queueId", "main")
+                    if (!start) put("queueId", "main")
                     put("start", start)
                     put("source", if (prefill != null) "browser" else "grabber")
                     put("options", buildJsonObject {

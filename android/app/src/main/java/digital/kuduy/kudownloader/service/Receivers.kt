@@ -22,7 +22,7 @@ class ActionReceiver : BroadcastReceiver() {
                 when (intent.action) {
                     PAUSE_ALL -> Ku.pauseAll()
                     RESUME_ALL -> {
-                        Ku.resumeAll()
+                        Ku.startAll()
                         KuService.ensure(ctx.applicationContext)
                     }
                     RESUME -> id?.let {
@@ -43,7 +43,12 @@ class ActionReceiver : BroadcastReceiver() {
                         ctx.getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText("KuAirSend", it))
                     }
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                android.util.Log.w("KuAction", "${intent.action}", e)
+                val app = ctx.applicationContext
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    android.widget.Toast.makeText(app, e.message ?: e.toString(), android.widget.Toast.LENGTH_LONG).show()
+                }
             } finally {
                 pending.finish()
             }

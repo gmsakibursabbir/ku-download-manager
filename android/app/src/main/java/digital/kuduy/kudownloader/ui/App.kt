@@ -159,7 +159,7 @@ private fun Main() {
         Tab(Screen.Downloads, t("Downloads"), Icons.Filled.Download),
         Tab(Screen.Browser, t("Browser"), Icons.Filled.Public),
         Tab(Screen.Video, t("Video"), Icons.Filled.SmartDisplay),
-        Tab(Screen.AirSend, "KuAirSend", Icons.Filled.WifiTethering),
+        Tab(Screen.AirSend, "AirSend", Icons.Filled.WifiTethering),
         Tab(Screen.More, t("More"), Icons.Filled.MoreHoriz),
     )
     val topScreen = UiState.stack.first()
@@ -179,7 +179,7 @@ private fun Main() {
                                     else -> Icon(tab.icon, null)
                                 }
                             },
-                            label = { Text(tab.label, maxLines = 1) },
+                            label = { Text(tab.label, maxLines = 1, softWrap = false, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, style = MaterialTheme.typography.labelSmall) },
                         )
                     }
                 }

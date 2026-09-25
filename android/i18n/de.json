@@ -305,5 +305,22 @@
  "{name} downloads it at {time}": "{name} lädt es am {time} herunter",
  "All": "Alle",
  "Balanced": "Ausgewogen",
- "Background": "Hintergrund"
+ "Background": "Hintergrund",
+ "Diagnostics": "Diagnose",
+ "Downloading yt-dlp…": "yt-dlp wird heruntergeladen…",
+ "Install video tools": "Video-Werkzeuge installieren",
+ "KuDownloader needs yt-dlp to read video sites. It is about 3 MB.": "KuDownloader braucht yt-dlp, um Video-Seiten zu lesen. Etwa 3 MB.",
+ "Missing": "Fehlt",
+ "Paste link": "Link einfügen",
+ "Preparing…": "Wird vorbereitet…",
+ "Queue for “Add to queue”": "Warteschlange für „Zur Warteschlange“",
+ "Ready": "Bereit",
+ "Repair video tools": "Video-Werkzeuge reparieren",
+ "Send it with a bug report": "Mit einem Fehlerbericht senden",
+ "Share the log": "Protokoll teilen",
+ "Video tools": "Video-Werkzeuge",
+ "Video tools are not installed yet": "Die Video-Werkzeuge sind noch nicht installiert",
+ "Video tools are ready.": "Die Video-Werkzeuge sind bereit.",
+ "Video tools, yt-dlp, log": "Video-Werkzeuge, yt-dlp, Protokoll",
+ "Waiting for {queue}": "Wartet auf {queue}"
 }

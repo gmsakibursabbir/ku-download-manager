@@ -305,5 +305,22 @@
  "{name} downloads it at {time}": "{name} इसे {time} पर डाउनलोड करेगा",
  "All": "सभी",
  "Balanced": "संतुलित",
- "Background": "बैकग्राउंड"
+ "Background": "बैकग्राउंड",
+ "Diagnostics": "निदान",
+ "Downloading yt-dlp…": "yt-dlp डाउनलोड हो रहा है…",
+ "Install video tools": "वीडियो टूल इंस्टॉल करें",
+ "KuDownloader needs yt-dlp to read video sites. It is about 3 MB.": "वीडियो साइटें पढ़ने के लिए KuDownloader को yt-dlp चाहिए। यह लगभग 3 MB है।",
+ "Missing": "नहीं है",
+ "Paste link": "लिंक पेस्ट करें",
+ "Preparing…": "तैयार हो रहा है…",
+ "Queue for “Add to queue”": "“कतार में जोड़ें” की कतार",
+ "Ready": "तैयार",
+ "Repair video tools": "वीडियो टूल ठीक करें",
+ "Send it with a bug report": "बग रिपोर्ट के साथ भेजें",
+ "Share the log": "लॉग शेयर करें",
+ "Video tools": "वीडियो टूल",
+ "Video tools are not installed yet": "वीडियो टूल अभी इंस्टॉल नहीं हुए",
+ "Video tools are ready.": "वीडियो टूल तैयार हैं।",
+ "Video tools, yt-dlp, log": "वीडियो टूल, yt-dlp, लॉग",
+ "Waiting for {queue}": "{queue} की प्रतीक्षा"
 }

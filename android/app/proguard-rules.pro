@@ -21,3 +21,6 @@
 -dontwarn org.tukaani.xz.**
 -dontwarn com.github.luben.zstd.**
 -dontwarn org.brotli.dec.**
+# youtubedl-android unpacks Python and FFmpeg with commons-compress / commons-io.
+-keep class org.apache.commons.compress.** { *; }
+-keep class org.apache.commons.io.** { *; }

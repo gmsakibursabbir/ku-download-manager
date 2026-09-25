@@ -4,6 +4,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,6 +22,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Computer
 import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Folder
@@ -151,7 +153,7 @@ fun AddSheet(prefill: AddPrefill, onClose: () -> Unit) {
         filename.trim().takeIf { it.isNotEmpty() }?.let { put("filename", it) }
         put("connections", connections.toInt())
         probe?.category?.let { put("category", it) }
-        put("queueId", queueId)
+        if (!start) put("queueId", queueId)
         put("start", start)
         put("source", prefill.source)
         (probe?.size ?: prefill.size)?.let { put("sizeHint", it) }
@@ -275,31 +277,24 @@ fun AddSheet(prefill: AddPrefill, onClose: () -> Unit) {
                 if (dir != null) TextButton({ dir = null }) { Text(t("Reset")) }
             }
 
-            Column {
-                Text(if (connections < 1) t("Connections: Smart") else tf("Connections: {count}", "count" to connections.toInt()), style = MaterialTheme.typography.labelLarge)
-                Slider(connections, { connections = it }, valueRange = 0f..16f, steps = 15)
-            }
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(t("Queue"), style = MaterialTheme.typography.labelMedium)
-                    var open by remember { mutableStateOf(false) }
-                    TextButton({ open = true }) { Text(queues.firstOrNull { it.id == queueId }?.let { queueName(it.id, it.name) } ?: t("Main queue")) }
-                    DropdownMenu(open, { open = false }) {
-                        queues.forEach { q -> DropdownMenuItem({ Text(queueName(q.id, q.name)) }, { queueId = q.id; open = false }) }
-                    }
-                }
-                Text(t("Start now"), style = MaterialTheme.typography.bodyMedium)
-                Spacer(Modifier.width(8.dp))
-                Switch(startNow, { startNow = it })
-            }
-
             TextButton({ advanced = !advanced }) {
                 Text(t("Advanced options"))
                 Icon(if (advanced) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, null)
             }
             AnimatedVisibility(advanced) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(if (connections < 1) t("Connections: Smart") else tf("Connections: {count}", "count" to connections.toInt()), style = MaterialTheme.typography.labelLarge)
+                    Slider(connections, { connections = it }, valueRange = 0f..16f, steps = 15)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(t("Queue for “Add to queue”"), Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                        Box {
+                            var open by remember { mutableStateOf(false) }
+                            TextButton({ open = true }) { Text(queues.firstOrNull { it.id == queueId }?.let { queueName(it.id, it.name) } ?: t("Main queue")) }
+                            DropdownMenu(open, { open = false }) {
+                                queues.forEach { q -> DropdownMenuItem({ Text(queueName(q.id, q.name)) }, { queueId = q.id; open = false }) }
+                            }
+                        }
+                    }
                     OutlinedTextField(referer, { referer = it }, label = { Text(t("Referer")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                     OutlinedTextField(userAgent, { userAgent = it }, label = { Text(t("User agent")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -330,12 +325,12 @@ fun AddSheet(prefill: AddPrefill, onClose: () -> Unit) {
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                OutlinedButton(onClose, Modifier.weight(1f)) { Text(t("Cancel")) }
                 val ok = torrent != null || looksLikeLink(normalizeUrl(url))
-                if (startNow) {
-                    Button({ submit(true) }, Modifier.weight(1f), enabled = ok && !busy) { Text(t("Download"), fontWeight = FontWeight.SemiBold) }
-                } else {
-                    FilledTonalButton({ submit(false) }, Modifier.weight(1f), enabled = ok && !busy) { Text(t("Add to queue")) }
+                OutlinedButton({ startNow = false; submit(false) }, Modifier.weight(1f), enabled = ok && !busy) { Text(t("Add to queue")) }
+                Button({ startNow = true; submit(true) }, Modifier.weight(1.3f), enabled = ok && !busy) {
+                    Icon(Icons.Filled.Download, null)
+                    Spacer(Modifier.width(6.dp))
+                    Text(t("Download"), fontWeight = FontWeight.SemiBold)
                 }
             }
             Spacer(Modifier.height(12.dp))
