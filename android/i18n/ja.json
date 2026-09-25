@@ -322,5 +322,11 @@
  "Video tools are not installed yet": "動画ツールはまだインストールされていません",
  "Video tools are ready.": "動画ツールの準備ができました。",
  "Video tools, yt-dlp, log": "動画ツール、yt-dlp、ログ",
- "Waiting for {queue}": "{queue} を待機中"
+ "Waiting for {queue}": "{queue} を待機中",
+ "Could not reach GitHub. Check the connection and try again.": "GitHub に接続できませんでした。接続を確認して、もう一度お試しください。",
+ "Download video": "動画をダウンロード",
+ "Download video ({count})": "動画をダウンロード（{count}）",
+ "Streams on this page": "このページのストリーム",
+ "yt-dlp is up to date.": "yt-dlp は最新です。",
+ "yt-dlp {version} installed": "yt-dlp {version} をインストールしました"
 }

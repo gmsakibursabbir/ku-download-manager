@@ -113,7 +113,11 @@ object Ku {
                 reloadAllBlocking()
                 phase.value = Phase.Ready
                 // yt-dlp missing (first start without it, or a failed unpack): fetch it now.
-                if (!t.videoReady) scope.launch { runCatching { repairTools(app) } }
+                scope.launch {
+                    if (!t.videoReady) runCatching { repairTools(app) }
+                    // Sites change weekly; the bundled yt-dlp ages with the app.
+                    runCatching { updateYtdlp(app, force = false) }
+                }
                 pump()
             } catch (e: Throwable) {
                 Log.e(TAG, "start", e)
@@ -144,6 +148,44 @@ object Ku {
         } finally {
             toolsRepair.value = null
         }
+    }
+
+    /**
+     * Install the newest yt-dlp when it differs from ours. Automatic checks
+     * run at most daily (and wait for Wi-Fi when "Wi-Fi only" is on).
+     * Returns the installed version, or null when nothing changed.
+     */
+    suspend fun updateYtdlp(ctx: Context, force: Boolean): String? = withContext(Dispatchers.IO) {
+        val now = System.currentTimeMillis()
+        if (!force) {
+            if (now - Prefs.ytdlpChecked.value < 24 * 3600_000L) return@withContext null
+            val cm = ctx.getSystemService(android.net.ConnectivityManager::class.java)
+            if (Prefs.wifiOnly.value && cm?.isActiveNetworkMetered == true) return@withContext null
+        }
+        val latest = Tools.latestYtdlp() ?: if (force) throw KuException(I18n.t("Could not reach GitHub. Check the connection and try again.")) else return@withContext null
+        Prefs.ytdlpChecked.value = now
+        if (latest == Prefs.ytdlpVersion.value && tools?.ytdlp != null) return@withContext null
+        toolsRepair.value = 0L to 0L
+        try {
+            Tools.installLatestYtdlp(ctx.applicationContext) { done, total -> toolsRepair.value = done to total }
+        } finally {
+            toolsRepair.value = null
+        }
+        Prefs.ytdlpVersion.value = latest
+        val t = Tools.prepare(ctx.applicationContext)
+        tools = t
+        toolsState.value = t
+        t.ytdlp?.let { saveSettings(mapOf("ytdlpPath" to it)) }
+        latest
+    }
+
+    /** Screenshot tests: show the screens with sample data (no engine). */
+    fun sample(downloads: List<Download>, queues: List<Queue> = listOf(Queue(id = "main", name = "Main queue")), settings: JsonObject = JsonObject(emptyMap())) {
+        _downloads.value = downloads.associateBy { it.id }
+        this.queues.value = queues
+        this.settings.value = settings
+        refreshStats()
+        phase.value = Phase.Ready
     }
 
     // ───────── requests ─────────

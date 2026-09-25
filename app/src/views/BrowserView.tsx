@@ -29,9 +29,12 @@ const dirOf = (p: string) => p.replace(/[\\/][^\\/]*$/, "");
 
 /** Next step shown after the browser opened. */
 function nextStep(b: Browser, r: { mode: string; copied?: boolean }): string {
-  if (r.mode === "xpi") return `${b.name} is asking to add KuDownloader — choose Add.`;
-  if (r.mode === "temporary") return `In ${b.name}, choose “Load Temporary Add-on…” and pick manifest.json in the folder that opened. It stays until ${b.name} restarts; a Mozilla-signed kudmx.xpi installs permanently.`;
-  return `In ${b.name}: turn on Developer mode (top right), choose “Load unpacked”${r.copied ? ", paste the folder path (already copied) and press Enter" : " and select the KuDownloader extension folder"}. Then restart ${b.name}.`;
+  if (r.mode === "store") return tf("{browser} opened the KuDownloader page in its store — click Add. If {browser} later says a new extension was added, choose Enable.", { browser: b.name });
+  if (r.mode === "xpi") return tf("{browser} is asking to add KuDownloader — choose Add.", { browser: b.name });
+  if (r.mode === "temporary") return tf("In {browser}, choose “Load Temporary Add-on…” and pick manifest.json in the folder that opened. It stays until {browser} restarts; a Mozilla-signed kudmx.xpi installs permanently.", { browser: b.name });
+  return r.copied
+    ? tf("In {browser}: turn on Developer mode (top right), choose “Load unpacked”, paste the folder path (already copied) and press Enter. Then restart {browser}.", { browser: b.name })
+    : tf("In {browser}: turn on Developer mode (top right), choose “Load unpacked” and select the KuDownloader extension folder. Then restart {browser}.", { browser: b.name });
 }
 
 export function YourBrowsers({ dirs, status, onChanged, compact }: { dirs: ExtensionDirs; status: HostStatus | null; onChanged: () => void; compact?: boolean }) {

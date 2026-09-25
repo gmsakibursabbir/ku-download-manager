@@ -322,5 +322,11 @@
  "Video tools are not installed yet": "Les outils vidéo ne sont pas encore installés",
  "Video tools are ready.": "Les outils vidéo sont prêts.",
  "Video tools, yt-dlp, log": "Outils vidéo, yt-dlp, journal",
- "Waiting for {queue}": "En attente de {queue}"
+ "Waiting for {queue}": "En attente de {queue}",
+ "Could not reach GitHub. Check the connection and try again.": "Impossible de joindre GitHub. Vérifiez la connexion et réessayez.",
+ "Download video": "Télécharger la vidéo",
+ "Download video ({count})": "Télécharger la vidéo ({count})",
+ "Streams on this page": "Flux de cette page",
+ "yt-dlp is up to date.": "yt-dlp est à jour.",
+ "yt-dlp {version} installed": "yt-dlp {version} installé"
 }

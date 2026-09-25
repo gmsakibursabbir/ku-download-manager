@@ -38,10 +38,16 @@ class Tab(val id: String = UUID.randomUUID().toString()) {
     var canForward by mutableStateOf(false)
     var blocked by mutableIntStateOf(0)
     val media = mutableStateListOf<FoundMedia>()
+    /** The page shows a <video> (reported by the page script). */
+    var hasVideo by mutableStateOf(false)
+    /** Something was opened in this tab (a popup gets content before any address). */
+    var started by mutableStateOf(false)
     var view: WebView? = null
     /** Secret the page script must pass back, so other scripts can't drive the bridge. */
     val token: String = UUID.randomUUID().toString().replace("-", "")
-    val isStart get() = url.isBlank()
+    val isStart get() = !started && url.isBlank()
+    /** Offer "Download video": a known video page, a player on the page, or media it loaded. */
+    val canDownload get() = started && (hasVideo || media.isNotEmpty() || isVideoPage(url))
 }
 
 /**
@@ -188,3 +194,11 @@ object BrowserState {
         return engine.url.replace("%s", java.net.URLEncoder.encode(s, "UTF-8"))
     }
 }
+
+private val VIDEO_PAGE = Regex(
+    """^https?://(?:[a-z0-9-]+.)*(?:youtube.com/(?:watch|shorts/|live/|embed/)|youtu.be/|tiktok.com/@[^/]+/video/|instagram.com/(?:reel|reels|p|tv)/|facebook.com/.*(?:/videos/|/reel/|watch)|fb.watch/|(?:x|twitter).com/[^/]+/status/|vimeo.com/d|dailymotion.com/video/|twitch.tv/(?:videos/|[^/]+/clip/)|reddit.com/r/[^/]+/comments/|soundcloud.com/[^/]+/[^/?#]+|bilibili.com/video/|pinterest.[a-z.]+/pin/)""",
+    RegexOption.IGNORE_CASE,
+)
+
+/** Pages yt-dlp knows as a single video or track. */
+fun isVideoPage(url: String) = VIDEO_PAGE.containsMatchIn(url)

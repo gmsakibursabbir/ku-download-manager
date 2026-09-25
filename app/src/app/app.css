@@ -149,6 +149,8 @@
 
 .sidebar-scroll {
   flex: 1;
+  /* Shrinks and scrolls in a short window instead of sliding under the footer. */
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   padding: var(--space-2);
@@ -221,6 +223,7 @@
 }
 
 .sidebar-footer {
+  flex-shrink: 0;
   padding: var(--space-2);
   border-top: 1px solid var(--line);
 }
@@ -304,7 +307,7 @@
 }
 
 /* Collapse secondary toolbar labels at narrow widths. */
-@media (max-width: 1180px) {
+@media (max-width: 1040px) {
   .toolbar .btn-label-optional {
     display: none;
   }

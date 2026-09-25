@@ -907,6 +907,12 @@ const zh: Record<string, string> = {
   "Download added": "已添加下载",
   "{peer} wants this computer to download {url}": "{peer} 希望这台电脑下载 {url}",
   "{name} could not start the download.": "{name} 无法开始下载。",
+  // Browser extension setup
+  "{browser} opened the KuDownloader page in its store — click Add. If {browser} later says a new extension was added, choose Enable.": "{browser} 已在其应用商店中打开 KuDownloader 页面——点击“添加”。如果 {browser} 之后提示添加了新扩展，请选择“启用”。",
+  "{browser} is asking to add KuDownloader — choose Add.": "{browser} 请求添加 KuDownloader——请选择“添加”。",
+  "In {browser}, choose “Load Temporary Add-on…” and pick manifest.json in the folder that opened. It stays until {browser} restarts; a Mozilla-signed kudmx.xpi installs permanently.": "在 {browser} 中选择“临时载入附加组件…”，然后选择打开的文件夹中的 manifest.json。它会保留到 {browser} 重启；经 Mozilla 签名的 kudmx.xpi 可永久安装。",
+  "In {browser}: turn on Developer mode (top right), choose “Load unpacked”, paste the folder path (already copied) and press Enter. Then restart {browser}.": "在 {browser} 中：打开开发者模式（右上角），选择“加载已解压的扩展程序”，粘贴文件夹路径（已复制）并按回车。然后重启 {browser}。",
+  "In {browser}: turn on Developer mode (top right), choose “Load unpacked” and select the KuDownloader extension folder. Then restart {browser}.": "在 {browser} 中：打开开发者模式（右上角），选择“加载已解压的扩展程序”，然后选择 KuDownloader 扩展文件夹。然后重启 {browser}。",
 };
 
 export default zh;

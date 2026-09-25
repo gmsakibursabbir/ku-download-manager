@@ -322,5 +322,11 @@
  "Video tools are not installed yet": "ভিডিও টুল এখনো ইনস্টল হয়নি",
  "Video tools are ready.": "ভিডিও টুল প্রস্তুত।",
  "Video tools, yt-dlp, log": "ভিডিও টুল, yt-dlp, লগ",
- "Waiting for {queue}": "{queue}-এর অপেক্ষায়"
+ "Waiting for {queue}": "{queue}-এর অপেক্ষায়",
+ "Could not reach GitHub. Check the connection and try again.": "GitHub-এ পৌঁছানো যায়নি। সংযোগ দেখে আবার চেষ্টা করুন।",
+ "Download video": "ভিডিও ডাউনলোড",
+ "Download video ({count})": "ভিডিও ডাউনলোড ({count})",
+ "Streams on this page": "এই পেজের স্ট্রিম",
+ "yt-dlp is up to date.": "yt-dlp হালনাগাদ আছে।",
+ "yt-dlp {version} installed": "yt-dlp {version} ইনস্টল হয়েছে"
 }

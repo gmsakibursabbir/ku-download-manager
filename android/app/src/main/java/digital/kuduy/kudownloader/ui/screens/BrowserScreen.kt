@@ -158,10 +158,7 @@ fun BrowserScreen() {
 
     BackHandler(enabled = tab.canBack || !tab.isStart) {
         val v = tab.view
-        if (v != null && v.canGoBack()) v.goBack() else {
-            tab.url = ""
-            tab.title = ""
-        }
+        if (v != null && v.canGoBack()) v.goBack() else open(tab, "")
     }
 
     val chooser = BrowserSignals.chooser
@@ -183,7 +180,9 @@ fun BrowserScreen() {
         // Address bar
         Row(Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             if (!editing && !tab.isStart) {
-                IconButton({ open(tab, "") }) { Icon(Icons.Filled.Home, t("Start page")) }
+                IconButton({ val v = tab.view; if (v != null && v.canGoBack()) v.goBack() else open(tab, "") }) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, t("Back"))
+                }
             }
             TextField(
                 if (editing) address else if (tab.isStart) "" else host(tab.url),
@@ -196,9 +195,17 @@ fun BrowserScreen() {
                 },
                 trailingIcon = {
                     if (editing && address.isNotEmpty()) IconButton({ address = "" }) { Icon(Icons.Filled.Close, t("Clear")) }
-                    else if (!editing && !tab.isStart && adblock && tab.blocked > 0) {
-                        BadgedBox(badge = { Badge { Text(if (tab.blocked > 99) "99+" else "${tab.blocked}") } }, modifier = Modifier.padding(end = 10.dp)) {
-                            Icon(Icons.Filled.Shield, t("Ads blocked"), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                    else if (!editing && !tab.isStart) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (adblock && tab.blocked > 0) {
+                                BadgedBox(badge = { Badge { Text(if (tab.blocked > 99) "99+" else "${tab.blocked}") } }, modifier = Modifier.padding(end = 6.dp)) {
+                                    Icon(Icons.Filled.Shield, t("Ads blocked"), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                                }
+                            }
+                            val loading = tab.progress in 1..99
+                            IconButton({ if (loading) tab.view?.stopLoading() else tab.view?.reload() }) {
+                                Icon(if (loading) Icons.Filled.Close else Icons.Filled.Refresh, if (loading) t("Stop") else t("Reload"), Modifier.size(20.dp))
+                            }
                         }
                     }
                 },
@@ -248,12 +255,20 @@ fun BrowserScreen() {
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
-                if (tab.media.isNotEmpty()) {
+                // Always reachable, whatever the page does: a known video page,
+                // a player on the page, or a stream it loaded.
+                androidx.compose.animation.AnimatedVisibility(
+                    tab.canDownload,
+                    Modifier.align(Alignment.BottomCenter).padding(bottom = 18.dp),
+                    enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.slideInVertically { it },
+                    exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.slideOutVertically { it },
+                ) {
                     ExtendedFloatingActionButton(
                         onClick = { mediaOpen = true },
-                        icon = { Icon(Icons.Filled.Movie, null) },
-                        text = { Text(tf("{count} media", "count" to tab.media.size)) },
-                        modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                        icon = { Icon(Icons.Filled.Download, null) },
+                        text = { Text(if (tab.media.size > 1) tf("Download video ({count})", "count" to tab.media.size) else t("Download video"), fontWeight = FontWeight.SemiBold) },
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
                     )
                 }
             }
@@ -271,20 +286,22 @@ private fun host(url: String) = runCatching { java.net.URI(url).host?.removePref
 
 private fun open(tab: Tab, url: String) {
     tab.url = url
+    tab.started = url.isNotBlank()
     if (url.isBlank()) {
         tab.title = ""
         tab.media.clear()
+        tab.hasVideo = false
         return
     }
     tab.view?.loadUrl(url)
 }
 
 @Composable
-private fun BrowserMenu(tab: Tab, open: Boolean, onDismiss: () -> Unit, onHistory: () -> Unit) {
+private fun BrowserMenu(tab: Tab, expanded: Boolean, onDismiss: () -> Unit, onHistory: () -> Unit) {
     val ctx = LocalContext.current
     val desktop by Prefs.desktopMode.state.collectAsStateWithLifecycle()
     val adblock by Prefs.adblock.state.collectAsStateWithLifecycle()
-    DropdownMenu(open, onDismiss) {
+    DropdownMenu(expanded, onDismiss) {
         Row {
             IconButton({ onDismiss(); tab.view?.goBack() }, enabled = tab.canBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, t("Back")) }
             IconButton({ onDismiss(); tab.view?.goForward() }, enabled = tab.canForward) { Icon(Icons.AutoMirrored.Filled.ArrowForward, t("Forward")) }
@@ -295,6 +312,7 @@ private fun BrowserMenu(tab: Tab, open: Boolean, onDismiss: () -> Unit, onHistor
             }
         }
         HorizontalDivider()
+        DropdownMenuItem({ Text(t("Start page")) }, { onDismiss(); open(tab, "") }, leadingIcon = { Icon(Icons.Filled.Home, null) })
         DropdownMenuItem({ Text(t("New tab")) }, { onDismiss(); BrowserState.newTab() }, leadingIcon = { Icon(Icons.Filled.Add, null) })
         if (!tab.isStart) {
             DropdownMenuItem({ Text(t("Download video on this page")) }, {
@@ -390,12 +408,32 @@ private fun MediaSheet(tab: Tab, onClose: () -> Unit) {
     ModalBottomSheet(onDismissRequest = onClose) {
         LazyColumn(contentPadding = PaddingValues(bottom = 28.dp)) {
             item {
-                ClickRow(t("Download video on this page"), t("Pick the quality with yt-dlp"), Icons.Filled.Movie) {
-                    onClose()
-                    UiState.media = MediaPrefill(tab.url, BrowserState.cookies(tab.url), tab.url, tab.title)
-                    UiState.go(Screen.Video)
+                Column(Modifier.padding(horizontal = 20.dp).padding(bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(tab.title.ifBlank { host(tab.url) }, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    androidx.compose.material3.Button(
+                        {
+                            onClose()
+                            UiState.media = MediaPrefill(tab.url, BrowserState.cookies(tab.url), tab.url, tab.title)
+                            UiState.go(Screen.Video)
+                        },
+                        Modifier.fillMaxWidth().height(52.dp),
+                    ) {
+                        Icon(Icons.Filled.Download, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(t("Choose quality"), fontWeight = FontWeight.SemiBold)
+                    }
+                    OutlinedButton(
+                        {
+                            onClose()
+                            UiState.remoteSend = digital.kuduy.kudownloader.ui.RemoteSend(listOf(tab.url), referer = tab.url, cookies = BrowserState.cookies(tab.url))
+                        },
+                        Modifier.fillMaxWidth(),
+                    ) { Text(t("Download on a computer…")) }
                 }
-                HorizontalDivider()
+                if (tab.media.isNotEmpty()) {
+                    HorizontalDivider()
+                    Text(t("Streams on this page"), Modifier.padding(start = 20.dp, top = 14.dp, bottom = 4.dp), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                }
             }
             items(tab.media.toList().asReversed(), key = { it.url }) { m -> MediaRow(m, onClose) }
         }
@@ -490,6 +528,7 @@ private fun Fullscreen() {
         fs.second.onCustomViewHidden()
         BrowserSignals.fullscreen = null
     }
+    Box(Modifier.fillMaxSize()) {
     AndroidView(
         factory = { c ->
             FrameLayout(c).apply {
@@ -500,5 +539,23 @@ private fun Fullscreen() {
         },
         modifier = Modifier.fillMaxSize().background(Color.Black),
     )
+        // Download while watching full screen.
+        BrowserState.current?.let { tab ->
+            androidx.compose.material3.FilledTonalButton(
+                {
+                    fs.second.onCustomViewHidden()
+                    BrowserSignals.fullscreen = null
+                    UiState.media = MediaPrefill(tab.url, BrowserState.cookies(tab.url), tab.url, tab.title)
+                    UiState.go(Screen.Video)
+                },
+                Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(12.dp),
+                colors = ButtonDefaults.filledTonalButtonColors(containerColor = Color.Black.copy(alpha = 0.55f), contentColor = Color.White),
+            ) {
+                Icon(Icons.Filled.Download, null, Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(t("Download"))
+            }
+        }
+    }
 }
 

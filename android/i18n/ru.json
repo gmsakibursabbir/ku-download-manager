@@ -322,5 +322,11 @@
  "Video tools are not installed yet": "Инструменты для видео ещё не установлены",
  "Video tools are ready.": "Инструменты для видео готовы.",
  "Video tools, yt-dlp, log": "Инструменты для видео, yt-dlp, журнал",
- "Waiting for {queue}": "Ждёт очередь «{queue}»"
+ "Waiting for {queue}": "Ждёт очередь «{queue}»",
+ "Could not reach GitHub. Check the connection and try again.": "Не удалось связаться с GitHub. Проверьте подключение и повторите попытку.",
+ "Download video": "Скачать видео",
+ "Download video ({count})": "Скачать видео ({count})",
+ "Streams on this page": "Потоки на этой странице",
+ "yt-dlp is up to date.": "yt-dlp обновлён.",
+ "yt-dlp {version} installed": "yt-dlp {version} установлен"
 }

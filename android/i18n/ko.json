@@ -322,5 +322,11 @@
  "Video tools are not installed yet": "동영상 도구가 아직 설치되지 않았습니다",
  "Video tools are ready.": "동영상 도구가 준비되었습니다.",
  "Video tools, yt-dlp, log": "동영상 도구, yt-dlp, 로그",
- "Waiting for {queue}": "{queue} 대기 중"
+ "Waiting for {queue}": "{queue} 대기 중",
+ "Could not reach GitHub. Check the connection and try again.": "GitHub에 연결할 수 없습니다. 연결을 확인하고 다시 시도하세요.",
+ "Download video": "동영상 다운로드",
+ "Download video ({count})": "동영상 다운로드({count})",
+ "Streams on this page": "이 페이지의 스트림",
+ "yt-dlp is up to date.": "yt-dlp가 최신 버전입니다.",
+ "yt-dlp {version} installed": "yt-dlp {version} 설치됨"
 }

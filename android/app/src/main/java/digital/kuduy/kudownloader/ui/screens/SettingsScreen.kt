@@ -275,6 +275,7 @@ private fun SpeedSettings() {
 private fun MediaSettings() {
     val (s, save) = rememberSettings()
     val scope = rememberCoroutineScope()
+    val ctx = LocalContext.current
     var info by remember { mutableStateOf<JsonObject?>(null) }
     var updating by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { info = runCatching { Ku.call("engineInfo").jsonObject }.getOrNull() }
@@ -295,7 +296,7 @@ private fun MediaSettings() {
             scope.launch {
                 updating = true
                 try {
-                    UiState.toast(Ku.call("updateYtdlp").jsonPrimitive.contentOrNull ?: t("Updated"))
+                    UiState.toast(Ku.updateYtdlp(ctx, force = true)?.let { tf("yt-dlp {version} installed", "version" to it) } ?: t("yt-dlp is up to date."))
                     info = runCatching { Ku.call("engineInfo").jsonObject }.getOrNull()
                 } catch (e: Exception) {
                     UiState.toast(e.message ?: "")
@@ -436,7 +437,7 @@ fun AdvancedSettings() {
                 scope.launch {
                     updating = true
                     try {
-                        UiState.toast(Ku.call("updateYtdlp").jsonPrimitive.contentOrNull ?: t("Updated"))
+                        UiState.toast(Ku.updateYtdlp(ctx, force = true)?.let { tf("yt-dlp {version} installed", "version" to it) } ?: t("yt-dlp is up to date."))
                         version = runCatching { Ku.call("engineInfo").jsonObject["ytdlp"]?.jsonObject?.get("version")?.jsonPrimitive?.contentOrNull }.getOrNull()
                     } catch (e: Exception) {
                         UiState.toast(e.message ?: "")

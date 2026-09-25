@@ -907,6 +907,12 @@ const ar: Record<string, string> = {
   "Download added": "أُضيف التنزيل",
   "{peer} wants this computer to download {url}": "{peer} يريد أن يُنزّل هذا الحاسوب {url}",
   "{name} could not start the download.": "تعذّر على {name} بدء التنزيل.",
+  // Browser extension setup
+  "{browser} opened the KuDownloader page in its store — click Add. If {browser} later says a new extension was added, choose Enable.": "فتح {browser} صفحة KuDownloader في متجره — انقر «إضافة». وإذا أخبرك {browser} لاحقًا بإضافة ملحق جديد فاختر «تفعيل».",
+  "{browser} is asking to add KuDownloader — choose Add.": "يطلب {browser} إضافة KuDownloader — اختر «إضافة».",
+  "In {browser}, choose “Load Temporary Add-on…” and pick manifest.json in the folder that opened. It stays until {browser} restarts; a Mozilla-signed kudmx.xpi installs permanently.": "في {browser} اختر «تحميل إضافة مؤقتة…» ثم manifest.json في المجلد الذي فُتح. تبقى حتى إعادة تشغيل {browser}؛ أما kudmx.xpi الموقَّع من Mozilla فيُثبَّت دائمًا.",
+  "In {browser}: turn on Developer mode (top right), choose “Load unpacked”, paste the folder path (already copied) and press Enter. Then restart {browser}.": "في {browser}: فعّل وضع المطوّر (أعلى اليمين)، واختر «تحميل ملحق غير مضغوط»، والصق مسار المجلد (نُسخ مسبقًا) واضغط Enter. ثم أعد تشغيل {browser}.",
+  "In {browser}: turn on Developer mode (top right), choose “Load unpacked” and select the KuDownloader extension folder. Then restart {browser}.": "في {browser}: فعّل وضع المطوّر (أعلى اليمين)، واختر «تحميل ملحق غير مضغوط» ثم مجلد ملحق KuDownloader. ثم أعد تشغيل {browser}.",
 };
 
 export default ar;

@@ -99,7 +99,8 @@ export function ProgressWindow({ id }: { id: string }) {
     const body = el?.querySelector<HTMLElement>(".pw-body");
     if (!el || !body) return;
     const natural = el.offsetHeight - body.clientHeight + body.scrollHeight;
-    void win.setSize(new LogicalSize(window.innerWidth, Math.min(natural + 2, screen.availHeight - 80))).then(() => {
+    // Grow to fit, but not past a comfortable height: the rest scrolls.
+    void win.setSize(new LogicalSize(window.innerWidth, Math.min(natural + 2, 620, screen.availHeight - 80))).then(() => {
       if (!shown) {
         setShown(true);
         void win.show().then(() => win.setFocus());

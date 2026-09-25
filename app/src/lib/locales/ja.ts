@@ -907,6 +907,12 @@ const ja: Record<string, string> = {
   "Download added": "ダウンロードを追加しました",
   "{peer} wants this computer to download {url}": "{peer} がこのコンピューターで {url} をダウンロードしてほしいそうです",
   "{name} could not start the download.": "{name} はダウンロードを開始できませんでした。",
+  // Browser extension setup
+  "{browser} opened the KuDownloader page in its store — click Add. If {browser} later says a new extension was added, choose Enable.": "{browser} がストアで KuDownloader のページを開きました。「追加」をクリックしてください。あとで {browser} が新しい拡張機能の追加を知らせたら「有効にする」を選んでください。",
+  "{browser} is asking to add KuDownloader — choose Add.": "{browser} が KuDownloader の追加を求めています。「追加」を選んでください。",
+  "In {browser}, choose “Load Temporary Add-on…” and pick manifest.json in the folder that opened. It stays until {browser} restarts; a Mozilla-signed kudmx.xpi installs permanently.": "{browser} で「一時的なアドオンを読み込む…」を選び、開いたフォルダーの manifest.json を選択してください。{browser} を再起動するまで有効です。Mozilla 署名済みの kudmx.xpi なら永続的にインストールされます。",
+  "In {browser}: turn on Developer mode (top right), choose “Load unpacked”, paste the folder path (already copied) and press Enter. Then restart {browser}.": "{browser} で：デベロッパー モードをオン（右上）にし、「パッケージ化されていない拡張機能を読み込む」を選んで、フォルダーのパス（コピー済み）を貼り付けて Enter を押します。その後 {browser} を再起動してください。",
+  "In {browser}: turn on Developer mode (top right), choose “Load unpacked” and select the KuDownloader extension folder. Then restart {browser}.": "{browser} で：デベロッパー モードをオン（右上）にし、「パッケージ化されていない拡張機能を読み込む」を選んで KuDownloader 拡張機能のフォルダーを選択します。その後 {browser} を再起動してください。",
 };
 
 export default ja;

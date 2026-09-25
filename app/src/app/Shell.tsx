@@ -195,7 +195,8 @@ function SpeedMonitor() {
   const h = 56;
   // Download and upload share one scale so their sizes compare honestly.
   const peak = Math.max(0, ...s.history, ...s.upHistory);
-  const max = Math.max(peak, 1);
+  // Headroom above the peak, so a steady speed draws a line, not a full box.
+  const max = Math.max(peak * 1.25, 1);
   const n = Math.max(s.history.length, s.upHistory.length, 2);
   const step = w / (n - 1);
   const points = (values: number[]) => {

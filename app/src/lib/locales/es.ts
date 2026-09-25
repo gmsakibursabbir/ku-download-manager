@@ -907,6 +907,12 @@ const es: Record<string, string> = {
   "Download added": "Descarga añadida",
   "{peer} wants this computer to download {url}": "{peer} quiere que este ordenador descargue {url}",
   "{name} could not start the download.": "{name} no pudo iniciar la descarga.",
+  // Browser extension setup
+  "{browser} opened the KuDownloader page in its store — click Add. If {browser} later says a new extension was added, choose Enable.": "{browser} abrió la página de KuDownloader en su tienda: pulsa Añadir. Si {browser} avisa luego de que se añadió una extensión, elige Activar.",
+  "{browser} is asking to add KuDownloader — choose Add.": "{browser} pide añadir KuDownloader: elige Añadir.",
+  "In {browser}, choose “Load Temporary Add-on…” and pick manifest.json in the folder that opened. It stays until {browser} restarts; a Mozilla-signed kudmx.xpi installs permanently.": "En {browser}, elige «Cargar complemento temporal…» y selecciona manifest.json en la carpeta que se abrió. Se mantiene hasta reiniciar {browser}; un kudmx.xpi firmado por Mozilla se instala de forma permanente.",
+  "In {browser}: turn on Developer mode (top right), choose “Load unpacked”, paste the folder path (already copied) and press Enter. Then restart {browser}.": "En {browser}: activa el modo de desarrollador (arriba a la derecha), elige «Cargar descomprimida», pega la ruta de la carpeta (ya copiada) y pulsa Intro. Después reinicia {browser}.",
+  "In {browser}: turn on Developer mode (top right), choose “Load unpacked” and select the KuDownloader extension folder. Then restart {browser}.": "En {browser}: activa el modo de desarrollador (arriba a la derecha), elige «Cargar descomprimida» y selecciona la carpeta de la extensión KuDownloader. Después reinicia {browser}.",
 };
 
 export default es;

@@ -76,6 +76,16 @@ jobs:
           KU_ANDROID_KEY_ALIAS: ${{ secrets.KU_ANDROID_KEY_ALIAS }}
           KU_ANDROID_KEY_PASSWORD: ${{ secrets.KU_ANDROID_KEY_PASSWORD }}
         run: gradle --no-daemon assembleRelease lintRelease
+      - name: Screenshots of the screens (design review)
+        working-directory: android
+        continue-on-error: true
+        run: gradle --no-daemon recordPaparazziDebug
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-screens
+          path: android/app/src/test/snapshots/images/*.png
+          if-no-files-found: ignore
       - name: Name the APKs
         run: |
           v=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)

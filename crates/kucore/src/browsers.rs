@@ -230,3 +230,52 @@ mod probe {
         }
     }
 }
+
+/// Where a Chromium browser on Windows looks for extensions that other
+/// programs offer (Google's "external extensions": the browser asks the user
+/// to enable them on its next start). `None` for browsers without it.
+#[cfg(windows)]
+fn external_extensions_key(b: &Browser) -> Option<(&'static str, &'static str)> {
+    let stem = Path::new(&b.path).file_stem()?.to_string_lossy().to_lowercase();
+    const WEB_STORE: &str = "https://clients2.google.com/service/update2/crx";
+    match stem.as_str() {
+        "chrome" => Some((r"Software\Google\Chrome\Extensions", WEB_STORE)),
+        "brave" => Some((r"Software\BraveSoftware\Brave-Browser\Extensions", WEB_STORE)),
+        "msedge" => Some((r"Software\Microsoft\Edge\Extensions", "https://edge.microsoft.com/extensionwebstorebase/v1/crx")),
+        _ => None,
+    }
+}
+
+/// Offer the store-published extension to a Chromium browser (Windows):
+/// written under the current user, the browser shows "New extension added"
+/// and the user enables it. Returns whether the browser supports it.
+#[cfg(windows)]
+pub fn offer_store_extension(b: &Browser, id: &str) -> std::io::Result<bool> {
+    use winreg::enums::HKEY_CURRENT_USER;
+    if id.len() != 32 || !id.bytes().all(|c| (b'a'..=b'p').contains(&c)) {
+        return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "not a store extension id"));
+    }
+    let Some((root, update_url)) = external_extensions_key(b) else { return Ok(false) };
+    let (key, _) = winreg::RegKey::predef(HKEY_CURRENT_USER).create_subkey(format!(r"{root}\{id}"))?;
+    key.set_value("update_url", &update_url)?;
+    Ok(true)
+}
+
+#[cfg(not(windows))]
+pub fn offer_store_extension(_b: &Browser, _id: &str) -> std::io::Result<bool> {
+    Ok(false)
+}
+
+/// The store page for this browser's family, when the extension is listed there.
+pub fn store_page(b: &Browser, chrome: &str, edge: &str, firefox: &str) -> Option<(String, String)> {
+    let stem = Path::new(&b.path).file_stem().map(|s| s.to_string_lossy().to_lowercase()).unwrap_or_default();
+    if b.family == "firefox" {
+        return (!firefox.is_empty()).then(|| (String::new(), format!("https://addons.mozilla.org/firefox/addon/{firefox}/")));
+    }
+    if stem.contains("msedge") || stem.contains("microsoft-edge") {
+        if !edge.is_empty() {
+            return Some((edge.to_string(), format!("https://microsoftedge.microsoft.com/addons/detail/{edge}")));
+        }
+    }
+    (!chrome.is_empty()).then(|| (chrome.to_string(), format!("https://chromewebstore.google.com/detail/{chrome}")))
+}

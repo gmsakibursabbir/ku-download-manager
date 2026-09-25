@@ -905,6 +905,12 @@ const bn: Record<string, string> = {
   "Download added": "ডাউনলোড যোগ হয়েছে",
   "{peer} wants this computer to download {url}": "{peer} এই কম্পিউটারে {url} ডাউনলোড করাতে চায়",
   "{name} could not start the download.": "{name} ডাউনলোড শুরু করতে পারেনি।",
+  // Browser extension setup
+  "{browser} opened the KuDownloader page in its store — click Add. If {browser} later says a new extension was added, choose Enable.": "{browser} তার স্টোরে KuDownloader-এর পেজ খুলেছে — Add চাপুন। পরে {browser} নতুন এক্সটেনশন যোগ হয়েছে বললে Enable বেছে নিন।",
+  "{browser} is asking to add KuDownloader — choose Add.": "{browser} KuDownloader যোগ করতে চাইছে — Add বেছে নিন।",
+  "In {browser}, choose “Load Temporary Add-on…” and pick manifest.json in the folder that opened. It stays until {browser} restarts; a Mozilla-signed kudmx.xpi installs permanently.": "{browser}-এ “Load Temporary Add-on…” বেছে খোলা ফোল্ডারের manifest.json নির্বাচন করুন। {browser} রিস্টার্ট না হওয়া পর্যন্ত এটি থাকবে; Mozilla-স্বাক্ষরিত kudmx.xpi স্থায়ীভাবে ইনস্টল হয়।",
+  "In {browser}: turn on Developer mode (top right), choose “Load unpacked”, paste the folder path (already copied) and press Enter. Then restart {browser}.": "{browser}-এ: Developer mode চালু করুন (উপরে ডানে), “Load unpacked” বেছে ফোল্ডারের পাথ পেস্ট করুন (আগেই কপি করা) এবং Enter চাপুন। তারপর {browser} রিস্টার্ট করুন।",
+  "In {browser}: turn on Developer mode (top right), choose “Load unpacked” and select the KuDownloader extension folder. Then restart {browser}.": "{browser}-এ: Developer mode চালু করুন (উপরে ডানে), “Load unpacked” বেছে KuDownloader এক্সটেনশনের ফোল্ডার নির্বাচন করুন। তারপর {browser} রিস্টার্ট করুন।",
 };
 
 export default bn;

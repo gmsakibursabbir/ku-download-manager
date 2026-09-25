@@ -86,6 +86,22 @@ object Tools {
         return found
     }
 
+    /** The newest yt-dlp release tag ("2026.09.20"), or null when offline. */
+    fun latestYtdlp(): String? = runCatching {
+        val c = URL("https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest").openConnection() as HttpURLConnection
+        c.connectTimeout = 15_000
+        c.readTimeout = 15_000
+        c.setRequestProperty("Accept", "application/vnd.github+json")
+        c.setRequestProperty("User-Agent", "KuDownloader")
+        val body = c.inputStream.bufferedReader().use { it.readText() }
+        Regex(""""tag_name"s*:s*"([^"]+)"""").find(body)?.groupValues?.get(1)
+    }.getOrNull()
+
+    /** Replace yt-dlp with the latest release (the bundled one ages with the app). */
+    fun installLatestYtdlp(ctx: Context, progress: (Long, Long) -> Unit = { _, _ -> }) {
+        download(ytdlpFile(ctx), progress)
+    }
+
     private fun download(target: File, progress: (Long, Long) -> Unit) {
         target.parentFile?.mkdirs()
         val part = File(target.path + ".part")

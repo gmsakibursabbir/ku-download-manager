@@ -611,6 +611,15 @@ fn install_extension(app: AppHandle, browser: String) -> R<Value> {
     // A browser installed after KuDownloader started needs its host entry now.
     let extra = app.state::<AppState>().core.settings().extra_extension_ids;
     let _ = kucore::nativehost::register(&extra);
+    // Listed in the browser's store: install from there (one click), and on
+    // Windows also let Chrome/Edge/Brave offer it on their next start, like IDM.
+    let ids: Value = serde_json::from_str(include_str!("../../../extension/store-ids.json")).unwrap_or_default();
+    let id = |k: &str| ids[k].as_str().unwrap_or("").trim().to_string();
+    if let Some((store_id, page)) = kucore::browsers::store_page(&b, &id("chrome"), &id("edge"), &id("firefox")) {
+        let offered = !store_id.is_empty() && kucore::browsers::offer_store_extension(&b, &store_id).unwrap_or(false);
+        launch(&b.path, &page)?;
+        return Ok(json!({ "mode": "store", "offered": offered }));
+    }
     if b.family == "firefox" {
         let signed = xpi.as_ref().filter(|p| p.to_string_lossy().ends_with(".signed.xpi"));
         if let Some(x) = signed {

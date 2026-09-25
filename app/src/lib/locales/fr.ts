@@ -907,6 +907,12 @@ const fr: Record<string, string> = {
   "Download added": "Téléchargement ajouté",
   "{peer} wants this computer to download {url}": "{peer} veut que cet ordinateur télécharge {url}",
   "{name} could not start the download.": "{name} n'a pas pu lancer le téléchargement.",
+  // Browser extension setup
+  "{browser} opened the KuDownloader page in its store — click Add. If {browser} later says a new extension was added, choose Enable.": "{browser} a ouvert la page de KuDownloader dans sa boutique : cliquez sur Ajouter. Si {browser} signale ensuite une nouvelle extension, choisissez Activer.",
+  "{browser} is asking to add KuDownloader — choose Add.": "{browser} demande d'ajouter KuDownloader : choisissez Ajouter.",
+  "In {browser}, choose “Load Temporary Add-on…” and pick manifest.json in the folder that opened. It stays until {browser} restarts; a Mozilla-signed kudmx.xpi installs permanently.": "Dans {browser}, choisissez « Charger un module temporaire… » et sélectionnez manifest.json dans le dossier ouvert. Il reste jusqu'au redémarrage de {browser} ; un kudmx.xpi signé par Mozilla s'installe de façon permanente.",
+  "In {browser}: turn on Developer mode (top right), choose “Load unpacked”, paste the folder path (already copied) and press Enter. Then restart {browser}.": "Dans {browser} : activez le mode développeur (en haut à droite), choisissez « Charger l'extension non empaquetée », collez le chemin du dossier (déjà copié) et appuyez sur Entrée. Puis redémarrez {browser}.",
+  "In {browser}: turn on Developer mode (top right), choose “Load unpacked” and select the KuDownloader extension folder. Then restart {browser}.": "Dans {browser} : activez le mode développeur (en haut à droite), choisissez « Charger l'extension non empaquetée » et sélectionnez le dossier de l'extension KuDownloader. Puis redémarrez {browser}.",
 };
 
 export default fr;

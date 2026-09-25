@@ -322,5 +322,11 @@
  "Video tools are not installed yet": "视频工具尚未安装",
  "Video tools are ready.": "视频工具已就绪。",
  "Video tools, yt-dlp, log": "视频工具、yt-dlp、日志",
- "Waiting for {queue}": "等待 {queue}"
+ "Waiting for {queue}": "等待 {queue}",
+ "Could not reach GitHub. Check the connection and try again.": "无法连接 GitHub。请检查网络后重试。",
+ "Download video": "下载视频",
+ "Download video ({count})": "下载视频（{count}）",
+ "Streams on this page": "此页面的流",
+ "yt-dlp is up to date.": "yt-dlp 已是最新版本。",
+ "yt-dlp {version} installed": "已安装 yt-dlp {version}"
 }

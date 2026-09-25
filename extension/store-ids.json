@@ -1,0 +1,6 @@
+{
+  "_comment": "Store listings of the browser extension. Once set, Settings › Browser integration installs from the store (one click, like IDM) and registers the extension with Chrome/Edge/Brave on Windows so the browser offers to enable it.",
+  "chrome": "",
+  "edge": "",
+  "firefox": ""
+}

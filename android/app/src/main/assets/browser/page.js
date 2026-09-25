@@ -106,9 +106,25 @@
     btn = document.createElement("button");
     btn.className = "b";
     btn.setAttribute("aria-label", LABEL);
-    btn.innerHTML =
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M6 20h12" stroke="#D4FF00"/></svg><span></span>';
-    btn.lastChild.textContent = LABEL;
+    // Built node by node: sites with Trusted Types (YouTube) reject innerHTML.
+    var NS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("fill", "none");
+    svg.setAttribute("stroke", "currentColor");
+    svg.setAttribute("stroke-width", "2.6");
+    svg.setAttribute("stroke-linecap", "round");
+    svg.setAttribute("stroke-linejoin", "round");
+    [["M12 4v11"], ["M7 11l5 5 5-5"], ["M6 20h12", "#D4FF00"]].forEach(function (d) {
+      var path = document.createElementNS(NS, "path");
+      path.setAttribute("d", d[0]);
+      if (d[1]) path.setAttribute("stroke", d[1]);
+      svg.appendChild(path);
+    });
+    var label = document.createElement("span");
+    label.textContent = LABEL;
+    btn.appendChild(svg);
+    btn.appendChild(label);
     btn.addEventListener(
       "click",
       function (e) {
@@ -150,10 +166,18 @@
   }
 
   var queued = false;
+  var reported = null;
   function place() {
     queued = false;
-    if (!PILL) return;
     var v = pick();
+    var has = !!v || document.getElementsByTagName("video").length > 0;
+    if (has !== reported) {
+      reported = has;
+      try {
+        bridge.video(TOKEN, has);
+      } catch (e) {}
+    }
+    if (!PILL) return;
     target = v;
     if (!v) {
       if (btn) btn.style.display = "none";

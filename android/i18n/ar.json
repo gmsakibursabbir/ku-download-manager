@@ -322,5 +322,11 @@
  "Video tools are not installed yet": "لم تُثبَّت أدوات الفيديو بعد",
  "Video tools are ready.": "أدوات الفيديو جاهزة.",
  "Video tools, yt-dlp, log": "أدوات الفيديو، yt-dlp، السجل",
- "Waiting for {queue}": "بانتظار {queue}"
+ "Waiting for {queue}": "بانتظار {queue}",
+ "Could not reach GitHub. Check the connection and try again.": "تعذّر الوصول إلى GitHub. تحقّق من الاتصال وحاول مرة أخرى.",
+ "Download video": "تنزيل الفيديو",
+ "Download video ({count})": "تنزيل الفيديو ({count})",
+ "Streams on this page": "البث في هذه الصفحة",
+ "yt-dlp is up to date.": "yt-dlp محدَّث.",
+ "yt-dlp {version} installed": "ثُبّت yt-dlp {version}"
 }

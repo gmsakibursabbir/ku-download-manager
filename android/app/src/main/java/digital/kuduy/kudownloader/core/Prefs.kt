@@ -70,10 +70,14 @@ object Prefs {
     val dynamicColor = Pref("dynamicColor", false)
     val welcomed = Pref("welcomed", false)
     val lastClipboard = Pref("lastClipboard", "")
+    /** yt-dlp release installed by the app ("" = the one bundled with the build). */
+    val ytdlpVersion = Pref("ytdlpVersion", "")
+    val ytdlpChecked = Pref("ytdlpChecked", 0L)
 
     private val all = listOf(
         wifiOnly, pauseOnBatterySaver, highPerfWifi, clipboardOffer, adblock, pill, detectMedia, interceptDownloads,
         searchEngine, homePage, desktopMode, blockPopups, bookmarks, history, adsBlocked, dynamicColor, welcomed, lastClipboard,
+        ytdlpVersion, ytdlpChecked,
     )
 
     fun init(ctx: Context) {

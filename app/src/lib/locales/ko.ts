@@ -907,6 +907,12 @@ const ko: Record<string, string> = {
   "Download added": "다운로드 추가됨",
   "{peer} wants this computer to download {url}": "{peer}에서 이 컴퓨터가 {url}을(를) 다운로드하기를 원합니다",
   "{name} could not start the download.": "{name}에서 다운로드를 시작하지 못했습니다.",
+  // Browser extension setup
+  "{browser} opened the KuDownloader page in its store — click Add. If {browser} later says a new extension was added, choose Enable.": "{browser}에서 스토어의 KuDownloader 페이지를 열었습니다. 추가를 클릭하세요. 나중에 {browser}에서 새 확장 프로그램이 추가되었다고 하면 사용을 선택하세요.",
+  "{browser} is asking to add KuDownloader — choose Add.": "{browser}에서 KuDownloader 추가를 요청합니다. 추가를 선택하세요.",
+  "In {browser}, choose “Load Temporary Add-on…” and pick manifest.json in the folder that opened. It stays until {browser} restarts; a Mozilla-signed kudmx.xpi installs permanently.": "{browser}에서 ‘임시 부가 기능 로드…’를 선택하고 열린 폴더의 manifest.json을 고르세요. {browser}를 다시 시작할 때까지 유지되며, Mozilla 서명 kudmx.xpi는 영구 설치됩니다.",
+  "In {browser}: turn on Developer mode (top right), choose “Load unpacked”, paste the folder path (already copied) and press Enter. Then restart {browser}.": "{browser}에서: 개발자 모드를 켜고(오른쪽 위) ‘압축해제된 확장 프로그램 로드’를 선택한 뒤 폴더 경로(이미 복사됨)를 붙여넣고 Enter를 누르세요. 그런 다음 {browser}를 다시 시작하세요.",
+  "In {browser}: turn on Developer mode (top right), choose “Load unpacked” and select the KuDownloader extension folder. Then restart {browser}.": "{browser}에서: 개발자 모드를 켜고(오른쪽 위) ‘압축해제된 확장 프로그램 로드’를 선택한 뒤 KuDownloader 확장 프로그램 폴더를 고르세요. 그런 다음 {browser}를 다시 시작하세요.",
 };
 
 export default ko;

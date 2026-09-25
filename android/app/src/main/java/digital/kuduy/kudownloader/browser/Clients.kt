@@ -97,6 +97,8 @@ object PageScript {
 class KuWebClient(private val tab: Tab) : WebViewClient() {
     override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
         tab.url = url
+        tab.started = true
+        tab.hasVideo = false
         tab.progress = 5
         tab.blocked = 0
         tab.media.clear()
@@ -206,6 +208,7 @@ class KuChromeClient(private val tab: Tab) : WebChromeClient() {
         if (Prefs.blockPopups.value && !isUserGesture) return false
         val ctx = (view.context as? MutableContextWrapper)?.baseContext ?: view.context
         val t = BrowserState.newTab()
+        t.started = true
         val nv = BrowserState.webView(t, ctx)
         (resultMsg.obj as? WebView.WebViewTransport)?.webView = nv
         resultMsg.sendToTarget()
@@ -304,6 +307,13 @@ class PageBridge(private val tab: Tab) {
             UiState.grab = GrabPrefill(page, links, BrowserState.cookies(page), tab.view?.settings?.userAgentString)
             UiState.go(Screen.Fetch)
         }
+    }
+
+    /** The page has (or no longer has) a video player. */
+    @JavascriptInterface
+    fun video(token: String, present: Boolean) {
+        if (!ok(token)) return
+        ui { tab.hasVideo = present }
     }
 
     /** Generic element-hiding rules for the classes and ids on the page. */
