@@ -101,3 +101,12 @@ export function extension(name: string): string {
   const i = name.lastIndexOf(".");
   return i > 0 ? name.slice(i + 1).toLowerCase() : "";
 }
+
+/** A date and time in the interface language ("25 Sep 2026, 02:00"). */
+export function dateTime(ms: number): string {
+  try {
+    return new Date(ms).toLocaleString(document.documentElement.lang || undefined, { dateStyle: "medium", timeStyle: "short" });
+  } catch {
+    return new Date(ms).toLocaleString();
+  }
+}

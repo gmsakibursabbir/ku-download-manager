@@ -893,6 +893,20 @@ const ru: Record<string, string> = {
   "{n} updated in “{queue}”": "Обновлено в «{queue}»: {n}",
   "“{name}” can't be read": "Не удаётся прочитать «{name}»",
   "“{name}” started its queue.": "«{name}» запустило свою очередь.",
+  // KuAirSend: download on another device
+  "Schedule": "Запланировать",
+  "wants this computer to download this at {time}": "хочет, чтобы этот компьютер скачал это в {time}",
+  "wants this computer to download this now": "хочет, чтобы этот компьютер скачал это сейчас",
+  "Download on {peer}": "Скачать на {peer}",
+  "Download on {peer}…": "Скачать на {peer}…",
+  "Sent to {peer}": "Отправлено на {peer}",
+  "It downloads at {time}.": "Загрузка начнётся {time}.",
+  "The other device downloads the file itself, with its own connection.": "Другое устройство скачает файл само, через своё подключение.",
+  "Download scheduled for {time}": "Загрузка запланирована на {time}",
+  "{peer} is downloading it": "{peer} скачивает это",
+  "Download added": "Загрузка добавлена",
+  "{peer} wants this computer to download {url}": "{peer} хочет, чтобы этот компьютер скачал {url}",
+  "{name} could not start the download.": "{name} не удалось начать загрузку.",
 };
 
 export default ru;

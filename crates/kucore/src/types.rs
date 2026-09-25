@@ -129,6 +129,8 @@ pub enum CoreEvent {
     AirSendTransfer { transfer: Box<crate::airsend::AirTransfer> },
     /// KuAirSend: a nearby device wants to send files (Accept / Decline).
     AirSendRequest { request: Box<crate::airsend::AirRequest> },
+    /// KuAirSend: a nearby device asks this one to download a link (Accept / Decline).
+    AirSendDownload { request: Box<crate::airsend::AirDownloadRequest> },
     /// KuAirSend: a text message or link arrived.
     AirSendMessage { message: Box<crate::airsend::AirMessage> },
     Show,
@@ -148,6 +150,7 @@ impl CoreEvent {
                 | CoreEvent::ClipboardUrl { .. }
                 | CoreEvent::PowerCountdown { .. }
                 | CoreEvent::AirSendRequest { .. }
+                | CoreEvent::AirSendDownload { .. }
                 | CoreEvent::AirSendMessage { .. }
         )
     }

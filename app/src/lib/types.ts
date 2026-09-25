@@ -360,6 +360,7 @@ export type CoreEvent =
   | { type: "airSendPeers"; peers: import("./airsend").AirPeer[] }
   | { type: "airSendTransfer"; transfer: import("./airsend").AirTransfer }
   | { type: "airSendRequest"; request: import("./airsend").AirRequest }
+  | { type: "airSendDownload"; request: import("./airsend").AirDownloadRequest }
   | { type: "airSendMessage"; message: import("./airsend").AirMessage };
 
 export interface Details {

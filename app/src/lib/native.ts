@@ -20,6 +20,7 @@ export const NATIVE_KEYS = [
   "1 file",
   "{n} files",
   "{peer} wants to send you {files}.",
+  "{peer} wants this computer to download {url}",
   "Message from {peer}",
   "Received 1 file from {peer}.",
   "Received {n} files from {peer}.",

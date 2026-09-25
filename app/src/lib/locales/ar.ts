@@ -893,6 +893,20 @@ const ar: Record<string, string> = {
   "{n} updated in “{queue}”": "تم تحديث {n} في «{queue}»",
   "“{name}” can't be read": "تعذّرت قراءة «{name}»",
   "“{name}” started its queue.": "بدأ «{name}» قائمة الانتظار الخاصة به.",
+  // KuAirSend: download on another device
+  "Schedule": "جدولة",
+  "wants this computer to download this at {time}": "يريد أن يُنزّل هذا الحاسوب هذا في {time}",
+  "wants this computer to download this now": "يريد أن يُنزّل هذا الحاسوب هذا الآن",
+  "Download on {peer}": "التنزيل على {peer}",
+  "Download on {peer}…": "التنزيل على {peer}…",
+  "Sent to {peer}": "أُرسل إلى {peer}",
+  "It downloads at {time}.": "سيُنزَّل في {time}.",
+  "The other device downloads the file itself, with its own connection.": "يُنزّل الجهاز الآخر الملف بنفسه عبر اتصاله الخاص.",
+  "Download scheduled for {time}": "التنزيل مجدول في {time}",
+  "{peer} is downloading it": "{peer} يُنزّله الآن",
+  "Download added": "أُضيف التنزيل",
+  "{peer} wants this computer to download {url}": "{peer} يريد أن يُنزّل هذا الحاسوب {url}",
+  "{name} could not start the download.": "تعذّر على {name} بدء التنزيل.",
 };
 
 export default ar;

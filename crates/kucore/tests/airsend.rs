@@ -159,3 +159,50 @@ async fn devices_discover_each_other() {
     }
     println!("discovered in {:?}", t.elapsed());
 }
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn hands_a_download_to_another_device_now_or_later() {
+    let tmp = tempfile::tempdir().unwrap();
+    let (_ca, phone) = device(tmp.path(), "phone", false).await;
+    let (pc_core, pc) = device(tmp.path(), "pc", false).await;
+    let peer = phone.add_address(&format!("127.0.0.1:{}", pc.status().port)).await.unwrap();
+    let mut rx = pc_core.subscribe();
+
+    // Not trusted: the PC is asked first.
+    let dl = kucore::airsend::RemoteDownload { url: "https://example.org/files/big.iso".into(), ..Default::default() };
+    let id = phone.send_download(&peer.fingerprint, dl, None).unwrap();
+    let req = tokio::time::timeout(Duration::from_secs(5), async {
+        loop {
+            if let Ok(CoreEvent::AirSendDownload { request }) = rx.recv().await {
+                return request;
+            }
+        }
+    })
+    .await
+    .unwrap();
+    assert_eq!(req.download.url, "https://example.org/files/big.iso");
+    pc.decide(&req.id, true, true).await.unwrap();
+    assert_eq!(finished(&phone, &id, 20).await.state, "done");
+    let d = pc_core.list().into_iter().find(|d| d.url == "https://example.org/files/big.iso").expect("download added on the PC");
+    assert_eq!(d.source, "airsend");
+
+    // Trusted now, and for later: its own queue with a one-off schedule.
+    let at = chrono_ms() + 3 * 3600 * 1000;
+    let dl = kucore::airsend::RemoteDownload { url: "https://example.org/files/night.zip".into(), at: Some(at), ..Default::default() };
+    let id = phone.send_download(&peer.fingerprint, dl, None).unwrap();
+    assert_eq!(finished(&phone, &id, 20).await.state, "done");
+    let d = pc_core.list().into_iter().find(|d| d.url.ends_with("night.zip")).expect("scheduled download added");
+    let q = d.queue_id.clone().expect("in a queue");
+    assert!(q.starts_with("airsend-"), "{q}");
+    assert_eq!(d.status, kucore::ku_proto::Status::Queued);
+    let s = pc_core.schedules().into_iter().find(|s| s.queue_id == q).expect("schedule for the queue");
+    assert!(s.enabled && s.date.is_some());
+
+    // Addresses the engine would refuse never reach the other device.
+    let bad = kucore::airsend::RemoteDownload { url: "file:///etc/passwd".into(), ..Default::default() };
+    assert!(phone.send_download(&peer.fingerprint, bad, None).is_err());
+}
+
+fn chrono_ms() -> i64 {
+    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as i64
+}

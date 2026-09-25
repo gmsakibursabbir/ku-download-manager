@@ -143,6 +143,7 @@ export const ENGINE_TEMPLATES = [
   "{name} asked to wait (too many attempts). Try again in a minute.",
   "{name} does not have enough free space for this.",
   "{name} is receiving from someone else. Try again in a moment.",
+  "{name} could not start the download.",
   "{name} refused the transfer ({status}).",
   "{n} updated in “{queue}”",
   "“{name}” can't be read",

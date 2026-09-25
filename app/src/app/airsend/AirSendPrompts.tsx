@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Copy, Download } from "lucide-react";
-import { airApi, dismissMessage, dismissRequest, useAir, type AirMessage, type AirRequest } from "../../lib/airsend";
+import { airApi, dismissDownload, dismissMessage, dismissRequest, useAir, type AirDownloadRequest, type AirMessage, type AirRequest } from "../../lib/airsend";
 import { errorText } from "../../lib/api";
 import * as fmt from "../../lib/format";
-import { t } from "../../lib/i18n";
+import { t, tf } from "../../lib/i18n";
 import { Button, Checkbox } from "../../ui/primitives";
 import { Dialog, toast } from "../../ui/overlays";
 import { useApp } from "../context";
@@ -72,6 +72,57 @@ function RequestDialog({ r }: { r: AirRequest }) {
   );
 }
 
+function DownloadDialog({ r }: { r: AirDownloadRequest }) {
+  const [trust, setTrust] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const answer = async (accept: boolean) => {
+    setBusy(true);
+    try {
+      await airApi.decide(r.id, accept, accept && trust);
+    } catch (e) {
+      toast({ level: "error", title: "KuAirSend", message: errorText(e) });
+    } finally {
+      dismissDownload(r.id);
+    }
+  };
+  const d = r.download;
+  const later = d.at && d.at > Date.now() + 30_000;
+  return (
+    <Dialog
+      title="KuAirSend"
+      width={460}
+      onClose={() => void answer(false)}
+      footer={
+        <>
+          <Button className="is-danger" disabled={busy} onClick={() => void answer(false)}>
+            {t("Decline")}
+          </Button>
+          <Button variant="primary" icon={Download} busy={busy} onClick={() => void answer(true)} data-autofocus>
+            {later ? t("Schedule") : t("Download")}
+          </Button>
+        </>
+      }
+    >
+      <div className="air-offer">
+        <span className="air-peer-ring">
+          <PixelAnimal animal={r.peerAvatar} size={64} seed={hashPick(r.peerFingerprint, 97)} />
+          <OsBadge os={r.peerOs} />
+        </span>
+        <div className="air-offer-text">
+          <b>{r.peer}</b>
+          <span className="faint">
+            {later ? tf("wants this computer to download this at {time}", { time: fmt.dateTime(d.at!) }) : t("wants this computer to download this now")}
+          </span>
+        </div>
+      </div>
+      <div className="air-message mono">{d.filename ? `${d.filename}\n${d.url}` : d.url}</div>
+      <Checkbox checked={trust} onChange={setTrust}>
+        {t("Always accept from this device")}
+      </Checkbox>
+    </Dialog>
+  );
+}
+
 function MessageDialog({ m }: { m: AirMessage }) {
   const app = useApp();
   const link = isLink(m.text);
@@ -122,8 +173,9 @@ function MessageDialog({ m }: { m: AirMessage }) {
 
 /** Incoming offers and messages, over whatever screen is open (one at a time). */
 export function AirSendPrompts() {
-  const { requests, messages } = useAir();
+  const { requests, downloads, messages } = useAir();
   if (requests[0]) return <RequestDialog key={requests[0].id} r={requests[0]} />;
+  if (downloads[0]) return <DownloadDialog key={downloads[0].id} r={downloads[0]} />;
   if (messages[0]) return <MessageDialog key={messages[0].id} m={messages[0]} />;
   return null;
 }

@@ -8,7 +8,7 @@ import { errorText } from "../lib/api";
 import * as fmt from "../lib/format";
 import { t, tf } from "../lib/i18n";
 import { settingsStore, updateSettings } from "../lib/store";
-import { Button, Icon, IconButton, Input, PrefRow, Switch } from "../ui/primitives";
+import { Button, Checkbox, Icon, IconButton, Input, PrefRow, Switch } from "../ui/primitives";
 import { Dialog, showMenu, toast } from "../ui/overlays";
 import { useApp } from "../app/context";
 import { ANIMAL_NAMES, OsBadge, osName, PixelAnimal } from "../app/airsend/PixelAnimal";
@@ -36,6 +36,10 @@ function stateText(x: AirTransfer): string {
     case "transferring":
       return `${fmt.percent(x.done, x.total).toFixed(0)}% · ${fmt.speed(x.speed)}`;
     case "done":
+      if (x.download) {
+        const at = x.download.at && x.download.at > x.started + 30_000 ? fmt.dateTime(x.download.at) : null;
+        return at ? tf("Download scheduled for {time}", { time: at }) : out ? tf("{peer} is downloading it", { peer: x.peer }) : t("Download added");
+      }
       return x.text ? (out ? t("Message sent") : t("Message received")) : out ? t("Sent") : t("Received");
     case "declined":
       return t("Declined");
@@ -123,6 +127,56 @@ function TextDialog({ peer, onClose }: { peer: AirPeer; onClose: () => void }) {
       }
     >
       <textarea className="textarea" rows={5} value={text} onChange={(e) => setText(e.target.value)} placeholder={t("A message, or a download link: the other PC can download it with one click.")} autoFocus />
+    </Dialog>
+  );
+}
+
+/** Hand a link to the other device: it downloads the file itself, now or at a set time. */
+function RemoteDownloadDialog({ peer, onClose }: { peer: AirPeer; onClose: () => void }) {
+  const [url, setUrl] = useState("");
+  const [later, setLater] = useState(false);
+  const [when, setWhen] = useState(() => {
+    const d = new Date(Date.now() + 3600_000);
+    d.setMinutes(0, 0, 0);
+    const p = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+  });
+  const valid = /^(https?|ftp|sftp):\/\/\S+$|^magnet:\?\S+$/i.test(url.trim());
+  return (
+    <Dialog
+      title={tf("Download on {peer}", { peer: peer.alias })}
+      width={480}
+      onClose={onClose}
+      onSubmit={async () => {
+        if (!valid) return;
+        const at = later ? new Date(when).getTime() : null;
+        try {
+          await airApi.sendDownload(peer.fingerprint, { url: url.trim(), at });
+          toast({ level: "success", title: tf("Sent to {peer}", { peer: peer.alias }), message: at ? tf("It downloads at {time}.", { time: fmt.dateTime(at) }) : undefined });
+        } catch (e) {
+          toast({ level: "error", title: tf("Could not send to {peer}", { peer: peer.alias }), message: errorText(e) });
+        }
+        onClose();
+      }}
+      footer={
+        <>
+          <Button onClick={onClose}>{t("Cancel")}</Button>
+          <Button type="submit" variant="primary" disabled={!valid}>
+            {t("Send")}
+          </Button>
+        </>
+      }
+    >
+      <p className="faint" style={{ marginTop: 0 }}>
+        {t("The other device downloads the file itself, with its own connection.")}
+      </p>
+      <input className="input" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" autoFocus style={{ width: "100%" }} />
+      <div style={{ display: "flex", gap: "var(--space-3)", alignItems: "center", marginTop: "var(--space-3)" }}>
+        <Checkbox checked={later} onChange={setLater}>
+          {t("Start at")}
+        </Checkbox>
+        <input className="input" type="datetime-local" value={when} disabled={!later} onChange={(e) => setWhen(e.target.value)} />
+      </div>
     </Dialog>
   );
 }
@@ -294,6 +348,7 @@ export function AirSendView() {
   const [status, setStatus] = useState<AirStatus | null>(null);
   const [busy, setBusy] = useState(false);
   const [textFor, setTextFor] = useState<AirPeer | null>(null);
+  const [remoteFor, setRemoteFor] = useState<AirPeer | null>(null);
   const [adding, setAdding] = useState(false);
   const [pinFor, setPinFor] = useState<AirTransfer | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -352,6 +407,7 @@ export function AirSendView() {
         },
       },
       { label: t("Send text or a link…"), icon: MessageSquareText, onSelect: () => setTextFor(p) },
+      { label: tf("Download on {peer}…", { peer: p.alias }), icon: Download, onSelect: () => setRemoteFor(p) },
       "sep",
       {
         label: p.trusted ? t("Stop trusting this device") : t("Trust this device"),
@@ -438,6 +494,7 @@ export function AirSendView() {
         </div>
       </div>
       {textFor && <TextDialog peer={textFor} onClose={() => setTextFor(null)} />}
+      {remoteFor && <RemoteDownloadDialog peer={remoteFor} onClose={() => setRemoteFor(null)} />}
       {adding && <AddDialog onClose={() => setAdding(false)} />}
       {pinFor && (
         <PinDialog

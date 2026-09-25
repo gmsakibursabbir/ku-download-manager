@@ -893,6 +893,20 @@ const zh: Record<string, string> = {
   "{n} updated in “{queue}”": "“{queue}”中有 {n} 个已更新",
   "“{name}” can't be read": "无法读取“{name}”",
   "“{name}” started its queue.": "“{name}”已启动其队列。",
+  // KuAirSend: download on another device
+  "Schedule": "计划",
+  "wants this computer to download this at {time}": "希望这台电脑在 {time} 下载此内容",
+  "wants this computer to download this now": "希望这台电脑现在下载此内容",
+  "Download on {peer}": "在 {peer} 上下载",
+  "Download on {peer}…": "在 {peer} 上下载…",
+  "Sent to {peer}": "已发送到 {peer}",
+  "It downloads at {time}.": "将于 {time} 下载。",
+  "The other device downloads the file itself, with its own connection.": "另一台设备会用自己的网络连接下载该文件。",
+  "Download scheduled for {time}": "已计划在 {time} 下载",
+  "{peer} is downloading it": "{peer} 正在下载",
+  "Download added": "已添加下载",
+  "{peer} wants this computer to download {url}": "{peer} 希望这台电脑下载 {url}",
+  "{name} could not start the download.": "{name} 无法开始下载。",
 };
 
 export default zh;

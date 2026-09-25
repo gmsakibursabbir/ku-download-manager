@@ -1,0 +1,98 @@
+name: Android
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths: ["android/**", "crates/**", "app/src/lib/locales/**", "Cargo.*", ".github/workflows/android.yml"]
+  pull_request:
+    paths: ["android/**", "crates/**", "app/src/lib/locales/**", "Cargo.*", ".github/workflows/android.yml"]
+  workflow_dispatch:
+
+# Builds KuDownloader for Android: KuCore (Rust) for arm64, armv7 and x86_64,
+# then the Compose app as per-ABI and universal APKs. On a version tag the
+# APKs are attached to the (draft) GitHub release made by the CI workflow.
+#
+# Release signing (optional, repository secrets):
+#   KU_ANDROID_KEYSTORE_B64  base64 of the .jks keystore
+#   KU_ANDROID_KEYSTORE_PASSWORD, KU_ANDROID_KEY_ALIAS, KU_ANDROID_KEY_PASSWORD
+# Without them the APKs are signed with a throwaway debug key (fine for
+# testing; users can't update between builds signed with different keys).
+
+jobs:
+  apk:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      NDK_VERSION: 27.2.12479018
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - uses: android-actions/setup-android@v3
+      - name: Android NDK
+        run: |
+          sdkmanager --install "ndk;${NDK_VERSION}" "platforms;android-35" "build-tools;35.0.0" > /dev/null
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/${NDK_VERSION}" >> "$GITHUB_ENV"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
+      - uses: Swatinem/rust-cache@v2
+        with: { key: android }
+      - name: cargo-ndk
+        run: cargo install cargo-ndk --locked
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Translations and sprites (checked against the desktop app)
+        run: |
+          node android/scripts/sprites.cjs
+          node android/scripts/locales.mjs --check
+          git diff --exit-code android/app/src/main/java || (echo "::error::Run node android/scripts/sprites.cjs and commit"; exit 1)
+      - name: Bridge tests (ad blocker, translations)
+        run: cargo test -p ku-android --release
+      - name: KuCore for Android
+        run: android/scripts/build-native.sh release
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: "8.11.1" }
+      - name: Signing key
+        env:
+          KEYSTORE_B64: ${{ secrets.KU_ANDROID_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            echo "KU_ANDROID_KEYSTORE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+          else
+            echo "::warning::No release keystore secret: the APKs are signed with a debug key."
+          fi
+      - name: Build APKs
+        working-directory: android
+        env:
+          KU_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.KU_ANDROID_KEYSTORE_PASSWORD }}
+          KU_ANDROID_KEY_ALIAS: ${{ secrets.KU_ANDROID_KEY_ALIAS }}
+          KU_ANDROID_KEY_PASSWORD: ${{ secrets.KU_ANDROID_KEY_PASSWORD }}
+        run: gradle --no-daemon assembleRelease lintRelease
+      - name: Name the APKs
+        run: |
+          v=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)
+          mkdir -p out
+          for f in android/app/build/outputs/apk/release/*.apk; do
+            abi=$(basename "$f" .apk | sed -e 's/^app-//' -e 's/-release.*$//')
+            cp "$f" "out/KuDownloader_${v}_android-${abi}.apk"
+          done
+          ls -la out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kudownloader-android
+          path: |
+            out/*.apk
+            android/app/build/reports/lint-results-release.html
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            gh release view "${{ github.ref_name }}" --repo "${{ github.repository }}" > /dev/null 2>&1 && break
+            sleep 60
+          done
+          gh release upload "${{ github.ref_name }}" out/*.apk --clobber --repo "${{ github.repository }}" || echo "::warning::release not found; the APKs are in the job artifacts"

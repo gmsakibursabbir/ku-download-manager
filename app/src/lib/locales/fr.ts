@@ -893,6 +893,20 @@ const fr: Record<string, string> = {
   "{n} updated in “{queue}”": "{n} mis à jour dans « {queue} »",
   "“{name}” can't be read": "Impossible de lire « {name} »",
   "“{name}” started its queue.": "« {name} » a démarré sa file.",
+  // KuAirSend: download on another device
+  "Schedule": "Planifier",
+  "wants this computer to download this at {time}": "veut que cet ordinateur le télécharge le {time}",
+  "wants this computer to download this now": "veut que cet ordinateur le télécharge maintenant",
+  "Download on {peer}": "Télécharger sur {peer}",
+  "Download on {peer}…": "Télécharger sur {peer}…",
+  "Sent to {peer}": "Envoyé à {peer}",
+  "It downloads at {time}.": "Téléchargement prévu le {time}.",
+  "The other device downloads the file itself, with its own connection.": "L'autre appareil télécharge le fichier lui-même, avec sa propre connexion.",
+  "Download scheduled for {time}": "Téléchargement planifié pour le {time}",
+  "{peer} is downloading it": "{peer} le télécharge",
+  "Download added": "Téléchargement ajouté",
+  "{peer} wants this computer to download {url}": "{peer} veut que cet ordinateur télécharge {url}",
+  "{name} could not start the download.": "{name} n'a pas pu lancer le téléchargement.",
 };
 
 export default fr;

@@ -7,6 +7,8 @@
 //! transfer   POST /kuairsend/v1/offer                    files or text → per-file tokens once accepted
 //!            POST /kuairsend/v1/file?session&id&token     raw bytes, several files in parallel
 //!            POST /kuairsend/v1/cancel?session
+//! download   POST /kuairsend/v1/offer with `download`      a link for the receiver to download
+//!            itself, now or at a set time (older versions see it as a text message)
 //! ```
 //!
 //! Every connection is mutual TLS with each device's self-signed certificate.
@@ -108,6 +110,22 @@ struct Offer {
     /// A text message or link instead of files.
     text: Option<String>,
     pin: Option<String>,
+    /// "Download this": the receiver downloads the link itself.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    download: Option<RemoteDownload>,
+}
+
+/// A download handed to another device (for example from a phone to a PC).
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[serde(default, rename_all = "camelCase")]
+pub struct RemoteDownload {
+    pub url: String,
+    pub filename: Option<String>,
+    /// When to start (ms since the epoch); absent or past = now.
+    pub at: Option<i64>,
+    pub referer: Option<String>,
+    /// The sender's cookies for the link (a signed-in browser session).
+    pub cookies: Vec<ku_proto::BrowserCookie>,
 }
 
 #[derive(Serialize, Deserialize, Default)]
@@ -165,6 +183,9 @@ pub struct AirTransfer {
     /// Received files: the folder they were saved to.
     pub folder: Option<String>,
     pub text: Option<String>,
+    /// A download handed over (the link is also in `text`).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub download: Option<RemoteDownload>,
 }
 
 impl AirTransfer {
@@ -184,6 +205,17 @@ pub struct AirRequest {
     pub files: Vec<AirFile>,
     pub file_count: usize,
     pub total: u64,
+}
+
+#[derive(Serialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct AirDownloadRequest {
+    pub id: String,
+    pub peer: String,
+    pub peer_fingerprint: String,
+    pub peer_avatar: String,
+    pub peer_os: String,
+    pub download: RemoteDownload,
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -298,6 +330,7 @@ fn os_name() -> &'static str {
     match std::env::consts::OS {
         "windows" => "windows",
         "macos" => "macos",
+        "android" => "android",
         _ => "linux",
     }
 }
@@ -973,6 +1006,9 @@ impl AirSend {
             }
             g.pin_fails.remove(&peer.fingerprint);
         }
+        if let Some(dl) = offer.download {
+            return self.remote_download(peer, dl).await;
+        }
         // A message or link: shown right away, nothing to store.
         if let Some(text) = offer.text.filter(|t| !t.trim().is_empty()) {
             {
@@ -1074,6 +1110,115 @@ impl AirSend {
         };
         self.update(&id, true, |t| t.state = "transferring".into());
         Ok(Some(OfferReply { session: id, tokens }))
+    }
+
+    /// A link another device wants this one to download (now or later).
+    async fn remote_download(self: &Arc<Self>, peer: AirPeer, mut dl: RemoteDownload) -> Result<Option<OfferReply>, StatusCode> {
+        dl.url = dl.url.trim().to_string();
+        if dl.url.len() > 8192 || !crate::classify::scheme_allowed(&dl.url) || dl.cookies.len() > 300 {
+            return Err(StatusCode::BAD_REQUEST);
+        }
+        dl.filename = dl.filename.map(|f| crate::classify::sanitize_filename(&f)).filter(|f| !f.is_empty());
+        let s = self.core.settings();
+        let auto = s.airsend_auto_accept || peer.trusted;
+        // Only questions are rate-limited; a trusted phone may hand over many links.
+        if !auto {
+            let mut g = self.lock();
+            let now = Instant::now();
+            if g.last_message.get(&peer.fingerprint).is_some_and(|t| now.duration_since(*t) < MESSAGE_GAP) {
+                return Err(StatusCode::TOO_MANY_REQUESTS);
+            }
+            g.last_message.insert(peer.fingerprint.clone(), now);
+        }
+        let id = uid();
+        self.begin(AirTransfer {
+            id: id.clone(),
+            direction: "receive".into(),
+            peer: peer.alias.clone(),
+            peer_fingerprint: peer.fingerprint.clone(),
+            peer_avatar: peer.avatar.clone(),
+            state: "waiting".into(),
+            started: now_ms(),
+            text: Some(dl.url.clone()),
+            download: Some(dl.clone()),
+            ..Default::default()
+        });
+        if !auto {
+            let (tx, rx) = oneshot::channel();
+            self.lock().decisions.insert(id.clone(), tx);
+            self.core.emit(CoreEvent::AirSendDownload {
+                request: Box::new(AirDownloadRequest {
+                    id: id.clone(),
+                    peer: peer.alias.clone(),
+                    peer_fingerprint: peer.fingerprint.clone(),
+                    peer_avatar: peer.avatar.clone(),
+                    peer_os: peer.os.clone(),
+                    download: dl.clone(),
+                }),
+            });
+            let accepted = matches!(tokio::time::timeout(ACCEPT_TIMEOUT, rx).await, Ok(Ok(true)));
+            self.lock().decisions.remove(&id);
+            if !accepted {
+                self.update(&id, true, |t| t.state = "declined".into());
+                return Err(StatusCode::FORBIDDEN);
+            }
+        }
+        match self.start_remote_download(&dl, &peer.alias).await {
+            Ok(()) => {
+                self.update(&id, true, |t| t.state = "done".into());
+                Ok(None)
+            }
+            Err(e) => {
+                let msg = format!("{e:#}");
+                self.update(&id, true, |t| {
+                    t.state = "failed".into();
+                    t.error = Some(msg);
+                });
+                Err(StatusCode::UNPROCESSABLE_ENTITY)
+            }
+        }
+    }
+
+    /// Add a handed-over download: started now, or put in a queue of its own
+    /// that a one-off schedule starts at the requested time.
+    async fn start_remote_download(&self, dl: &RemoteDownload, from: &str) -> Result<()> {
+        let later = dl.at.filter(|t| *t > now_ms() + 30_000);
+        let queue_id = match later {
+            Some(at) => Some(self.schedule_queue(at, from)?),
+            None => None,
+        };
+        let req = ku_proto::AddRequest {
+            url: dl.url.clone(),
+            filename: dl.filename.clone(),
+            queue_id,
+            start: Some(later.is_none()),
+            source: Some("airsend".into()),
+            options: ku_proto::DownloadOptions { referer: dl.referer.clone(), cookies: dl.cookies.clone(), ..Default::default() },
+            ..Default::default()
+        };
+        self.core.add(req).await?;
+        Ok(())
+    }
+
+    /// The queue for downloads due at `at` (local time, to the minute), with
+    /// the one-off schedule that starts it.
+    fn schedule_queue(&self, at: i64, from: &str) -> Result<String> {
+        let when = chrono::DateTime::from_timestamp_millis(at).ok_or_else(|| anyhow!("Invalid start time"))?.with_timezone(&chrono::Local);
+        let (date, time) = (when.format("%Y-%m-%d").to_string(), when.format("%H:%M").to_string());
+        let id = format!("airsend-{}", when.format("%Y%m%d-%H%M"));
+        if !self.core.queues().iter().any(|q| q.id == id) {
+            self.core.save_queue(crate::types::Queue { id: id.clone(), name: format!("KuAirSend · {date} {time}"), max_concurrent: 2, ..Default::default() })?;
+            self.core.save_schedule(crate::types::Schedule {
+                id: String::new(),
+                name: format!("KuAirSend · {from}"),
+                enabled: true,
+                queue_id: id.clone(),
+                start: time,
+                date: Some(date),
+                ..Default::default()
+            })?;
+        }
+        Ok(id)
     }
 
     /// The user's answer to an incoming offer.
@@ -1257,6 +1402,18 @@ impl AirSend {
 
     /// Send files/folders or a text/link to a nearby device. Returns the transfer id.
     pub fn send(self: &Arc<Self>, fingerprint: &str, paths: Vec<String>, text: Option<String>, pin: Option<String>) -> Result<String> {
+        self.send_with(fingerprint, paths, text, None, pin)
+    }
+
+    /// Ask another device to download a link itself (now or at `download.at`).
+    pub fn send_download(self: &Arc<Self>, fingerprint: &str, download: RemoteDownload, pin: Option<String>) -> Result<String> {
+        if !crate::classify::scheme_allowed(download.url.trim()) {
+            bail!("Unsupported address. KuDownloader accepts http, https, ftp, sftp and magnet links.");
+        }
+        self.send_with(fingerprint, Vec::new(), None, Some(download), pin)
+    }
+
+    fn send_with(self: &Arc<Self>, fingerprint: &str, paths: Vec<String>, text: Option<String>, download: Option<RemoteDownload>, pin: Option<String>) -> Result<String> {
         if !self.is_running() {
             bail!("Turn on KuAirSend first.");
         }
@@ -1270,12 +1427,13 @@ impl AirSend {
             peer_avatar: peer.avatar.clone(),
             state: "waiting".into(),
             started: now_ms(),
-            text: text.clone(),
+            text: text.clone().or_else(|| download.as_ref().map(|d| d.url.clone())),
+            download: download.clone(),
             ..Default::default()
         });
         let (me, tid) = (self.clone(), id.clone());
         let task = tokio::spawn(async move {
-            let (state, error) = match me.clone().send_inner(&tid, &peer, paths, text, pin).await {
+            let (state, error) = match me.clone().send_inner(&tid, &peer, paths, text, download, pin).await {
                 Ok(state) => (state.to_string(), None),
                 Err(e) => ("failed".to_string(), Some(format!("{e:#}"))),
             };
@@ -1292,7 +1450,10 @@ impl AirSend {
         Ok(id)
     }
 
-    async fn send_inner(self: Arc<Self>, id: &str, peer: &AirPeer, paths: Vec<String>, text: Option<String>, pin: Option<String>) -> Result<&'static str> {
+    #[allow(clippy::too_many_arguments)]
+    async fn send_inner(self: Arc<Self>, id: &str, peer: &AirPeer, paths: Vec<String>, text: Option<String>, download: Option<RemoteDownload>, pin: Option<String>) -> Result<&'static str> {
+        // Older versions don't know `download`: they show the link as a message.
+        let text = text.or_else(|| download.as_ref().map(|d| d.url.clone()));
         let (c, _) = client(&self.id, Some(&peer.fingerprint))?;
         let base = format!("https://{}:{}{API}", peer.ip, peer.port);
         let files = match &text {
@@ -1309,7 +1470,7 @@ impl AirSend {
             t.file_count = offer_files.len();
             t.total = total;
         });
-        let offer = Offer { from: self.info(false), files: offer_files.clone(), text, pin };
+        let offer = Offer { from: self.info(false), files: offer_files.clone(), text, pin, download };
         let resp = c
             .post(format!("{base}/offer"))
             .timeout(ACCEPT_TIMEOUT + Duration::from_secs(30))
@@ -1325,6 +1486,7 @@ impl AirSend {
             StatusCode::CONFLICT => bail!("{} is receiving from someone else. Try again in a moment.", peer.alias),
             StatusCode::TOO_MANY_REQUESTS => bail!("{} asked to wait (too many attempts). Try again in a minute.", peer.alias),
             StatusCode::INSUFFICIENT_STORAGE => bail!("{} does not have enough free space for this.", peer.alias),
+            StatusCode::UNPROCESSABLE_ENTITY => bail!("{} could not start the download.", peer.alias),
             s => bail!("{} refused the transfer ({s}).", peer.alias),
         }
         let reply: OfferReply = resp.json().await?;

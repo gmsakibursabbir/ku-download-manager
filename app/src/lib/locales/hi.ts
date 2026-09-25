@@ -893,6 +893,20 @@ const hi: Record<string, string> = {
   "{n} updated in “{queue}”": "“{queue}” में {n} अपडेट हुए",
   "“{name}” can't be read": "“{name}” पढ़ी नहीं जा सकती",
   "“{name}” started its queue.": "“{name}” ने अपनी कतार शुरू की।",
+  // KuAirSend: download on another device
+  "Schedule": "शेड्यूल करें",
+  "wants this computer to download this at {time}": "चाहता है कि यह कंप्यूटर इसे {time} पर डाउनलोड करे",
+  "wants this computer to download this now": "चाहता है कि यह कंप्यूटर इसे अभी डाउनलोड करे",
+  "Download on {peer}": "{peer} पर डाउनलोड करें",
+  "Download on {peer}…": "{peer} पर डाउनलोड करें…",
+  "Sent to {peer}": "{peer} को भेजा गया",
+  "It downloads at {time}.": "यह {time} पर डाउनलोड होगा।",
+  "The other device downloads the file itself, with its own connection.": "दूसरा डिवाइस अपने कनेक्शन से फ़ाइल खुद डाउनलोड करेगा।",
+  "Download scheduled for {time}": "{time} के लिए डाउनलोड शेड्यूल हुआ",
+  "{peer} is downloading it": "{peer} इसे डाउनलोड कर रहा है",
+  "Download added": "डाउनलोड जोड़ा गया",
+  "{peer} wants this computer to download {url}": "{peer} चाहता है कि यह कंप्यूटर {url} डाउनलोड करे",
+  "{name} could not start the download.": "{name} डाउनलोड शुरू नहीं कर सका।",
 };
 
 export default hi;

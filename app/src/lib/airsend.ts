@@ -39,6 +39,28 @@ export interface AirTransfer {
   error?: string | null;
   folder?: string | null;
   text?: string | null;
+  /** A link handed over for the other device to download itself. */
+  download?: RemoteDownload | null;
+}
+
+/** "Download this": a link one device asks another to download (now or later). */
+export interface RemoteDownload {
+  url: string;
+  filename?: string | null;
+  /** Start time (ms since the epoch); none = now. */
+  at?: number | null;
+  referer?: string | null;
+  cookies?: unknown[];
+}
+
+/** A nearby device asks this one to download a link: Accept / Decline. */
+export interface AirDownloadRequest {
+  id: string;
+  peer: string;
+  peerFingerprint: string;
+  peerAvatar: string;
+  peerOs: string;
+  download: RemoteDownload;
 }
 
 /** Someone wants to send files: Accept / Decline. */
@@ -81,6 +103,8 @@ export const airApi = {
   transfers: () => invoke<AirTransfer[]>("airsend_transfers"),
   send: (fingerprint: string, paths: string[], text?: string | null, pin?: string | null) =>
     invoke<string>("airsend_send", { fingerprint, paths, text: text ?? null, pin: pin ?? null }),
+  sendDownload: (fingerprint: string, download: RemoteDownload, pin?: string | null) =>
+    invoke<string>("airsend_send_download", { fingerprint, download, pin: pin ?? null }),
   cancel: (id: string) => invoke<void>("airsend_cancel", { id }),
   decide: (id: string, accept: boolean, trust: boolean) => invoke<void>("airsend_decide", { id, accept, trust }),
   refresh: () => invoke<void>("airsend_refresh"),
@@ -99,10 +123,11 @@ interface Snapshot {
   peers: AirPeer[];
   transfers: AirTransfer[];
   requests: AirRequest[];
+  downloads: AirDownloadRequest[];
   messages: AirMessage[];
 }
 
-let snap: Snapshot = { peers: [], transfers: [], requests: [], messages: [] };
+let snap: Snapshot = { peers: [], transfers: [], requests: [], downloads: [], messages: [] };
 const listeners = new Set<() => void>();
 
 function set(p: Partial<Snapshot>) {
@@ -121,11 +146,15 @@ onCoreEvent((e) => {
       const transfers = snap.transfers.some((x) => x.id === t.id) ? snap.transfers.map((x) => (x.id === t.id ? t : x)) : [t, ...rest].slice(0, 150);
       // An offer that was answered, withdrawn or timed out closes its prompt.
       const requests = t.state === "waiting" ? snap.requests : snap.requests.filter((r) => r.id !== t.id);
-      set({ transfers, requests });
+      const downloads = t.state === "waiting" ? snap.downloads : snap.downloads.filter((r) => r.id !== t.id);
+      set({ transfers, requests, downloads });
       break;
     }
     case "airSendRequest":
       set({ requests: [...snap.requests.filter((r) => r.id !== e.request.id), e.request] });
+      break;
+    case "airSendDownload":
+      set({ downloads: [...snap.downloads.filter((r) => r.id !== e.request.id), e.request] });
       break;
     case "airSendMessage":
       set({ messages: [...snap.messages, e.message].slice(-20) });
@@ -148,6 +177,10 @@ export function reloadTransfers() {
 
 export function dismissRequest(id: string) {
   set({ requests: snap.requests.filter((r) => r.id !== id) });
+}
+
+export function dismissDownload(id: string) {
+  set({ downloads: snap.downloads.filter((r) => r.id !== id) });
 }
 
 export function dismissMessage(id: string) {

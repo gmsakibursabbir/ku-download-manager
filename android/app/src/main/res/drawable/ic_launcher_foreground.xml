@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The KuDownloader mark (app/src-tauri/icons/logo.svg) inside the adaptive-icon safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
+    <group
+        android:pivotX="512"
+        android:pivotY="512"
+        android:scaleX="0.6"
+        android:scaleY="0.6"
+        android:translateY="-8">
+        <path
+            android:pathData="M512,196v424"
+            android:strokeWidth="124"
+            android:strokeColor="#FFFFFF"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M300,432l212,212 212,-212"
+            android:strokeWidth="124"
+            android:strokeColor="#FFFFFF"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path
+            android:fillColor="#D4FF00"
+            android:pathData="M314,744h396a52,52 0,0 1,0 104h-396a52,52 0,0 1,0 -104z" />
+    </group>
+</vector>

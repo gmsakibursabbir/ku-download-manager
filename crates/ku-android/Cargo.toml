@@ -1,0 +1,25 @@
+[package]
+name = "ku-android"
+description = "KuDownloader for Android: JNI bridge to KuCore, KuAirSend and the browser's ad blocker"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[lib]
+name = "kudroid"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+kucore.workspace = true
+ku-proto.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber = { workspace = true, features = ["fmt"] }
+base64 = "0.22"
+url = "2"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "gzip"] }
+jni = "0.21"
+adblock = { version = "0.13", default-features = false, features = ["embedded-domain-resolver", "full-regex-handling"] }

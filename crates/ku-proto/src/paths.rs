@@ -21,7 +21,11 @@ pub fn api_file() -> PathBuf {
     data_dir().join("api.json")
 }
 
+/// `KU_DOWNLOAD_DIR` overrides it (Android, where `dirs` knows no folder).
 pub fn default_download_dir() -> PathBuf {
+    if let Some(p) = std::env::var_os("KU_DOWNLOAD_DIR") {
+        return PathBuf::from(p);
+    }
     dirs::download_dir()
         .or_else(|| dirs::home_dir().map(|h| h.join("Downloads")))
         .unwrap_or_else(|| PathBuf::from("."))

@@ -893,6 +893,20 @@ const ko: Record<string, string> = {
   "{n} updated in “{queue}”": "“{queue}”에서 {n}개 업데이트됨",
   "“{name}” can't be read": "“{name}”을(를) 읽을 수 없습니다",
   "“{name}” started its queue.": "“{name}” 예약이 대기열을 시작했습니다.",
+  // KuAirSend: download on another device
+  "Schedule": "예약",
+  "wants this computer to download this at {time}": "이 컴퓨터가 {time}에 다운로드하기를 원합니다",
+  "wants this computer to download this now": "이 컴퓨터가 지금 다운로드하기를 원합니다",
+  "Download on {peer}": "{peer}에서 다운로드",
+  "Download on {peer}…": "{peer}에서 다운로드…",
+  "Sent to {peer}": "{peer}에 보냄",
+  "It downloads at {time}.": "{time}에 다운로드됩니다.",
+  "The other device downloads the file itself, with its own connection.": "상대 기기가 자체 연결로 파일을 직접 다운로드합니다.",
+  "Download scheduled for {time}": "{time}에 다운로드 예약됨",
+  "{peer} is downloading it": "{peer}에서 다운로드 중",
+  "Download added": "다운로드 추가됨",
+  "{peer} wants this computer to download {url}": "{peer}에서 이 컴퓨터가 {url}을(를) 다운로드하기를 원합니다",
+  "{name} could not start the download.": "{name}에서 다운로드를 시작하지 못했습니다.",
 };
 
 export default ko;

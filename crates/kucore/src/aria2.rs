@@ -90,6 +90,11 @@ impl Aria2 {
             &format!("--dht-file-path6={}", dht6.display()),
             &format!("--dir={}", cfg.download_dir),
         ]);
+        // Where the system has no certificate store aria2 knows (Android), the
+        // bundled one is named here.
+        if let Some(ca) = std::env::var_os("SSL_CERT_FILE").filter(|p| Path::new(p).is_file()) {
+            cmd.arg(format!("--ca-certificate={}", Path::new(&ca).display()));
+        }
         cmd.stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::piped()).kill_on_drop(true);
         hide_window(&mut cmd);
         let child = cmd.spawn().with_context(|| format!("starting {}", cfg.binary.display()))?;

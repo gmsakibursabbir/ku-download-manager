@@ -27,9 +27,23 @@ pub struct YtEnv {
     pub cookies_from_browser: Option<String>,
 }
 
+/// A yt-dlp process. Where yt-dlp is a Python zipapp rather than a program
+/// (Android: apps may not execute files they wrote), `KU_PYTHON` names the
+/// interpreter that runs it.
+pub fn command(bin: &Path) -> Command {
+    match std::env::var_os("KU_PYTHON").filter(|p| !p.is_empty()) {
+        Some(python) => {
+            let mut cmd = Command::new(python);
+            cmd.arg(bin);
+            cmd
+        }
+        None => Command::new(bin),
+    }
+}
+
 impl YtEnv {
     fn base_command(&self) -> Command {
-        let mut cmd = Command::new(&self.ytdlp);
+        let mut cmd = command(&self.ytdlp);
         cmd.env("PYTHONIOENCODING", "utf-8").env("PYTHONUTF8", "1");
         // On-demand Linux ffmpeg (shared build) finds its libraries here.
         #[cfg(target_os = "linux")]
@@ -102,7 +116,7 @@ pub fn write_cookie_file(dir: &Path, cookies: &[BrowserCookie]) -> Result<Option
 }
 
 pub async fn version(bin: &Path) -> Option<String> {
-    let mut cmd = Command::new(bin);
+    let mut cmd = command(bin);
     cmd.arg("--version").stdout(Stdio::piped()).stderr(Stdio::null()).kill_on_drop(true);
     hide_window(&mut cmd);
     let out = tokio::time::timeout(Duration::from_secs(15), cmd.output()).await.ok()?.ok()?;
@@ -566,7 +580,7 @@ async fn kill_tree(pid: Option<u32>, child: &mut tokio::process::Child) {
 
 /// Self-update a standalone yt-dlp binary.
 pub async fn self_update(bin: &Path) -> Result<String> {
-    let mut cmd = Command::new(bin);
+    let mut cmd = command(bin);
     cmd.args(["-U", "--no-colors"]).stdout(Stdio::piped()).stderr(Stdio::piped()).kill_on_drop(true);
     hide_window(&mut cmd);
     let out = tokio::time::timeout(Duration::from_secs(180), cmd.output()).await??;

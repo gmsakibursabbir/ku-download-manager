@@ -27,6 +27,7 @@ pub fn handler() -> impl Fn(tauri::ipc::Invoke) -> bool + Send + Sync + 'static 
         airsend_peers,
         airsend_transfers,
         airsend_send,
+        airsend_send_download,
         airsend_cancel,
         airsend_decide,
         airsend_refresh,
@@ -762,6 +763,12 @@ fn airsend_transfers(state: State<'_, AppState>) -> R<Vec<kucore::airsend::AirTr
 #[tauri::command]
 async fn airsend_send(state: State<'_, AppState>, fingerprint: String, paths: Vec<String>, text: Option<String>, pin: Option<String>) -> R<String> {
     air(&state)?.send(&fingerprint, paths, text, pin).map_err(|err| format!("{err:#}"))
+}
+
+/// Hand a link to another device, which downloads it now or at `download.at`.
+#[tauri::command]
+async fn airsend_send_download(state: State<'_, AppState>, fingerprint: String, download: kucore::airsend::RemoteDownload, pin: Option<String>) -> R<String> {
+    air(&state)?.send_download(&fingerprint, download, pin).map_err(|err| format!("{err:#}"))
 }
 
 #[tauri::command]

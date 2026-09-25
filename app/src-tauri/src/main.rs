@@ -212,6 +212,10 @@ fn forward_events(app: AppHandle, core: Arc<Core>) {
                     };
                     notify(&app, "KuAirSend", &i18n::trf("{peer} wants to send you {files}.", &[("peer", &request.peer), ("files", &what)]));
                 }
+                CoreEvent::AirSendDownload { request } => {
+                    show_main(&app);
+                    notify(&app, "KuAirSend", &i18n::trf("{peer} wants this computer to download {url}", &[("peer", &request.peer), ("url", &request.download.url)]));
+                }
                 CoreEvent::AirSendMessage { message } if !window_visible(&app) => notify(&app, &i18n::trf("Message from {peer}", &[("peer", &message.peer)]), &message.text),
                 CoreEvent::AirSendTransfer { transfer } if transfer.direction == "receive" && transfer.state == "done" && transfer.text.is_none() && !window_visible(&app) => {
                     let body = if transfer.file_count == 1 {

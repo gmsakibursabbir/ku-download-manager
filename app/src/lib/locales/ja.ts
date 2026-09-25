@@ -893,6 +893,20 @@ const ja: Record<string, string> = {
   "{n} updated in “{queue}”": "「{queue}」で {n} 件更新",
   "“{name}” can't be read": "「{name}」を読み込めません",
   "“{name}” started its queue.": "「{name}」がキューを開始しました。",
+  // KuAirSend: download on another device
+  "Schedule": "予約",
+  "wants this computer to download this at {time}": "このコンピューターで {time} にダウンロードしてほしいそうです",
+  "wants this computer to download this now": "このコンピューターで今すぐダウンロードしてほしいそうです",
+  "Download on {peer}": "{peer} でダウンロード",
+  "Download on {peer}…": "{peer} でダウンロード…",
+  "Sent to {peer}": "{peer} に送信しました",
+  "It downloads at {time}.": "{time} にダウンロードします。",
+  "The other device downloads the file itself, with its own connection.": "相手のデバイスが自分の回線でファイルをダウンロードします。",
+  "Download scheduled for {time}": "{time} にダウンロード予約済み",
+  "{peer} is downloading it": "{peer} がダウンロード中",
+  "Download added": "ダウンロードを追加しました",
+  "{peer} wants this computer to download {url}": "{peer} がこのコンピューターで {url} をダウンロードしてほしいそうです",
+  "{name} could not start the download.": "{name} はダウンロードを開始できませんでした。",
 };
 
 export default ja;

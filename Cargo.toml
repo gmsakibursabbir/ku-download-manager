@@ -5,6 +5,7 @@ members = [
     "crates/kucore",
     "crates/ku-cli",
     "crates/ku-native-host",
+    "crates/ku-android",
     "app/src-tauri",
 ]
 

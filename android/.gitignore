@@ -1,0 +1,11 @@
+.gradle/
+build/
+local.properties
+*.iml
+.idea/
+.kotlin/
+# Built by cargo-ndk (scripts/build-native.sh)
+app/src/main/jniLibs/
+keystore.properties
+*.jks
+*.keystore

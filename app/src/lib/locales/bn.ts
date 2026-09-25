@@ -891,6 +891,20 @@ const bn: Record<string, string> = {
   "{n} updated in “{queue}”": "“{queue}”-এ {n}টি আপডেট হয়েছে",
   "“{name}” can't be read": "“{name}” পড়া যাচ্ছে না",
   "“{name}” started its queue.": "“{name}” তার কিউ শুরু করেছে।",
+  // KuAirSend: download on another device
+  "Schedule": "শিডিউল করুন",
+  "wants this computer to download this at {time}": "এই কম্পিউটারে {time}-এ এটি ডাউনলোড করাতে চায়",
+  "wants this computer to download this now": "এই কম্পিউটারে এখনই এটি ডাউনলোড করাতে চায়",
+  "Download on {peer}": "{peer}-এ ডাউনলোড করুন",
+  "Download on {peer}…": "{peer}-এ ডাউনলোড করুন…",
+  "Sent to {peer}": "{peer}-কে পাঠানো হয়েছে",
+  "It downloads at {time}.": "এটি {time}-এ ডাউনলোড হবে।",
+  "The other device downloads the file itself, with its own connection.": "অন্য ডিভাইসটি নিজের কানেকশন দিয়ে ফাইলটি নিজেই ডাউনলোড করবে।",
+  "Download scheduled for {time}": "{time}-এর জন্য ডাউনলোড শিডিউল হয়েছে",
+  "{peer} is downloading it": "{peer} এটি ডাউনলোড করছে",
+  "Download added": "ডাউনলোড যোগ হয়েছে",
+  "{peer} wants this computer to download {url}": "{peer} এই কম্পিউটারে {url} ডাউনলোড করাতে চায়",
+  "{name} could not start the download.": "{name} ডাউনলোড শুরু করতে পারেনি।",
 };
 
 export default bn;
