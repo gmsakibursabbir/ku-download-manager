@@ -24,7 +24,7 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FolderOpen
-import androidx.compose.material.icons.filled.OpenInNew
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
@@ -105,7 +105,7 @@ fun DetailsSheet(id: String, onClose: () -> Unit) {
         return
     }
     val ku = LocalKuColors.current
-    var tab by remember { mutableStateOf(0) }
+    var tab by remember { androidx.compose.runtime.mutableIntStateOf(0) }
     var details by remember { mutableStateOf<JsonObject?>(null) }
     var confirmRemove by remember { mutableStateOf(false) }
     var edit by remember { mutableStateOf(false) }
@@ -166,7 +166,7 @@ fun DetailsSheet(id: String, onClose: () -> Unit) {
                 when {
                     d.isFinished -> {
                         Button({ if (!Files.open(ctx, File(d.path))) UiState.toast(t("No app on this phone can open this file.")) }) {
-                            Icon(Icons.Filled.OpenInNew, null)
+                            Icon(Icons.AutoMirrored.Filled.OpenInNew, null)
                             Spacer(Modifier.width(6.dp))
                             Text(t("Open"))
                         }
@@ -392,7 +392,7 @@ private fun EditDialog(d: Download, onClose: () -> Unit) {
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     var url by remember { mutableStateOf(d.url) }
     var name by remember { mutableStateOf(d.name) }
-    var connections by remember { mutableStateOf(d.connections.toFloat()) }
+    var connections by remember { androidx.compose.runtime.mutableFloatStateOf(d.connections.toFloat()) }
     val current = d.options?.get("speedLimit")?.jsonPrimitive?.longOrNull ?: 0
     var limit by remember { mutableStateOf(if (current > 0) (current / 1024).toString() else "") }
     var checksum by remember { mutableStateOf(d.options?.get("checksum")?.jsonPrimitive?.contentOrNull ?: "") }

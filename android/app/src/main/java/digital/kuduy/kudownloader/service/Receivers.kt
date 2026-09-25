@@ -68,6 +68,7 @@ class ActionReceiver : BroadcastReceiver() {
  */
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(ctx: Context, intent: Intent) {
+        if (intent.action != Intent.ACTION_BOOT_COMPLETED && intent.action != Intent.ACTION_MY_PACKAGE_REPLACED) return
         // KuApp.onCreate has started KuCore by now; boot broadcasts may start
         // a foreground service.
         val pending = goAsync()
@@ -85,6 +86,7 @@ class BootReceiver : BroadcastReceiver() {
 
 /** Quick Settings tile: add the copied link. */
 class AddTileService : TileService() {
+    @android.annotation.SuppressLint("StartActivityAndCollapseDeprecated") // only below Android 14
     override fun onClick() {
         super.onClick()
         val i = Intent(this, MainActivity::class.java).setAction(MainActivity.ACTION_ADD_CLIPBOARD).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

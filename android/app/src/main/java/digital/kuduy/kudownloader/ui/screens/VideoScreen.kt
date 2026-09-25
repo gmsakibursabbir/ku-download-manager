@@ -115,7 +115,7 @@ fun VideoScreen() {
     var error by remember { mutableStateOf<String?>(null) }
     var mode by rememberSaveable { mutableStateOf("video") }
     var height by remember { mutableStateOf<Int?>(null) }
-    var bitrate by remember { mutableStateOf(Ku.settingLong("audioBitrate", 320).toInt()) }
+    var bitrate by remember { androidx.compose.runtime.mutableIntStateOf(Ku.settingLong("audioBitrate", 320).toInt()) }
     var container by remember { mutableStateOf(Ku.settingString("videoContainer", "mp4")) }
     var audioFormat by remember { mutableStateOf(Ku.settingString("audioFormat", "m4a")) }
     var subs by remember { mutableStateOf(Ku.settingBool("subtitles", false)) }

@@ -182,7 +182,7 @@ private fun describe(s: Schedule, queues: List<Queue>): String {
 private fun QueueDialog(q: Queue, onClose: () -> Unit) {
     val scope = rememberCoroutineScope()
     var name by remember { mutableStateOf(queueName(q.id, q.name)) }
-    var max by remember { mutableStateOf(q.maxConcurrent.toFloat()) }
+    var max by remember { androidx.compose.runtime.mutableFloatStateOf(q.maxConcurrent.toFloat()) }
     var sync by remember { mutableStateOf(if (q.syncMinutes > 0) q.syncMinutes.toString() else "") }
     AlertDialog(
         onDismissRequest = onClose,

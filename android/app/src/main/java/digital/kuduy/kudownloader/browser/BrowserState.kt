@@ -96,7 +96,6 @@ object BrowserState {
         v.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
-            databaseEnabled = true
             loadWithOverviewMode = true
             useWideViewPort = true
             builtInZoomControls = true

@@ -117,7 +117,7 @@ object Ku {
     }
 
     private fun deviceName(ctx: Context): String =
-        runCatching { Global.getString(ctx.contentResolver, Global.DEVICE_NAME) }.getOrNull()?.takeIf { it.isNotBlank() }
+        (if (Build.VERSION.SDK_INT >= 25) runCatching { Global.getString(ctx.contentResolver, Global.DEVICE_NAME) }.getOrNull() else null)?.takeIf { it.isNotBlank() }
             ?: "${Build.MANUFACTURER.replaceFirstChar { it.uppercase() }} ${Build.MODEL}"
 
     // ───────── requests ─────────

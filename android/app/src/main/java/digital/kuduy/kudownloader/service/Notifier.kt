@@ -44,6 +44,7 @@ object Notifier {
     fun allowed(ctx: Context): Boolean =
         Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(ctx, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
 
+    @android.annotation.SuppressLint("MissingPermission") // checked by allowed()
     private fun post(ctx: Context, id: Int, n: android.app.Notification) {
         if (!allowed(ctx)) return
         runCatching { NotificationManagerCompat.from(ctx).notify(id, n) }

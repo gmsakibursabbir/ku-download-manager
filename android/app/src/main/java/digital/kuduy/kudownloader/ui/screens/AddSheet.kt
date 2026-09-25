@@ -103,7 +103,7 @@ fun AddSheet(prefill: AddPrefill, onClose: () -> Unit) {
     var filename by remember { mutableStateOf(prefill.filename ?: "") }
     var nameEdited by remember { mutableStateOf(prefill.filename != null) }
     var dir by remember { mutableStateOf<String?>(null) }
-    var connections by remember { mutableStateOf(Ku.settingLong("defaultConnections", 0).toFloat()) }
+    var connections by remember { androidx.compose.runtime.mutableFloatStateOf(Ku.settingLong("defaultConnections", 0).toFloat()) }
     var queueId by remember { mutableStateOf("main") }
     var startNow by remember { mutableStateOf(true) }
     var advanced by remember { mutableStateOf(false) }

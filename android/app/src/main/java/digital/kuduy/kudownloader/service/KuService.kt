@@ -83,6 +83,7 @@ class KuService : LifecycleService() {
 
     private var lastPost = 0L
 
+    @SuppressLint("MissingPermission") // checked by Notifier.allowed
     private fun notifyProgress() {
         val now = System.currentTimeMillis()
         if (now - lastPost < 900) return
@@ -127,12 +128,15 @@ class KuService : LifecycleService() {
         return b.build()
     }
 
-    @SuppressLint("WakelockTimeout")
     private fun locks(downloading: Boolean, air: Boolean) {
         val pm = getSystemService(PowerManager::class.java)
         val wm = applicationContext.getSystemService(WifiManager::class.java)
-        if (downloading && wake == null) {
-            wake = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "KuDownloader:downloads").apply { setReferenceCounted(false); acquire() }
+        if (downloading) {
+            // Renewed on every progress update; the timeout only matters if the
+            // app is killed without releasing it.
+            val w = wake ?: pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "KuDownloader:downloads").apply { setReferenceCounted(false) }
+            w.acquire(WAKE_TIMEOUT)
+            wake = w
         } else if (!downloading && !air) {
             wake?.takeIf { it.isHeld }?.release()
             wake = null
@@ -168,6 +172,8 @@ class KuService : LifecycleService() {
     }
 
     companion object {
+        private const val WAKE_TIMEOUT = 10 * 60 * 1000L
+
         @Volatile var running = false
             private set
 
