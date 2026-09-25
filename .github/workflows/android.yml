@@ -95,7 +95,8 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         env: { GH_TOKEN: "${{ github.token }}" }
         run: |
-          for i in 1 2 3 4 5 6 7 8 9 10; do
+          # The desktop builds create the draft release; they can take ~40 min.
+          for i in $(seq 1 60); do
             gh release view "${{ github.ref_name }}" --repo "${{ github.repository }}" > /dev/null 2>&1 && break
             sleep 60
           done
