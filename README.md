@@ -5,8 +5,8 @@ with its own adaptive HTTP engine (KuHTTP), aria2 for torrents/FTP, yt-dlp for
 media, a compact Tauri UI and a browser extension that hands downloads and
 videos to the app. Free and open source.
 
-**[Download](https://github.com/gmsakibursabbir/ku-download-manager/releases/latest)** ·
-**[Project page](https://gmsakibursabbir.github.io/ku-download-manager/)**
+**[Download](https://github.com/kuduyDigital/ku-download-manager/releases/latest)** ·
+**[Project page](https://kuduydigital.github.io/ku-download-manager/)**
 
 ![KuDownloader](docs/screenshots/main-dark.png)
 

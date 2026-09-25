@@ -1,7 +1,7 @@
 // KuDownloader site: small, dependency-free interactions.
 (() => {
   "use strict";
-  const REPO = "gmsakibursabbir/ku-download-manager";
+  const REPO = "kuduyDigital/ku-download-manager";
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const dark = () => matchMedia("(prefers-color-scheme: dark)").matches;
   const $ = (s, el = document) => el.querySelector(s);

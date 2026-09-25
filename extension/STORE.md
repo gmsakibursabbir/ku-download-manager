@@ -51,7 +51,7 @@ Send downloads, videos and links to KuDownloader — a fast download manager wit
 > • Right-click a link, image or page: "Download with KuDownloader",
 >   "Download all links…".
 > • Works with the KuDownloader desktop app for Windows, macOS and Linux
->   (free, open source): https://github.com/gmsakibursabbir/ku-download-manager
+>   (free, open source): https://github.com/kuduyDigital/ku-download-manager
 >
 > The extension only talks to KuDownloader on your own computer (native
 > messaging). It does not collect, sell or send your data anywhere else.
@@ -79,7 +79,7 @@ KuDownloader desktop application installed on the same computer.
 third parties. Download URLs, the page address and the download's cookies are
 passed only to the KuDownloader app on the same device.
 
-**Privacy policy URL:** <https://gmsakibursabbir.github.io/ku-download-manager/privacy.html>
+**Privacy policy URL:** <https://kuduydigital.github.io/ku-download-manager/privacy.html>
 
 ## Screenshots (1280×800)
 

@@ -73,7 +73,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDhCQkU4QkJCODMxNDQ4NkMKUldSc1NCU0R1NHUraTBwT2d1b2crNFNYSkVWd2xWcHNURERPNms5VU1nR0g0V0pvYlY2eDR3L1QK",
       "endpoints": [
-        "https://github.com/gmsakibursabbir/ku-download-manager/releases/latest/download/latest.json"
+        "https://github.com/kuduyDigital/ku-download-manager/releases/latest/download/latest.json"
       ],
       "windows": {
         "installMode": "passive"

@@ -68,7 +68,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import java.net.HttpURLConnection
 import java.net.URL
 
-const val REPO = "https://github.com/gmsakibursabbir/ku-download-manager"
+const val REPO = "https://github.com/kuduyDigital/ku-download-manager"
 
 @Composable
 fun MoreScreen() {
@@ -96,7 +96,7 @@ fun AboutScreen() {
     LaunchedEffect(Unit) {
         latest = withContext(Dispatchers.IO) {
             runCatching {
-                val c = URL("https://api.github.com/repos/gmsakibursabbir/ku-download-manager/releases/latest").openConnection() as HttpURLConnection
+                val c = URL("https://api.github.com/repos/kuduyDigital/ku-download-manager/releases/latest").openConnection() as HttpURLConnection
                 c.setRequestProperty("Accept", "application/vnd.github+json")
                 c.connectTimeout = 10_000
                 c.readTimeout = 10_000
@@ -133,7 +133,7 @@ fun AboutScreen() {
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextButton({ ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(REPO))) }) { Text(t("Source code")) }
-                TextButton({ ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://gmsakibursabbir.github.io/ku-download-manager/privacy.html"))) }) { Text(t("Privacy")) }
+                TextButton({ ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://kuduydigital.github.io/ku-download-manager/privacy.html"))) }) { Text(t("Privacy")) }
             }
             SectionTitle(t("Built with"))
             Text("yt-dlp · FFmpeg · aria2 · Brave adblock-rust · youtubedl-android · Jetpack Compose · Rust", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

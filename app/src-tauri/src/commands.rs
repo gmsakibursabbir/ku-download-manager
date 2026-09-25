@@ -442,7 +442,7 @@ struct UpdateInfo {
     url: Option<String>,
 }
 
-const RELEASES_API: &str = "https://api.github.com/repos/gmsakibursabbir/ku-download-manager/releases/latest";
+const RELEASES_API: &str = "https://api.github.com/repos/kuduyDigital/ku-download-manager/releases/latest";
 
 /// "v0.2.10" → [0, 2, 10]; a pre-release suffix is ignored.
 fn version_parts(v: &str) -> Vec<u64> {
