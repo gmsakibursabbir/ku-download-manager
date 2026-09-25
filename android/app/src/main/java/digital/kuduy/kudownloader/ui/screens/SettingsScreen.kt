@@ -68,6 +68,7 @@ import digital.kuduy.kudownloader.ui.ACCENTS
 import digital.kuduy.kudownloader.ui.Card
 import digital.kuduy.kudownloader.ui.ChoiceRow
 import digital.kuduy.kudownloader.ui.ClickRow
+import digital.kuduy.kudownloader.ui.Group
 import digital.kuduy.kudownloader.ui.KuScaffold
 import digital.kuduy.kudownloader.ui.SectionTitle
 import digital.kuduy.kudownloader.ui.SwitchRow
@@ -104,7 +105,13 @@ fun SettingsScreen() {
     KuScaffold(current?.title ?: t("Settings"), back = true) { pad ->
         Column(Modifier.fillMaxSize().padding(pad).verticalScroll(rememberScrollState())) {
             when (section) {
-                null -> sections.forEach { s -> ClickRow(s.title, s.subtitle, s.icon) { UiState.settingsSection = s.id } }
+                null -> {
+                    val row: @Composable (String) -> Unit = { id -> sections.first { it.id == id }.let { s -> ClickRow(s.title, s.subtitle, s.icon) { UiState.settingsSection = s.id } } }
+                    Group(t("General")) { row("appearance"); row("notifications") }
+                    Group(t("Downloads")) { row("downloads"); row("mobile"); row("connection"); row("speed") }
+                    Group(t("Media and browser")) { row("media"); row("torrent"); row("browser") }
+                    Group { row("advanced") }
+                }
                 "appearance" -> Appearance()
                 "downloads" -> DownloadsSettings()
                 "mobile" -> MobileSettings()

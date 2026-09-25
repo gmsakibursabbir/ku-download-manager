@@ -53,6 +53,7 @@ import digital.kuduy.kudownloader.core.Ku
 import digital.kuduy.kudownloader.i18n.t
 import digital.kuduy.kudownloader.i18n.tf
 import digital.kuduy.kudownloader.ui.ClickRow
+import digital.kuduy.kudownloader.ui.Group
 import digital.kuduy.kudownloader.ui.KuScaffold
 import digital.kuduy.kudownloader.ui.Notice
 import digital.kuduy.kudownloader.ui.PixelAnimal
@@ -74,15 +75,19 @@ const val REPO = "https://github.com/kuduyDigital/ku-download-manager"
 fun MoreScreen() {
     KuScaffold(t("More")) { pad ->
         Column(Modifier.fillMaxSize().padding(pad).verticalScroll(rememberScrollState())) {
-            ClickRow(t("Batch downloads"), t("Many links at once, or a numbered pattern"), Icons.AutoMirrored.Filled.PlaylistAdd) { UiState.go(Screen.Batch) }
-            ClickRow(t("Fetch Projects"), t("Download the files linked on a page"), Icons.Filled.TravelExplore) { UiState.go(Screen.Fetch) }
-            ClickRow(t("Queues and schedules"), t("Start downloads at night or one after another"), Icons.Filled.Queue) { UiState.go(Screen.Queues) }
-            ClickRow("KuAirSend", t("Send files to nearby KuDownloader devices"), Icons.Filled.WifiTethering) { UiState.go(Screen.AirSend) }
-            ClickRow(t("Settings"), null, Icons.Filled.Settings) {
-                UiState.settingsSection = null
-                UiState.go(Screen.Settings)
+            Group(t("Tools")) {
+                ClickRow(t("Batch downloads"), t("Many links at once, or a numbered pattern"), Icons.AutoMirrored.Filled.PlaylistAdd) { UiState.go(Screen.Batch) }
+                ClickRow(t("Fetch Projects"), t("Download the files linked on a page"), Icons.Filled.TravelExplore) { UiState.go(Screen.Fetch) }
+                ClickRow(t("Queues and schedules"), t("Start downloads at night or one after another"), Icons.Filled.Queue) { UiState.go(Screen.Queues) }
+                ClickRow("KuAirSend", t("Send files to nearby KuDownloader devices"), Icons.Filled.WifiTethering) { UiState.go(Screen.AirSend) }
             }
-            ClickRow(t("About KuDownloader"), "${t("Version")} ${BuildConfig.VERSION_NAME}", Icons.Filled.Info) { UiState.go(Screen.About) }
+            Group {
+                ClickRow(t("Settings"), null, Icons.Filled.Settings) {
+                    UiState.settingsSection = null
+                    UiState.go(Screen.Settings)
+                }
+                ClickRow(t("About KuDownloader"), "${t("Version")} ${BuildConfig.VERSION_NAME}", Icons.Filled.Info) { UiState.go(Screen.About) }
+            }
         }
     }
 }

@@ -334,5 +334,6 @@
  "Trust": "भरोसा करें",
  "Trust it too, so nothing asks again?": "उस पर भी भरोसा करें, ताकि फिर न पूछा जाए?",
  "Trust {name} too? Files, links and scheduled downloads between you will then go through without asking.": "{name} पर भी भरोसा करें? फिर आपके बीच फ़ाइलें, लिंक और शेड्यूल किए डाउनलोड बिना पूछे पहुंचेंगे।",
- "{name} trusts this phone": "{name} इस फ़ोन पर भरोसा करता है"
+ "{name} trusts this phone": "{name} इस फ़ोन पर भरोसा करता है",
+ "Media and browser": "मीडिया और ब्राउज़र"
 }

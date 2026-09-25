@@ -334,5 +334,6 @@
  "Trust": "وثوق",
  "Trust it too, so nothing asks again?": "الوثوق به أيضًا حتى لا يُسأل مجددًا؟",
  "Trust {name} too? Files, links and scheduled downloads between you will then go through without asking.": "الوثوق بـ {name} أيضًا؟ عندها تصل الملفات والروابط والتنزيلات المجدولة بينكما دون سؤال.",
- "{name} trusts this phone": "{name} يثق بهذا الهاتف"
+ "{name} trusts this phone": "{name} يثق بهذا الهاتف",
+ "Media and browser": "الوسائط والمتصفح"
 }

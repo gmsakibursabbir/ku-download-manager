@@ -83,7 +83,7 @@ fun QueuesScreen() {
     var editQueue by remember { mutableStateOf<Queue?>(null) }
     var editSchedule by remember { mutableStateOf<Schedule?>(null) }
     var deleteQueue by remember { mutableStateOf<Queue?>(null) }
-    val exactAllowed = Build.VERSION.SDK_INT < 31 || ctx.getSystemService(AlarmManager::class.java).canScheduleExactAlarms()
+    val exactAllowed = Build.VERSION.SDK_INT < 31 || ctx.getSystemService(AlarmManager::class.java)?.canScheduleExactAlarms() != false
 
     KuScaffold(t("Queues and schedules"), back = true) { pad ->
         LazyColumn(Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(bottom = 32.dp)) {

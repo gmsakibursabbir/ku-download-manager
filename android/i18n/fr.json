@@ -334,5 +334,6 @@
  "Trust": "Faire confiance",
  "Trust it too, so nothing asks again?": "Lui faire confiance aussi, pour ne plus rien demander ?",
  "Trust {name} too? Files, links and scheduled downloads between you will then go through without asking.": "Faire aussi confiance à {name} ? Fichiers, liens et téléchargements planifiés entre vous passeront alors sans demander.",
- "{name} trusts this phone": "{name} fait confiance à ce téléphone"
+ "{name} trusts this phone": "{name} fait confiance à ce téléphone",
+ "Media and browser": "Médias et navigateur"
 }

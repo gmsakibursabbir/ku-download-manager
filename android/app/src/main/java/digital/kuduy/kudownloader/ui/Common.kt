@@ -180,7 +180,11 @@ fun ClickRow(title: String, subtitle: String? = null, icon: ImageVector? = null,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         icon?.let {
-            Icon(it, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            // Icons sit in a soft tinted tile.
+            Box(
+                Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f)),
+                contentAlignment = Alignment.Center,
+            ) { Icon(it, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp)) }
             Spacer(Modifier.width(16.dp))
         }
         Column(Modifier.weight(1f)) {
@@ -326,7 +330,7 @@ fun KuScaffold(
     androidx.compose.material3.Scaffold(
         topBar = {
             androidx.compose.material3.TopAppBar(
-                title = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                title = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold) },
                 navigationIcon = {
                     if (back) {
                         androidx.compose.material3.IconButton({ UiState.back() }) {
@@ -342,4 +346,17 @@ fun KuScaffold(
         contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
         content = content,
     )
+}
+
+/** A titled group of rows in one rounded card (settings-style lists). */
+@Composable
+fun Group(title: String? = null, content: @Composable () -> Unit) {
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
+        title?.let {
+            Text(it, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(start = 8.dp, top = 10.dp, bottom = 8.dp))
+        }
+        Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surfaceContainerLow, modifier = Modifier.fillMaxWidth()) {
+            Column { content() }
+        }
+    }
 }

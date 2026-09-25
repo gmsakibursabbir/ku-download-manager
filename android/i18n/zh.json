@@ -334,5 +334,6 @@
  "Trust": "信任",
  "Trust it too, so nothing asks again?": "也信任它，以后不再询问？",
  "Trust {name} too? Files, links and scheduled downloads between you will then go through without asking.": "也信任 {name} 吗？这样你们之间的文件、链接和计划下载都无需询问。",
- "{name} trusts this phone": "{name} 信任这部手机"
+ "{name} trusts this phone": "{name} 信任这部手机",
+ "Media and browser": "媒体与浏览器"
 }

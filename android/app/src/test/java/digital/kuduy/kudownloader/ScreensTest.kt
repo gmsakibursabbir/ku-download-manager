@@ -53,13 +53,25 @@ class ScreensTest(private val dark: Boolean) {
         maxPercentDifference = 100.0,
     )
 
+    private val registryOwner = object : androidx.activity.result.ActivityResultRegistryOwner {
+        override val activityResultRegistry = object : androidx.activity.result.ActivityResultRegistry() {
+            override fun <I, O> onLaunch(requestCode: Int, contract: androidx.activity.result.contract.ActivityResultContract<I, O>, input: I, options: androidx.core.app.ActivityOptionsCompat?) {}
+        }
+    }
+
     private fun show(screen: Screen, downloads: List<Download> = samples) {
         Prefs.welcomed.value = true
         Ku.sample(downloads, settings = JsonObject(mapOf("theme" to JsonPrimitive(if (dark) "dark" else "light"), "accent" to JsonPrimitive("blue"))))
         Ku.speedHistory.value = List(Ku.HISTORY) { i -> (20 + (i % 7) * 3) * MB to (i % 5) * 200 * 1024L }
         UiState.stack.clear()
         UiState.stack.add(screen)
-        paparazzi.snapshot { KuRoot() }
+        digital.kuduy.kudownloader.browser.BrowserState.load()
+        paparazzi.snapshot {
+            // Screens register file pickers; the test has no activity to host them.
+            androidx.compose.runtime.CompositionLocalProvider(
+                androidx.activity.compose.LocalActivityResultRegistryOwner provides registryOwner,
+            ) { KuRoot() }
+        }
     }
 
     @Test fun downloads() = show(Screen.Downloads)
