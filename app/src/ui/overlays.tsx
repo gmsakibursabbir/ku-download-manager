@@ -1,3 +1,4 @@
+import { t, t as tr } from "../lib/i18n";
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { ChevronRight, X, CircleCheck, CircleAlert, Info, TriangleAlert, type LucideIcon } from "lucide-react";
@@ -247,7 +248,7 @@ export function Dialog({
           <div className="dialog-title" style={{ flex: 1, minWidth: 0 }} {...drag}>
             {title}
           </div>
-          <IconButton icon={X} label="Close" size="sm" onClick={onClose} />
+          <IconButton icon={X} label={t("Close")} size="sm" onClick={onClose} />
         </div>
         <div className="dialog-body">{children}</div>
         {footer && <div className="dialog-footer">{footer}</div>}
@@ -286,7 +287,7 @@ export function ConfirmDialog({
       footer={
         <>
           <span className="spacer" />
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>{t("Cancel")}</Button>
           <Button type="submit" variant={danger ? "danger" : "primary"} data-autofocus>
             {confirmLabel}
           </Button>
@@ -370,7 +371,7 @@ export function ToastHost() {
               </div>
             )}
           </div>
-          <IconButton icon={X} label="Dismiss" size="sm" onClick={() => dismissToast(t.id)} />
+          <IconButton icon={X} label={tr("Dismiss")} size="sm" onClick={() => dismissToast(t.id)} />
         </div>
       ))}
     </div>,

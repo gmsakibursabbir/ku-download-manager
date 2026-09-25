@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { LANGUAGES, t } from "../lib/i18n";
+import { LANGUAGES, t, tf } from "../lib/i18n";
 import { Plus, Trash2, RefreshCw, FolderOpen, Download as DownloadIcon } from "lucide-react";
 import { api, errorText } from "../lib/api";
 import { settingsStore } from "../lib/store";
@@ -60,12 +60,12 @@ function Updates() {
       setState({ busy: false, error: errorText(e) });
     }
   };
-  const desc = state.error ?? (state.info === null ? "KuDownloader is up to date." : state.info ? `Version ${state.info.version} is available.` : "Checks the release feed for a newer version.");
+  const desc = state.error ?? (state.info === null ? t("KuDownloader is up to date.") : state.info ? tf("Version {version} is available.", { version: state.info.version }) : t("Checks the release feed for a newer version."));
   return (
     <PrefRow label={t("Updates")} desc={desc}>
       {state.info ? (
         <Button size="sm" variant="primary" icon={DownloadIcon} busy={state.busy} onClick={() => void install()}>
-          {state.info.signed ? "Install and restart" : "Download update"}
+          {state.info.signed ? t("Install and restart") : t("Download update")}
         </Button>
       ) : (
         <Button size="sm" icon={RefreshCw} busy={state.busy} onClick={() => void check()}>
@@ -89,9 +89,9 @@ function Categories() {
         <table className="table">
           <thead>
             <tr>
-              <th style={{ width: 150 }}>Name</th>
-              <th style={{ width: 170 }}>Folder</th>
-              <th>File types</th>
+              <th style={{ width: 150 }}>{t("Name")}</th>
+              <th style={{ width: 170 }}>{t("Folder")}</th>
+              <th>{t("File types")}</th>
               <th style={{ width: 36 }} />
             </tr>
           </thead>
@@ -120,7 +120,7 @@ function Categories() {
           </tbody>
         </table>
         <Button size="sm" variant="ghost" icon={Plus} style={{ marginTop: 8 }} onClick={() => commit([...draft, { id: `c${Date.now().toString(36)}`, name: "New category", folder: "New category", extensions: [] }])}>
-          Add category
+          {t("Add category")}
         </Button>
       </div>
     </PrefGroup>
@@ -136,7 +136,7 @@ function Profiles() {
   const setRate = (i: number, key: "download" | "upload", v: string) => {
     const rate = v.trim() === "" || v.trim() === "0" ? 0 : fmt.parseRate(v);
     if (rate == null) {
-      toast({ level: "warning", title: "Enter a limit like 500 KB or 2 MB" });
+      toast({ level: "warning", title: t("Enter a limit like 500 KB or 2 MB") });
       return;
     }
     const next = draft.map((p, j) => (j === i ? { ...p, [key]: rate } : p));
@@ -144,14 +144,14 @@ function Profiles() {
     void save({ profiles: next });
   };
   return (
-    <PrefGroup title="Bandwidth profiles">
+    <PrefGroup title={t("Bandwidth profiles")}>
       <div style={{ padding: "var(--space-2) var(--space-4)" }}>
         <table className="table">
           <thead>
             <tr>
-              <th>Profile</th>
-              <th style={{ width: 150 }}>Download limit</th>
-              <th style={{ width: 150 }}>Upload limit</th>
+              <th>{t("Profile")}</th>
+              <th style={{ width: 150 }}>{t("Download limit")}</th>
+              <th style={{ width: 150 }}>{t("Upload limit")}</th>
               <th style={{ width: 80 }} />
               <th style={{ width: 36 }} />
             </tr>
@@ -168,7 +168,7 @@ function Profiles() {
                 <td>
                   <Input key={`${p.id}-u-${p.upload}`} defaultValue={p.upload ? fmt.bytes(p.upload) : ""} placeholder={t("Unlimited")} style={{ height: 26 }} onBlur={(e) => { setRate(i, "upload", e.target.value); }} onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()} />
                 </td>
-                <td>{s.activeProfile === p.id ? <span className="chip chip-accent">Active</span> : <Button size="sm" variant="ghost" onClick={() => void api.setProfile(p.id).then(() => settingsStore.refresh())}>Use</Button>}</td>
+                <td>{s.activeProfile === p.id ? <span className="chip chip-accent">{t("Active")}</span> : <Button size="sm" variant="ghost" onClick={() => void api.setProfile(p.id).then(() => settingsStore.refresh())}>{t("Use")}</Button>}</td>
                 <td>
                   <IconButton icon={Trash2} className="is-danger" label={`Delete ${p.name}`} size="sm" disabled={draft.length <= 1 || s.activeProfile === p.id} onClick={() => void save({ profiles: draft.filter((_, j) => j !== i) })} />
                 </td>
@@ -178,11 +178,11 @@ function Profiles() {
         </table>
         <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
           <Button size="sm" variant="ghost" icon={Plus} onClick={() => void save({ profiles: [...draft, { id: `p${Date.now().toString(36)}`, name: "New profile", download: 5 * 1024 * 1024, upload: 1024 * 1024 }] })}>
-            Add profile
+            {t("Add profile")}
           </Button>
         </div>
         <div className="faint" style={{ fontSize: "var(--text-xs)", marginTop: 8 }}>
-          Enter limits like 500 KB or 2.5 MB. Leave empty for unlimited.
+          {t("Enter limits like 500 KB or 2.5 MB. Leave empty for unlimited.")}
         </div>
       </div>
     </PrefGroup>
@@ -193,7 +193,7 @@ function AfterAll() {
   const [value, setValue] = useState("none");
   useEffect(() => void api.getAfterAll().then(setValue), []);
   return (
-    <PrefRow label="When all downloads finish" desc="Applies to this session only. You get a 60-second warning before sleep or shutdown.">
+    <PrefRow label={t("When all downloads finish")} desc={t("Applies to this session only. You get a 60-second warning before sleep or shutdown.")}>
       <Select
         value={value}
         style={{ width: 180 }}
@@ -218,34 +218,34 @@ function Advanced() {
   return (
     <>
       <EngineStatus />
-      <PrefGroup title="HTTP engine">
+      <PrefGroup title={t("HTTP engine")}>
         <SelectPref
           k="httpEngine"
-          label="Engine for HTTP and HTTPS downloads"
-          desc="KuHTTP is KuDownloader’s own adaptive engine (faster in our benchmarks, resumes after crashes). aria2 is the long-proven alternative. FTP, SFTP, BitTorrent, magnet and Metalink always use aria2."
+          label={t("Engine for HTTP and HTTPS downloads")}
+          desc={t("KuHTTP is KuDownloader’s own adaptive engine (faster in our benchmarks, resumes after crashes). aria2 is the long-proven alternative. FTP, SFTP, BitTorrent, magnet and Metalink always use aria2.")}
           options={[
-            { value: "kuhttp", label: "KuHTTP (recommended)" },
+            { value: "kuhttp", label: t("KuHTTP (recommended)") },
             { value: "aria2", label: "aria2" },
           ]}
           width={200}
         />
       </PrefGroup>
-      <PrefGroup title="Engine locations">
-        <TextPref k="aria2Path" label="aria2c" desc="Leave empty to use the bundled engine." placeholder={t("Automatic")} width={320} mono />
+      <PrefGroup title={t("Engine locations")}>
+        <TextPref k="aria2Path" label="aria2c" desc={t("Leave empty to use the bundled engine.")} placeholder={t("Automatic")} width={320} mono />
         <TextPref k="ytdlpPath" label="yt-dlp" placeholder={t("Automatic")} width={320} mono />
         <TextPref k="ffmpegPath" label="FFmpeg" placeholder={t("Automatic")} width={320} mono />
       </PrefGroup>
-      <PrefGroup title="Integration">
-        <PrefRow label="Local API" desc={info?.apiPort ? `Listening on 127.0.0.1:${info.apiPort} for the ku command-line tool and the browser connector. Access requires a per-session token.` : "Not running."} />
-        <TextPref k="updateEndpoint" label="Update feed" desc="Leave empty to use the official release feed." placeholder="Default" width={320} mono />
+      <PrefGroup title={t("Integration")}>
+        <PrefRow label={t("Local API")} desc={info?.apiPort ? `Listening on 127.0.0.1:${info.apiPort} for the ku command-line tool and the browser connector. Access requires a per-session token.` : t("Not running.")} />
+        <TextPref k="updateEndpoint" label={t("Update feed")} desc={t("Leave empty to use the official release feed.")} placeholder={t("Default")} width={320} mono />
       </PrefGroup>
-      <PrefGroup title="Data">
-        <PrefRow label="Data folder" desc={info?.dataDir}>
+      <PrefGroup title={t("Data")}>
+        <PrefRow label={t("Data folder")} desc={info?.dataDir}>
           <Button size="sm" icon={FolderOpen} onClick={() => void api.openDataDir()}>
             {t("Open")}
           </Button>
         </PrefRow>
-        <PrefRow label="Version" desc={`KuDownloader ${info?.version ?? ""} · ${info?.platform ?? ""}`} />
+        <PrefRow label={t("Version")} desc={`KuDownloader ${info?.version ?? ""} · ${info?.platform ?? ""}`} />
       </PrefGroup>
     </>
   );
@@ -278,7 +278,7 @@ export function SettingsView() {
         <span className="toolbar-title">{t("Settings")}</span>
       </div>
       <div className="settings-layout" style={{ minHeight: 0 }}>
-        <nav className="settings-nav" aria-label="Settings sections">
+        <nav className="settings-nav" aria-label={t("Settings sections")}>
           {SECTIONS.map(([k, label]) => (
             <button key={k} type="button" className="nav-item" aria-current={section === k ? "page" : undefined} onClick={() => setSection(k)}>
               {t(label)}
@@ -290,10 +290,10 @@ export function SettingsView() {
             {section === "general" && (
               <>
                 <PrefGroup>
-                  <SwitchPref k="startWithOs" label="Start KuDownloader when you sign in" desc="Starts minimized to the tray so scheduled downloads and the browser connection are ready." />
-                  <SwitchPref k="minimizeToTray" label="Keep running in the tray when the window is closed" desc="Downloads continue in the background. Quit from the tray icon." />
-                  <SwitchPref k="clipboardMonitor" label="Offer to download copied links" desc="When you copy a link to a file or video, KuDownloader offers to download it." />
-                  <SwitchPref k="checkUpdates" label="Check for updates automatically" />
+                  <SwitchPref k="startWithOs" label={t("Start KuDownloader when you sign in")} desc={t("Starts minimized to the tray so scheduled downloads and the browser connection are ready.")} />
+                  <SwitchPref k="minimizeToTray" label={t("Keep running in the tray when the window is closed")} desc={t("Downloads continue in the background. Quit from the tray icon.")} />
+                  <SwitchPref k="clipboardMonitor" label={t("Offer to download copied links")} desc={t("When you copy a link to a file or video, KuDownloader offers to download it.")} />
+                  <SwitchPref k="checkUpdates" label={t("Check for updates automatically")} />
                   <Updates />
                 </PrefGroup>
                 <PrefGroup title={t("Keyboard shortcuts")}>
@@ -301,7 +301,7 @@ export function SettingsView() {
                     <tbody>
                       {SHORTCUTS.map(([label, keys]) => (
                         <tr key={label}>
-                          <td style={{ paddingLeft: "var(--space-4)", borderBottom: "none" }}>{label}</td>
+                          <td style={{ paddingLeft: "var(--space-4)", borderBottom: "none" }}>{t(label)}</td>
                           <td style={{ textAlign: "right", paddingRight: "var(--space-4)", borderBottom: "none" }}>
                             <span style={{ display: "inline-flex", gap: 4 }}>
                               {keys.split(" / ").map((k) => (
@@ -319,13 +319,13 @@ export function SettingsView() {
             {section === "downloads" && (
               <>
                 <PrefGroup>
-                  <FolderPref k="downloadDir" label="Download folder" />
-                  <SwitchPref k="useCategories" label={t("Sort into category folders")} desc="Archives, programs, video and so on go into their own sub-folders." />
-                  <NumberPref k="maxConcurrent" label={t("Simultaneous downloads")} desc="Downloads outside queues. Queues have their own limit." min={1} max={32} />
+                  <FolderPref k="downloadDir" label={t("Download folder")} />
+                  <SwitchPref k="useCategories" label={t("Sort into category folders")} desc={t("Archives, programs, video and so on go into their own sub-folders.")} />
+                  <NumberPref k="maxConcurrent" label={t("Simultaneous downloads")} desc={t("Downloads outside queues. Queues have their own limit.")} min={1} max={32} />
                   <SelectPref
                     k="defaultConnections"
                     label={t("Connections per download")}
-                    desc="Smart adapts to what the server allows and backs off on errors."
+                    desc={t("Smart adapts to what the server allows and backs off on errors.")}
                     options={[{ value: 0, label: t("Smart") }, ...[1, 2, 4, 8, 16, 32].map((n) => ({ value: n, label: String(n) }))]}
                     width={140}
                   />
@@ -344,18 +344,18 @@ export function SettingsView() {
                   <SelectPref
                     k="virusScan"
                     label={t("Scan finished downloads")}
-                    desc="Only problems are reported. Downloads are never opened automatically."
+                    desc={t("Only problems are reported. Downloads are never opened automatically.")}
                     options={[
                       { value: "off", label: t("Off") },
-                      ...(navigator.userAgent.includes("Windows") ? [{ value: "defender", label: "Microsoft Defender" }] : []),
-                      { value: "custom", label: "Another scanner…" },
+                      ...(navigator.userAgent.includes("Windows") ? [{ value: "defender", label: t("Microsoft Defender") }] : []),
+                      { value: "custom", label: t("Another scanner…") },
                     ]}
                     width={200}
                   />
                   {settings.virusScan === "custom" && (
                     <>
-                      <TextPref k="virusScanner" label="Scanner program" desc="Full path to the scanner's command-line program (for example clamscan)." placeholder="C:\Program Files\…\scanner.exe" mono />
-                      <TextPref k="virusScannerArgs" label="Arguments" desc="{file} is replaced by the downloaded file." mono />
+                      <TextPref k="virusScanner" label={t("Scanner program")} desc={t("Full path to the scanner's command-line program (for example clamscan).")} placeholder={t("C:\\Program Files\\…\\scanner.exe")} mono />
+                      <TextPref k="virusScannerArgs" label={t("Arguments")} desc="{file} is replaced by the downloaded file." mono />
                     </>
                   )}
                 </PrefGroup>
@@ -364,22 +364,22 @@ export function SettingsView() {
             )}
             {section === "connection" && (
               <>
-                <PrefGroup title="Proxy">
-                  <TextPref k="proxy" label="Proxy server" desc="http://host:port, https:// or socks5://. Leave empty for a direct connection." placeholder="None" mono />
-                  <TextPref k="proxyUser" label="User name" width={200} />
-                  <TextPref k="proxyPass" label="Password" type="password" width={200} />
-                  <TextPref k="noProxy" label="Bypass for" desc="Comma separated hosts or domains." placeholder="localhost, .intranet" />
+                <PrefGroup title={t("Proxy")}>
+                  <TextPref k="proxy" label={t("Proxy server")} desc="http://host:port, https:// or socks5://. Leave empty for a direct connection." placeholder={t("None")} mono />
+                  <TextPref k="proxyUser" label={t("User name")} width={200} />
+                  <TextPref k="proxyPass" label={t("Password")} type="password" width={200} />
+                  <TextPref k="noProxy" label={t("Bypass for")} desc={t("Comma separated hosts or domains.")} placeholder="localhost, .intranet" />
                 </PrefGroup>
-                <PrefGroup title="Requests">
-                  <TextPref k="userAgent" label="User agent" desc="Leave empty for a current browser user agent." placeholder="Default" width={320} />
-                  <SwitchPref k="checkCertificate" label="Verify TLS certificates" desc="Turn off only for servers you trust with self-signed certificates." />
+                <PrefGroup title={t("Requests")}>
+                  <TextPref k="userAgent" label={t("User agent")} desc={t("Leave empty for a current browser user agent.")} placeholder={t("Default")} width={320} />
+                  <SwitchPref k="checkCertificate" label={t("Verify TLS certificates")} desc={t("Turn off only for servers you trust with self-signed certificates.")} />
                 </PrefGroup>
-                <PrefGroup title="Retries and timeouts">
-                  <NumberPref k="maxTries" label="Attempts per connection" desc="0 = unlimited." min={0} max={100} />
-                  <NumberPref k="retryWait" label="Wait between attempts" min={0} max={600} unit="seconds" />
-                  <NumberPref k="autoRetry" label="Restart failed downloads" desc="For network errors and overloaded servers." min={0} max={20} unit="times" />
-                  <NumberPref k="timeout" label="Read timeout" min={5} max={600} unit="seconds" />
-                  <NumberPref k="connectTimeout" label="Connect timeout" min={5} max={300} unit="seconds" />
+                <PrefGroup title={t("Retries and timeouts")}>
+                  <NumberPref k="maxTries" label={t("Attempts per connection")} desc={t("0 = unlimited.")} min={0} max={100} />
+                  <NumberPref k="retryWait" label={t("Wait between attempts")} min={0} max={600} unit="seconds" />
+                  <NumberPref k="autoRetry" label={t("Restart failed downloads")} desc={t("For network errors and overloaded servers.")} min={0} max={20} unit="times" />
+                  <NumberPref k="timeout" label={t("Read timeout")} min={5} max={600} unit="seconds" />
+                  <NumberPref k="connectTimeout" label={t("Connect timeout")} min={5} max={300} unit="seconds" />
                 </PrefGroup>
               </>
             )}
@@ -387,9 +387,9 @@ export function SettingsView() {
             {section === "scheduler" && (
               <PrefGroup>
                 <AfterAll />
-                <PrefRow label="Schedules" desc="Start queues at set times and apply speed profiles.">
+                <PrefRow label={t("Schedules")} desc={t("Start queues at set times and apply speed profiles.")}>
                   <Button size="sm" onClick={() => navigate("scheduled")}>
-                    Open Scheduled
+                    {t("Open Scheduled")}
                   </Button>
                 </PrefRow>
               </PrefGroup>
@@ -398,9 +398,9 @@ export function SettingsView() {
               <>
                 <BrowserPrefs />
                 <PrefGroup>
-                  <PrefRow label="Extension and connection status">
+                  <PrefRow label={t("Extension and connection status")}>
                     <Button size="sm" onClick={() => navigate("browser")}>
-                      Open Browser Integration
+                      {t("Open Browser Integration")}
                     </Button>
                   </PrefRow>
                 </PrefGroup>
@@ -409,19 +409,19 @@ export function SettingsView() {
             {section === "media" && <MediaPrefs />}
             {section === "torrent" && (
               <PrefGroup>
-                <NumberPref k="seedRatio" label="Seed until ratio" desc="0 = stop when the download completes." min={0} max={100} step={0.1} />
-                <NumberPref k="seedTime" label="Seed for at most" desc="0 = no time limit (when a ratio is set)." min={0} max={100000} unit="minutes" />
-                <TextPref k="btListenPort" label="Listening ports" desc="Port or range, e.g. 6881-6999." width={140} mono />
-                <SwitchPref k="enableDht" label="Use DHT" desc="Find peers without trackers, needed for most magnet links." />
-                <NumberPref k="btMaxPeers" label="Peers per torrent" min={1} max={1000} />
+                <NumberPref k="seedRatio" label={t("Seed until ratio")} desc={t("0 = stop when the download completes.")} min={0} max={100} step={0.1} />
+                <NumberPref k="seedTime" label={t("Seed for at most")} desc={t("0 = no time limit (when a ratio is set).")} min={0} max={100000} unit="minutes" />
+                <TextPref k="btListenPort" label={t("Listening ports")} desc={t("Port or range, e.g. 6881-6999.")} width={140} mono />
+                <SwitchPref k="enableDht" label={t("Use DHT")} desc={t("Find peers without trackers, needed for most magnet links.")} />
+                <NumberPref k="btMaxPeers" label={t("Peers per torrent")} min={1} max={1000} />
               </PrefGroup>
             )}
             {section === "notifications" && (
               <PrefGroup>
                 <SwitchPref k="notifyComplete" label={t("When a download completes")} />
-                <SwitchPref k="notifyError" label={t("When a download fails")} desc="Only while the window is hidden; otherwise an in-app message appears." />
+                <SwitchPref k="notifyError" label={t("When a download fails")} desc={t("Only while the window is hidden; otherwise an in-app message appears.")} />
                 <SwitchPref k="notifyQueueDone" label={t("When a queue finishes")} />
-                <SwitchPref k="showProgressWindow" label={t("Show a progress window for new downloads")} desc="Like IDM: a small window with speed, time left and the connection map. Double-click any unfinished download to open it." />
+                <SwitchPref k="showProgressWindow" label={t("Show a progress window for new downloads")} desc={t("Like IDM: a small window with speed, time left and the connection map. Double-click any unfinished download to open it.")} />
               </PrefGroup>
             )}
             {section === "appearance" && (
@@ -446,8 +446,8 @@ export function SettingsView() {
                         type="button"
                         role="radio"
                         aria-checked={(settings.accent || "blue") === id}
-                        aria-label={name}
-                        title={name}
+                        aria-label={t(name)}
+                        title={t(name)}
                         className="accent-swatch"
                         style={{ background: color }}
                         onClick={() => void save({ accent: id })}
@@ -465,7 +465,7 @@ export function SettingsView() {
                   ]}
                   width={180}
                 />
-                <SwitchPref k="compact" label={t("Compact rows")} desc="Shows more downloads at once by hiding the second line." />
+                <SwitchPref k="compact" label={t("Compact rows")} desc={t("Shows more downloads at once by hiding the second line.")} />
                 <SelectPref
                   k="language"
                   label={t("Language")}

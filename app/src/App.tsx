@@ -6,7 +6,7 @@ import { Sidebar, TitleBar } from "./app/Shell";
 import { DownloadsView, pasteLink } from "./app/downloads/DownloadsView";
 import { AddDownloadDialog } from "./app/AddDownloadDialog";
 import { applyAppearance } from "./lib/appearance";
-import { syncLanguage } from "./lib/i18n";
+import { syncLanguage, t, tf, tj } from "./lib/i18n";
 import { WelcomeGuide } from "./app/WelcomeGuide";
 import { ToolDownloadsPanel } from "./app/MediaTools";
 import { AirSendPrompts } from "./app/airsend/AirSendPrompts";
@@ -66,14 +66,14 @@ function useUpdateCheck(enabled: boolean | undefined) {
       if (!info) return;
       toast({
         level: "info",
-        title: `KuDownloader ${info.version} is available`,
-        message: `You have ${info.currentVersion}.`,
+        title: tf("KuDownloader {version} is available", { version: info.version }),
+        message: tf("You have {version}.", { version: info.currentVersion }),
         timeout: 0,
         actions: [
           {
             label: info.signed ? "Install and restart" : "Download",
             primary: true,
-            onClick: () => void api.installUpdate().catch((e) => toast({ level: "error", title: "Update failed", message: String(e) })),
+            onClick: () => void api.installUpdate().catch((e) => toast({ level: "error", title: t("Update failed"), message: String(e) })),
           },
         ],
       });
@@ -92,7 +92,7 @@ function PowerBanner({ action, seconds, onDone }: { action: string; seconds: num
     <div className="power-banner" role="alert">
       <Icon icon={Power} />
       <span>
-        Downloads finished. Your computer will {action === "sleep" ? "sleep" : "shut down"} in <b className="num">{left}s</b>.
+        {tj(action === "sleep" ? "Downloads finished. Your computer will sleep in {time}." : "Downloads finished. Your computer will shut down in {time}.", { time: <b className="num">{left}s</b> })}
       </span>
       <span className="spacer" />
       <Button
@@ -103,7 +103,7 @@ function PowerBanner({ action, seconds, onDone }: { action: string; seconds: num
           onDone();
         }}
       >
-        Cancel
+        {t("Cancel")}
       </Button>
     </div>
   );
@@ -216,7 +216,7 @@ export default function App() {
             actions: e.downloadId
               ? [
                   {
-                    label: "Show",
+                    label: t("Show"),
                     onClick: () => {
                       showList({ scope: "all" });
                       setSelection(new Set([e.downloadId!]));
@@ -231,23 +231,23 @@ export default function App() {
           if (document.hasFocus())
             toast({
               level: "success",
-              title: "Download complete",
+              title: t("Download complete"),
               message: e.name,
               actions: [
-                { label: "Open", primary: true, onClick: () => void run(api.openFile(e.id), "Could not open the file") },
-                { label: "Show in folder", onClick: () => void run(api.openFolder(e.id), "Could not open the folder") },
+                { label: t("Open"), primary: true, onClick: () => void run(api.openFile(e.id), "Could not open the file") },
+                { label: t("Show in folder"), onClick: () => void run(api.openFolder(e.id), "Could not open the folder") },
               ],
             });
           break;
         case "queueDone":
-          toast({ level: "success", title: "Queue finished", message: `All downloads in “${e.name}” are done.` });
+          toast({ level: "success", title: t("Queue finished"), message: tf("All downloads in “{name}” are done.", { name: e.name }) });
           break;
         case "clipboardUrl":
           toast({
             level: "info",
-            title: "Download the copied link?",
+            title: t("Download the copied link?"),
             message: e.url,
-            actions: [{ label: "Download", primary: true, onClick: () => openAdd({ url: e.url, source: "clipboard" }) }],
+            actions: [{ label: t("Download"), primary: true, onClick: () => openAdd({ url: e.url, source: "clipboard" }) }],
           });
           break;
         case "powerCountdown":
@@ -373,17 +373,17 @@ export default function App() {
       {addPrefill && <AddDownloadDialog prefill={addPrefill} onClose={() => setAddPrefill(null)} />}
       {removeIds && (
         <ConfirmDialog
-          title={removeIds.length === 1 ? "Remove download?" : `Remove ${removeIds.length} downloads?`}
+          title={removeIds.length === 1 ? t("Remove download?") : `Remove ${removeIds.length} downloads?`}
           message={
             removeIds.length === 1 ? (
               <>
-                “{removeList[0]?.name}” will be removed from the list{anyUnfinished ? " and stopped" : ""}.
+                {tf(anyUnfinished ? "“{name}” will be removed from the list and stopped." : "“{name}” will be removed from the list.", { name: removeList[0]?.name ?? "" })}
               </>
             ) : (
-              <>The selected downloads will be removed from the list{anyUnfinished ? " and stopped" : ""}.</>
+              <>{anyUnfinished ? t("The selected downloads will be removed from the list and stopped.") : t("The selected downloads will be removed from the list.")}</>
             )
           }
-          confirmLabel="Remove"
+          confirmLabel={t("Remove")}
           danger={deleteFiles}
           onClose={() => setRemoveIds(null)}
           onConfirm={() => {
@@ -393,7 +393,7 @@ export default function App() {
           }}
         >
           <Checkbox checked={deleteFiles} onChange={setDeleteFiles}>
-            Also delete {removeIds.length === 1 ? "the file" : "the files"} from disk
+            {removeIds.length === 1 ? t("Also delete the file from disk") : t("Also delete the files from disk")}
           </Checkbox>
         </ConfirmDialog>
       )}

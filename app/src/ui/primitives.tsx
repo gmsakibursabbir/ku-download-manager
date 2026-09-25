@@ -1,3 +1,4 @@
+import { t } from "../lib/i18n";
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type InputHTMLAttributes } from "react";
 import type { LucideIcon } from "lucide-react";
 import type { Status } from "../lib/types";
@@ -145,13 +146,13 @@ const STATUS_LABEL: Record<Status, string> = {
 };
 
 export function statusLabel(s: Status): string {
-  return STATUS_LABEL[s];
+  return t(STATUS_LABEL[s]);
 }
 
 export function StatusBadge({ status }: { status: Status }) {
   return (
     <span className="status" data-state={status}>
-      {STATUS_LABEL[status]}
+      {t(STATUS_LABEL[status])}
     </span>
   );
 }

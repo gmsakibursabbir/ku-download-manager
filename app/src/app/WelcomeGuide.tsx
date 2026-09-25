@@ -88,10 +88,10 @@ export function WelcomeGuide({ onClose }: { onClose: () => void }) {
           <p className="welcome-lede">{t("The extension sends downloads and videos from your browser to KuDownloader. Choose Install next to each browser you use:")}</p>
           <ol className="welcome-steps">
             <li>
-              <b>Chrome, Edge, Brave, Opera, Helium…</b> — {t("the extensions page opens: turn on Developer mode, choose Load unpacked, paste the folder path (already copied) and press Enter.")}
+              <b>{t("Chrome, Edge, Brave, Opera, Helium…")}</b> — {t("the extensions page opens: turn on Developer mode, choose Load unpacked, paste the folder path (already copied) and press Enter.")}
             </li>
             <li>
-              <b>Firefox, Zen, Floorp…</b> — {t("about:debugging opens: choose Load Temporary Add-on and pick manifest.json in the folder that opened.")}
+              <b>{t("Firefox, Zen, Floorp…")}</b> — {t("about:debugging opens: choose Load Temporary Add-on and pick manifest.json in the folder that opened.")}
             </li>
           </ol>
           <div className="welcome-browsers">

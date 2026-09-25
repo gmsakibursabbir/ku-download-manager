@@ -1,8 +1,8 @@
 import { invoke } from "@tauri-apps/api/core";
-import { t } from "../../lib/i18n";
+import { t, tf } from "../../lib/i18n";
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronDown, ChevronUp, ListOrdered } from "lucide-react";
-import { useDownload, getDownload, settingsStore, queuesStore } from "../../lib/store";
+import { useDownload, getDownload, settingsStore, queuesStore, queueName } from "../../lib/store";
 import * as fmt from "../../lib/format";
 import type { Download } from "../../lib/types";
 import { Icon } from "../../ui/primitives";
@@ -52,8 +52,8 @@ export function compareBy(sort: SortState) {
 
 function dateLabel(ms: number) {
   const d = new Date(ms);
-  const time = d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", hour12: false });
-  const date = d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  const time = d.toLocaleTimeString(document.documentElement.lang || undefined, { hour: "2-digit", minute: "2-digit", hour12: false });
+  const date = d.toLocaleDateString(document.documentElement.lang || undefined, { month: "short", day: "numeric", year: "numeric" });
   return `${time}, ${date}`;
 }
 
@@ -120,17 +120,17 @@ const Row = memo(function Row({
       onContextMenu={(e) => onContextMenu(e, id, index)}
     >
       <label className="row-check" onMouseDown={(e) => e.stopPropagation()}>
-        <input type="checkbox" checked={selected} onChange={() => onCheck(id, index)} aria-label={`Select ${d.name}`} />
+        <input type="checkbox" checked={selected} onChange={() => onCheck(id, index)} aria-label={tf("Select {name}", { name: d.name })} />
       </label>
       <div className="row-name" title={d.error ? `${d.name}\n${d.error}` : d.name}>
         <FileGlyph d={d} size={14} />
         <span className="row-title">{d.name}</span>
       </div>
-      <div className="cell-q" title={queue ? `In ${queue.name}` : undefined}>
+      <div className="cell-q" title={queue ? tf("In {queue}", { queue: queueName(queue) }) : undefined}>
         {queue && <Icon icon={ListOrdered} size={14} />}
       </div>
       <div className="cell num">{d.total > 0 ? fmt.bytes(d.total, 2) : d.done > 0 ? fmt.bytes(d.done) : ""}</div>
-      <div className="cell cell-status num" data-tone={st.tone} title={st.title}>
+      <div className="cell cell-status num" data-tone={st.tone} title={st.title && t(st.title)}>
         <span>{t(st.text)}</span>
         {(active || d.status === "paused" || d.status === "queued") && d.total > 0 && d.done > 0 && (
           <span className="status-bar" aria-hidden="true">
@@ -428,7 +428,7 @@ export function DownloadList({
       >
         {ids.length === 0 ? empty : <div style={{ height: ids.length * rowH, position: "relative" }}>{visible}</div>}
       </div>
-      {dragOver && <div className="drop-hint">Drop links or .torrent files to download</div>}
+      {dragOver && <div className="drop-hint">{t("Drop links or .torrent files to download")}</div>}
     </div>
   );
 }

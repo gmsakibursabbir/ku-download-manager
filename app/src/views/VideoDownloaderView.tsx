@@ -1,9 +1,10 @@
+import { t, tf } from "../lib/i18n";
 import { AUDIO_FORMATS } from "../app/prefs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { CircleAlert, Folder, Search, TriangleAlert, ListVideo, Radio as RadioIcon, X } from "lucide-react";
 import { api, errorText } from "../lib/api";
-import { settingsStore, queuesStore } from "../lib/store";
+import { settingsStore, queuesStore, queueName } from "../lib/store";
 import * as fmt from "../lib/format";
 import type { EngineInfo, MediaInfo, MediaOptions } from "../lib/types";
 import { MediaToolsNotice } from "../app/MediaTools";
@@ -142,9 +143,9 @@ export function VideoDownloaderView() {
         sizeHint: info.isPlaylist ? null : chosenSize ?? null,
         source: mediaPrefill?.source ?? "ui",
       });
-      toast({ level: "success", title: queueId ? "Added to queue" : "Download started", message: info.title, actions: [{ label: "View", onClick: () => showList(queueId ? { scope: "queue", queueId } : { scope: "all" }) }] });
+      toast({ level: "success", title: queueId ? "Added to queue" : "Download started", message: info.title, actions: [{ label: t("View"), onClick: () => showList(queueId ? { scope: "queue", queueId } : { scope: "all" }) }] });
     } catch (e) {
-      toast({ level: "error", title: "Could not start the download", message: errorText(e) });
+      toast({ level: "error", title: t("Could not start the download"), message: errorText(e) });
     } finally {
       setBusy(false);
     }
@@ -153,7 +154,7 @@ export function VideoDownloaderView() {
   return (
     <div className="main">
       <div className="toolbar">
-        <span className="toolbar-title">Video Downloader</span>
+        <span className="toolbar-title">{t("Video Downloader")}</span>
       </div>
       <div className="page">
         <div className="page-inner">
@@ -172,17 +173,17 @@ export function VideoDownloaderView() {
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 onKeyDown={(e) => e.key === "Escape" && (loading ? cancel() : clear())}
-                placeholder="Paste a video, channel or playlist link"
+                placeholder={t("Paste a video, channel or playlist link")}
                 style={{ paddingRight: 34 }}
                 autoFocus
               />
-              {(url || info || error) && <IconButton icon={X} label="Clear link" size="sm" onClick={clear} style={{ position: "absolute", right: 4 }} />}
+              {(url || info || error) && <IconButton icon={X} label={t("Clear link")} size="sm" onClick={clear} style={{ position: "absolute", right: 4 }} />}
             </div>
             {loading ? (
-              <Button onClick={cancel}>Cancel</Button>
+              <Button onClick={cancel}>{t("Cancel")}</Button>
             ) : (
               <Button type="submit" variant="primary">
-                Analyze
+                {t("Analyze")}
               </Button>
             )}
           </form>
@@ -194,23 +195,23 @@ export function VideoDownloaderView() {
                 if (info) void analyze(url, v);
               }}
             >
-              This link belongs to a playlist — download the whole playlist
+              {t("This link belongs to a playlist — download the whole playlist")}
             </Checkbox>
           )}
 
           {loading && (
             <div className="faint" style={{ display: "flex", gap: 8, alignItems: "center", fontSize: "var(--text-sm)" }}>
-              <span className="spinner" /> Reading media information…
+              <span className="spinner" /> {t("Reading media information…")}
             </div>
           )}
           {error && (
-            <Notice level="error" icon={CircleAlert} title="This link can't be downloaded">
+            <Notice level="error" icon={CircleAlert} title={t("This link can't be downloaded")}>
               {error}
             </Notice>
           )}
           {!info && !loading && !error && (
             <div className="faint" style={{ fontSize: "var(--text-sm)" }}>
-              Works with YouTube, Vimeo, Dailymotion and many other sites supported by yt-dlp. DRM-protected media is not supported.
+              {t("Works with YouTube, Vimeo, Dailymotion and many other sites supported by yt-dlp. DRM-protected media is not supported.")}
             </div>
           )}
 
@@ -236,31 +237,31 @@ export function VideoDownloaderView() {
                     {info.title}
                   </div>
                   <div className="muted" style={{ fontSize: "var(--text-sm)" }}>
-                    {[info.uploader, info.viewCount != null ? `${info.viewCount.toLocaleString()} views` : null, info.uploadDate ? `${info.uploadDate.slice(0, 4)}-${info.uploadDate.slice(4, 6)}-${info.uploadDate.slice(6)}` : null]
+                    {[info.uploader, info.viewCount != null ? tf("{n} views", { n: info.viewCount.toLocaleString(document.documentElement.lang || undefined) }) : null, info.uploadDate ? `${info.uploadDate.slice(0, 4)}-${info.uploadDate.slice(4, 6)}-${info.uploadDate.slice(6)}` : null]
                       .filter(Boolean)
                       .join(" · ")}
                   </div>
                   <div style={{ display: "flex", gap: 6 }}>
                     <span className="chip">{info.extractor}</span>
-                    {info.isPlaylist && <span className="chip chip-accent">Playlist · {info.playlistCount} items</span>}
-                    {info.isLive && <span className="chip">Live</span>}
+                    {info.isPlaylist && <span className="chip chip-accent">{tf("Playlist · {n} items", { n: info.playlistCount ?? 0 })}</span>}
+                    {info.isLive && <span className="chip">{t("Live")}</span>}
                   </div>
                 </div>
               </div>
 
               {!info.ffmpegAvailable && (
-                <Notice level="warning" icon={TriangleAlert} title="FFmpeg not found">
-                  Only single-file formats are available, which are often limited to lower quality. Download FFmpeg above (or in Settings › Advanced) for full quality and audio conversion, then analyze again.
+                <Notice level="warning" icon={TriangleAlert} title={t("FFmpeg not found")}>
+                  {t("Only single-file formats are available, which are often limited to lower quality. Download FFmpeg above (or in Settings › Advanced) for full quality and audio conversion, then analyze again.")}
                 </Notice>
               )}
 
               <Segmented
-                label="Download type"
+                label={t("Download type")}
                 value={mode}
                 onChange={setMode}
                 options={[
-                  { value: "video", label: "Video" },
-                  { value: "audio", label: "Audio only" },
+                  { value: "video", label: t("Video") },
+                  { value: "audio", label: t("Audio only") },
                 ]}
               />
 
@@ -271,9 +272,9 @@ export function VideoDownloaderView() {
                       <thead>
                         <tr>
                           <th style={{ width: 36 }} />
-                          <th>Quality</th>
-                          <th>Format</th>
-                          <th style={{ textAlign: "right" }}>Size</th>
+                          <th>{t("Quality")}</th>
+                          <th>{t("Format")}</th>
+                          <th style={{ textAlign: "right" }}>{t("Size")}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -284,10 +285,10 @@ export function VideoDownloaderView() {
                             </td>
                             <td>
                               {v.label}
-                              {v.hdr ? <span className="chip" style={{ marginLeft: 6 }}>HDR</span> : null}
-                              {v.height === pickDefault(info, settings?.videoHeight ?? 1080) && <span className="faint"> · default</span>}
+                              {v.hdr ? <span className="chip" style={{ marginLeft: 6 }}>"HDR"</span> : null}
+                              {v.height === pickDefault(info, settings?.videoHeight ?? 1080) && <span className="faint"> · {t("default")}</span>}
                             </td>
-                            <td className="muted">{[v.ext.toUpperCase(), v.vcodec, v.fps && v.fps > 30 ? `${Math.round(v.fps)} fps` : ""].filter(Boolean).join(" · ") || "Best available"}</td>
+                            <td className="muted">{[v.ext.toUpperCase(), v.vcodec, v.fps && v.fps > 30 ? `${Math.round(v.fps)} fps` : ""].filter(Boolean).join(" · ") || t("Best available")}</td>
                             <td className="num muted" style={{ textAlign: "right" }}>
                               {v.size ? `≈ ${fmt.bytes(v.size)}` : "—"}
                             </td>
@@ -297,7 +298,7 @@ export function VideoDownloaderView() {
                     </table>
                   ) : (
                     <div className="faint" style={{ padding: "var(--space-4)", fontSize: "var(--text-sm)" }}>
-                      No video formats — this looks like audio only.
+                      {t("No video formats — this looks like audio only.")}
                     </div>
                   )
                 ) : info.audio.length ? (
@@ -305,9 +306,9 @@ export function VideoDownloaderView() {
                     <thead>
                       <tr>
                         <th style={{ width: 36 }} />
-                        <th>Bitrate</th>
-                        <th>Format</th>
-                        <th style={{ textAlign: "right" }}>Size</th>
+                        <th>{t("Bitrate")}</th>
+                        <th>{t("Format")}</th>
+                        <th style={{ textAlign: "right" }}>{t("Size")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -327,7 +328,7 @@ export function VideoDownloaderView() {
                   </table>
                 ) : (
                   <div className="faint" style={{ padding: "var(--space-4)", fontSize: "var(--text-sm)" }}>
-                    No audio track found.
+                    {t("No audio track found.")}
                   </div>
                 )}
               </div>
@@ -345,8 +346,8 @@ export function VideoDownloaderView() {
                           />
                         </th>
                         <th>#</th>
-                        <th>Title</th>
-                        <th style={{ textAlign: "right" }}>Length</th>
+                        <th>{t("Title")}</th>
+                        <th style={{ textAlign: "right" }}>{t("Length")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -380,12 +381,12 @@ export function VideoDownloaderView() {
               <div className="form-grid" style={{ gridTemplateColumns: "112px 1fr" }}>
                 {mode === "video" ? (
                   <>
-                    <label>Format</label>
-                    <Select value={container} onChange={(e) => setContainer(e.target.value)} options={[{ value: "mp4", label: "MP4 (most compatible)" }, { value: "mkv", label: "MKV" }, { value: "webm", label: "WebM" }]} style={{ width: 240 }} disabled={!info.ffmpegAvailable} />
-                    <label>Subtitles</label>
+                    <label>{t("Format")}</label>
+                    <Select value={container} onChange={(e) => setContainer(e.target.value)} options={[{ value: "mp4", label: t("MP4 (most compatible)") }, { value: "mkv", label: "MKV" }, { value: "webm", label: "WebM" }]} style={{ width: 240 }} disabled={!info.ffmpegAvailable} />
+                    <label>{t("Subtitles")}</label>
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       <Checkbox checked={subs} onChange={setSubs}>
-                        Download and embed subtitles {allLangs.length ? "" : "(none available)"}
+                        {t("Download and embed subtitles")}{' '}{allLangs.length ? "" : t("(none available)")}
                       </Checkbox>
                       {subs && allLangs.length > 0 && (
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -401,10 +402,10 @@ export function VideoDownloaderView() {
                                 else n.add(l);
                                 setSubLangs(n);
                               }}
-                              title={auto ? "Automatic captions" : "Subtitles"}
+                              title={auto ? t("Automatic captions") : t("Subtitles")}
                             >
                               {l}
-                              {auto ? " (auto)" : ""}
+                              {auto ? ` (${t("auto")})` : ""}
                             </button>
                           ))}
                         </div>
@@ -413,20 +414,20 @@ export function VideoDownloaderView() {
                   </>
                 ) : (
                   <>
-                    <label>Format</label>
+                    <label>{t("Format")}</label>
                     <Select value={audioFormat} onChange={(e) => setAudioFormat(e.target.value)} disabled={!info.ffmpegAvailable} options={AUDIO_FORMATS()} style={{ width: 240 }} />
                   </>
                 )}
-                <label>Cover art</label>
+                <label>{t("Cover art")}</label>
                 <Checkbox checked={embedThumb} onChange={setEmbedThumb}>
-                  Embed the thumbnail
+                  {t("Embed the thumbnail")}
                 </Checkbox>
-                <label>Save to</label>
+                <label>{t("Save to")}</label>
                 <div className="input-group">
                   <Input value={dir} onChange={(e) => setDir(e.target.value)} />
                   <IconButton
                     icon={Folder}
-                    label="Choose folder"
+                    label={t("Choose folder")}
                     onClick={async () => {
                       const p = await open({ directory: true, defaultPath: dir || undefined });
                       if (typeof p === "string") setDir(p);
@@ -442,12 +443,12 @@ export function VideoDownloaderView() {
                 <Button
                   ref={queueBtn}
                   disabled={busy || (info.isPlaylist && items.size === 0)}
-                  onClick={() => (queues.length === 1 ? void download(queues[0].id) : showMenuAt(queueBtn.current!, queues.map((q) => ({ label: q.name, onSelect: () => void download(q.id) }))))}
+                  onClick={() => (queues.length === 1 ? void download(queues[0].id) : showMenuAt(queueBtn.current!, queues.map((q) => ({ label: queueName(q), onSelect: () => void download(q.id) }))))}
                 >
-                  Add to queue
+                  {t("Add to queue")}
                 </Button>
                 <Button variant="primary" busy={busy} disabled={info.isPlaylist && items.size === 0} onClick={() => void download(null)}>
-                  Download
+                  {t("Download")}
                 </Button>
               </div>
             </>

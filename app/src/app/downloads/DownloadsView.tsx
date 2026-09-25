@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { t } from "../../lib/i18n";
+import { t, tf } from "../../lib/i18n";
 import {
   Plus,
   Play,
@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useApp } from "../context";
-import { useDownloadIds, getDownload, queuesStore, allDownloads } from "../../lib/store";
+import { useDownloadIds, getDownload, queuesStore, allDownloads, queueName } from "../../lib/store";
 import { api, errorText } from "../../lib/api";
 import type { Download } from "../../lib/types";
 import { Button, IconButton, EmptyState, Select, Input, Icon } from "../../ui/primitives";
@@ -50,7 +50,7 @@ export async function pickTorrent(openAdd: (p: Record<string, unknown>) => void)
     const t = await api.torrentInfo({ path });
     openAdd({ url: "", filename: t.info.name, options: { torrentData: t.data } });
   } catch (e) {
-    toast({ level: "error", title: "Could not open the torrent", message: errorText(e) });
+    toast({ level: "error", title: t("Could not open the torrent"), message: errorText(e) });
   }
 }
 
@@ -85,7 +85,7 @@ function TbButton({
         {menu && !onClick && <Icon icon={ChevronDown} size={12} className="tb-caret" />}
       </button>
       {menu && onClick && (
-        <button type="button" className="tb-arrow" aria-label={`${label} options`} onClick={() => showMenuAt(ref.current!, menu())}>
+        <button type="button" className="tb-arrow" aria-label={tf("{name} options", { name: label })} onClick={() => showMenuAt(ref.current!, menu())}>
           <Icon icon={ChevronDown} size={12} />
         </button>
       )}
@@ -102,9 +102,9 @@ function QueueBar({ queueId }: { queueId: string }) {
   const save = (patch: Partial<typeof q>) => run(api.saveQueue({ ...q, ...patch }).then(() => queuesStore.refresh()), "Could not update the queue");
   return (
     <div className="queue-bar card">
-      <span className="section-title">{q.name}</span>
+      <span className="section-title">{queueName(q)}</span>
       <span className="status" data-state={q.running ? "downloading" : "paused"}>
-        {q.running ? "Running" : "Stopped"}
+        {q.running ? t("Running") : t("Stopped")}
       </span>
       {q.running ? (
         <Button size="sm" icon={Square} onClick={() => void run(api.stopQueue(q.id), "Could not stop the queue")}>
@@ -119,8 +119,8 @@ function QueueBar({ queueId }: { queueId: string }) {
       <label className="muted" style={{ fontSize: "var(--text-xs)" }}>
         {t("At a time")}
       </label>
-      <Select value={q.maxConcurrent} onChange={(e) => void save({ maxConcurrent: +e.target.value })} options={[1, 2, 3, 4, 5, 6, 8, 10].map((n) => ({ value: n, label: String(n) }))} style={{ width: 64, height: 28 }} aria-label="Downloads at a time" />
-      <label className="muted" style={{ fontSize: "var(--text-xs)" }} title="Re-check finished files on the server and download the ones that changed (IDM-style synchronization).">
+      <Select value={q.maxConcurrent} onChange={(e) => void save({ maxConcurrent: +e.target.value })} options={[1, 2, 3, 4, 5, 6, 8, 10].map((n) => ({ value: n, label: String(n) }))} style={{ width: 64, height: 28 }} aria-label={t("Downloads at a time")} />
+      <label className="muted" style={{ fontSize: "var(--text-xs)" }} title={t("Re-check finished files on the server and download the ones that changed (IDM-style synchronization).")}>
         {t("Sync")}
       </label>
       <Select
@@ -134,7 +134,7 @@ function QueueBar({ queueId }: { queueId: string }) {
           { value: 1440, label: t("Daily") },
         ]}
         style={{ width: 130, height: 28 }}
-        aria-label="Synchronize finished files"
+        aria-label={t("Synchronize finished files")}
       />
       <label className="muted" style={{ fontSize: "var(--text-xs)" }}>
         {t("When done")}
@@ -149,22 +149,22 @@ function QueueBar({ queueId }: { queueId: string }) {
           { value: "quit", label: t("Quit KuDownloader") },
         ]}
         style={{ width: 150, height: 28 }}
-        aria-label="When the queue finishes"
+        aria-label={t("When the queue finishes")}
       />
       <span className="spacer" />
       <IconButton
         icon={Ellipsis}
-        label="Queue options"
+        label={t("Queue options")}
         size="sm"
         onClick={(e) =>
           showMenuAt(
             e.currentTarget,
             [
-              { label: "New queue…", icon: ListPlus, onSelect: () => setNaming("") },
-              { label: "Rename…", onSelect: () => setNaming(q.name) },
+              { label: t("New queue…"), icon: ListPlus, onSelect: () => setNaming("") },
+              { label: t("Rename…"), onSelect: () => setNaming(q.name) },
               "sep",
               {
-                label: "Delete queue",
+                label: t("Delete queue"),
                 danger: true,
                 disabled: q.id === "main",
                 onSelect: () => void run(api.deleteQueue(q.id).then(() => (showList({ scope: "queue", queueId: "main" }), queuesStore.refresh())), "Could not delete the queue"),
@@ -176,7 +176,7 @@ function QueueBar({ queueId }: { queueId: string }) {
       />
       {naming != null && (
         <Dialog
-          title={naming === "" ? "New queue" : "Rename queue"}
+          title={naming === "" ? t("New queue") : t("Rename queue")}
           width={380}
           onClose={() => setNaming(null)}
           onSubmit={async () => {
@@ -187,7 +187,7 @@ function QueueBar({ queueId }: { queueId: string }) {
               showList({ scope: "queue", queueId: saved.id });
               setNaming(null);
             } catch (e) {
-              toast({ level: "error", title: "Could not save the queue", message: errorText(e) });
+              toast({ level: "error", title: t("Could not save the queue"), message: errorText(e) });
             }
           }}
           footer={
@@ -195,12 +195,12 @@ function QueueBar({ queueId }: { queueId: string }) {
               <span className="spacer" />
               <Button onClick={() => setNaming(null)}>{t("Cancel")}</Button>
               <Button type="submit" variant="primary" disabled={!naming.trim()}>
-                Save
+                {t("Save")}
               </Button>
             </>
           }
         >
-          <Input value={naming} onChange={(e) => setNaming(e.target.value)} placeholder="Queue name" />
+          <Input value={naming} onChange={(e) => setNaming(e.target.value)} placeholder={t("Queue name")} />
         </Dialog>
       )}
     </div>
@@ -262,7 +262,7 @@ export function DownloadsView() {
         const t = await api.torrentInfo({ data: toBase64(await f.arrayBuffer()) });
         openAdd({ url: "", filename: t.info.name, options: { torrentData: t.data } });
       } catch (e) {
-        toast({ level: "error", title: `Could not open ${f.name}`, message: errorText(e) });
+        toast({ level: "error", title: tf("Could not open {name}", { name: f.name }), message: errorText(e) });
       }
       return;
     }
@@ -272,12 +272,12 @@ export function DownloadsView() {
       .map((l) => l.trim())
       .filter((l) => l && !l.startsWith("#"));
     if (links.length) openAdd({ url: links.join("\n"), queueId: filter.scope === "queue" ? filter.queueId : undefined });
-    else if (dt.files.length) toast({ level: "warning", title: "Unsupported file", message: "Drop .torrent files or links." });
+    else if (dt.files.length) toast({ level: "warning", title: t("Unsupported file"), message: t("Drop .torrent files or links.") });
   };
 
   const queueItems = (action: "start" | "stop"): MenuItem[] =>
     queues.map((qq) => ({
-      label: qq.name,
+      label: queueName(qq),
       icon: action === "start" ? ListStart : ListX,
       disabled: action === "start" ? qq.running : !qq.running,
       onSelect: () => void run(action === "start" ? api.startQueue(qq.id) : api.stopQueue(qq.id), `Could not ${action} the queue`),
@@ -285,15 +285,15 @@ export function DownloadsView() {
 
   const scopeLabel = { all: "downloads", unfinished: "unfinished downloads", finished: "finished downloads", queue: "items in this queue" }[filter.scope];
   const empty = q ? (
-    <EmptyState title="No matches" text={`No ${scopeLabel} match “${search}”.`} />
+    <EmptyState title={t("No matches")} text={`No ${scopeLabel} match “${search}”.`} />
   ) : filter.scope === "finished" ? (
-    <EmptyState title="Nothing finished yet" text="Completed downloads appear here." />
+    <EmptyState title={t("Nothing finished yet")} text={t("Completed downloads appear here.")} />
   ) : filter.scope === "queue" ? (
-    <EmptyState title="This queue is empty" text="Right-click a download and choose Move to queue, or use “Download Later”." />
+    <EmptyState title={t("This queue is empty")} text={t("Right-click a download and choose Move to queue, or use “Download Later”.")} />
   ) : (
     <EmptyState
-      title={filter.category ? "Nothing in this category" : "No downloads yet"}
-      text="Paste a link, drop a file here, or download from your browser."
+      title={filter.category ? t("Nothing in this category") : t("No downloads yet")}
+      text={t("Paste a link, drop a file here, or download from your browser.")}
       action={
         <Button variant="primary" icon={Plus} onClick={() => openAdd()}>
           {t("Add URL")}
@@ -305,7 +305,7 @@ export function DownloadsView() {
   return (
     <div className="main main-fluent">
       <div className="toolbar-card card">
-        <TbButton icon={Plus} label={t("Add URL")} onClick={() => openAdd(filter.scope === "queue" ? { queueId: filter.queueId } : undefined)} title="Add URL (Ctrl N)" />
+        <TbButton icon={Plus} label={t("Add URL")} onClick={() => openAdd(filter.scope === "queue" ? { queueId: filter.queueId } : undefined)} title={t("Add URL (Ctrl N)")} />
         <span className="toolbar-sep" />
         <TbButton icon={Play} label={t("Resume")} disabled={!sel.some(canResume)} onClick={() => void run(api.resume([...selection]), "Could not resume")} title={t("Resume (Space)")} />
         <TbButton
@@ -314,7 +314,7 @@ export function DownloadsView() {
           disabled={!sel.some(canPause) && !allDownloads().some(canPause)}
           onClick={() => void run(api.pause([...selection]), "Could not stop")}
           menu={() => [
-            { label: "Stop selected", icon: Pause, disabled: !sel.some(canPause), onSelect: () => void run(api.pause([...selection]), "Could not stop") },
+            { label: t("Stop selected"), icon: Pause, disabled: !sel.some(canPause), onSelect: () => void run(api.pause([...selection]), "Could not stop") },
             { label: t("Stop all"), icon: Square, onSelect: () => void run(api.pauseAll(), "Could not stop") },
           ]}
           title={t("Stop (Space)")}
@@ -326,7 +326,7 @@ export function DownloadsView() {
           disabled={!sel.length && !allDownloads().some((d) => d.status === "completed")}
           onClick={() => sel.length && confirmRemove([...selection])}
           menu={() => [
-            { label: "Delete selected…", icon: Trash2, disabled: !sel.length, onSelect: () => confirmRemove([...selection]) },
+            { label: t("Delete selected…"), icon: Trash2, disabled: !sel.length, onSelect: () => confirmRemove([...selection]) },
             { label: t("Delete all completed"), disabled: !allDownloads().some((d) => d.status === "completed"), onSelect: () => void run(api.clearFinished(), "Could not delete") },
           ]}
           title={t("Delete (Del)")}
@@ -356,7 +356,7 @@ export function DownloadsView() {
               }}
               onBlur={() => !search && setSearching(false)}
             />
-            {search && <IconButton icon={X} label="Clear search" size="sm" onMouseDown={(e) => e.preventDefault()} onClick={() => setSearch("")} />}
+            {search && <IconButton icon={X} label={t("Clear search")} size="sm" onMouseDown={(e) => e.preventDefault()} onClick={() => setSearch("")} />}
           </div>
         ) : (
           <IconButton icon={Search} label={t("Search (Ctrl F)")} onClick={() => setSearching(true)} />
@@ -369,7 +369,7 @@ export function DownloadsView() {
             showMenuAt(
               e.currentTarget,
               [
-                { label: "Settings…", icon: SettingsIcon, shortcut: "Ctrl ,", onSelect: () => openSettings("general") },
+                { label: t("Settings…"), icon: SettingsIcon, shortcut: "Ctrl ,", onSelect: () => openSettings("general") },
                 { label: t("Details panel"), icon: PanelRight, shortcut: "Ctrl I", checked: undefined, onSelect: () => setInspectorOpen(!inspectorOpen) },
                 { label: t("Open .torrent file…"), icon: FileUp, onSelect: () => void pickTorrent(openAdd) },
               ],

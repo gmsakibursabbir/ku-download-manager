@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { t } from "../lib/i18n";
+import { t, tf } from "../lib/i18n";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import {
   ArrowDownToLine,
@@ -23,7 +23,7 @@ import {
 import { Icon } from "../ui/primitives";
 import { showMenuAt, type MenuItem } from "../ui/overlays";
 import { useApp, type ListFilter } from "./context";
-import { allDownloads, queuesStore, settingsStore, updateSettings, useDownloadIds, useSpeed } from "../lib/store";
+import { allDownloads, queuesStore, settingsStore, updateSettings, useDownloadIds, useSpeed, queueName } from "../lib/store";
 import { api } from "../lib/api";
 import * as fmt from "../lib/format";
 import { run } from "./downloads/actions";
@@ -86,7 +86,7 @@ function WindowControls({ buttons }: { buttons: string[] }) {
             <Icon icon={Minus} size={14} />
           </button>
         ) : b === "maximize" ? (
-          <button key={b} type="button" aria-label={maximized ? "Restore" : "Maximize"} onClick={() => void win.toggleMaximize()}>
+          <button key={b} type="button" aria-label={maximized ? t("Restore") : t("Maximize")} onClick={() => void win.toggleMaximize()}>
             <Icon icon={maximized ? Copy : Square} size={12} />
           </button>
         ) : (
@@ -167,7 +167,7 @@ export function TitleBar() {
           KuDownloader
         </span>
       </div>
-      <nav className="menubar" aria-label="Menu">
+      <nav className="menubar" aria-label={t("Menu")}>
         {Object.keys(menus).map((name) => (
           <button key={name} type="button" className="menubar-item" onClick={(e) => showMenuAt(e.currentTarget, menus[name]())}>
             {t(name)}
@@ -213,11 +213,11 @@ function SpeedMonitor() {
     .filter(Boolean)
     .join(" · ");
   return (
-    <section className="speed-monitor" aria-label="Network speed">
+    <section className="speed-monitor" aria-label={t("Network speed")}>
       <div className="speed-monitor-head">
         <span>{t("Network")}</span>
         <span className="faint" title={detail || undefined}>
-          {downloading + seeding ? `${downloading + seeding} active` : t("Idle")}
+          {downloading + seeding ? tf("{n} active", { n: downloading + seeding }) : t("Idle")}
         </span>
       </div>
       <div className="speed-monitor-value num">
@@ -235,7 +235,7 @@ function SpeedMonitor() {
           <Icon icon={ArrowUpFromLine} size={11} />
           {fmt.speed(s.up)}
         </span>
-        <span>peak {fmt.speed(peak)}</span>
+        <span>{tf("peak {speed}", { speed: fmt.speed(peak) })}</span>
       </div>
     </section>
   );
@@ -268,7 +268,7 @@ function TreeItem({
         {!!count && <span className="count">{count}</span>}
       </button>
       {onToggle && (
-        <button type="button" className="tree-toggle" aria-label={expanded ? `Collapse ${label}` : `Expand ${label}`} aria-expanded={expanded} onClick={onToggle}>
+        <button type="button" className="tree-toggle" aria-label={tf(expanded ? "Collapse {name}" : "Expand {name}", { name: label })} aria-expanded={expanded} onClick={onToggle}>
           <Icon icon={expanded ? ChevronDown : ChevronRight} size={14} />
         </button>
       )}
@@ -339,7 +339,7 @@ export function Sidebar({ collapsed }: { collapsed: boolean; onToggle?: () => vo
         <TreeItem icon={ListOrdered} label={t("Queues")} count={queued} active={isList && filter.scope === "queue"} expanded={open.queues} onToggle={() => toggle("queues")} onClick={() => showList({ scope: "queue", category: "", queueId: queues[0]?.id ?? "main" })} />
         {open.queues &&
           queues.map((q) => (
-            <TreeItem key={q.id} depth={1} icon={ListOrdered} label={q.name + (q.running ? " · running" : "")} active={is({ scope: "queue", queueId: q.id })} onClick={() => showList({ scope: "queue", category: "", queueId: q.id })} />
+            <TreeItem key={q.id} depth={1} icon={ListOrdered} label={queueName(q) + (q.running ? ` · ${t("running")}` : "")} active={is({ scope: "queue", queueId: q.id })} onClick={() => showList({ scope: "queue", category: "", queueId: q.id })} />
           ))}
         <TreeItem icon={Hand} label={t("Fetch Projects")} active={view === "grabber"} onClick={() => navigate("grabber")} />
         <TreeItem icon={Clapperboard} label={t("Video Downloader")} active={view === "video"} onClick={() => navigate("video")} />

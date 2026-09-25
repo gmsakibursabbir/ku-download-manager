@@ -1,3 +1,4 @@
+import { t, tf } from "../../lib/i18n";
 import { useRef, useState } from "react";
 import { Gauge } from "lucide-react";
 import { settingsStore, updateSettings } from "../../lib/store";
@@ -16,7 +17,7 @@ export function SpeedControl() {
   if (!s) return null;
   const profile = s.profiles.find((p) => p.id === s.activeProfile) ?? s.profiles[0];
   const limited = !!profile && profile.download > 0;
-  const label = limited ? `${fmt.speed(profile.download)} limit` : "No limit";
+  const label = limited ? tf("{speed} limit", { speed: fmt.speed(profile.download) }) : t("No limit");
 
   const applyCustom = async () => {
     const rate = fmt.parseRate(custom);
@@ -31,14 +32,14 @@ export function SpeedControl() {
 
   return (
     <>
-      <button ref={ref} type="button" className="speed-chip num" data-limited={limited} onClick={() => setOpen(!open)} title="Speed limit">
+      <button ref={ref} type="button" className="speed-chip num" data-limited={limited} onClick={() => setOpen(!open)} title={t("Speed limit")}>
         <Icon icon={Gauge} size={14} />
         {label}
       </button>
       {open && (
         <Popover anchor={ref.current} onClose={() => setOpen(false)} width={260}>
           <div style={{ padding: "var(--space-2)" }}>
-            <div className="menu-label">Bandwidth profile</div>
+            <div className="menu-label">{t("Bandwidth profile")}</div>
             {s.profiles.map((p) => (
               <button
                 key={p.id}
@@ -52,7 +53,7 @@ export function SpeedControl() {
                 }}
               >
                 <span style={{ flex: 1 }}>{p.name}</span>
-                <span className="shortcut num">{p.download ? fmt.speed(p.download) : "Unlimited"}</span>
+                <span className="shortcut num">{p.download ? fmt.speed(p.download) : t("Unlimited")}</span>
               </button>
             ))}
             <div className="menu-sep" />
@@ -70,15 +71,15 @@ export function SpeedControl() {
                   setCustom(e.target.value);
                   setInvalid(false);
                 }}
-                placeholder="Custom, e.g. 2 MB"
+                placeholder={t("Custom, e.g. 2 MB")}
                 style={{ height: 28 }}
               />
               <Button type="submit" size="sm">
-                Set
+                {t("Set")}
               </Button>
             </form>
             <div className="faint" style={{ fontSize: "var(--text-2xs)", padding: "0 var(--space-1) var(--space-1)" }}>
-              Applies to all downloads. Edit profiles in Settings › Speed.
+              {t("Applies to all downloads. Edit profiles in Settings › Speed.")}
             </div>
           </div>
         </Popover>

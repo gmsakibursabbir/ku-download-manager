@@ -40,7 +40,7 @@ export function DuplicateNotice({ url, dir, filename, onHandled }: { url: string
 
   if (!dup || (!dup.existing && !dup.fileExists)) return null;
   const run = (p: Promise<unknown>, done = true) =>
-    void p.then(() => done && onHandled()).catch((e) => toast({ level: "error", title: "That didn't work", message: errorText(e) }));
+    void p.then(() => done && onHandled()).catch((e) => toast({ level: "error", title: t("That didn't work"), message: errorText(e) }));
 
   const e = dup.existing;
   if (e) {
@@ -62,7 +62,7 @@ export function DuplicateNotice({ url, dir, filename, onHandled }: { url: string
             </span>
           }
         >
-          {e.name} · {fmt.bytes(e.total)}. Download it again only if you need a fresh copy.
+          {e.name} · {fmt.bytes(e.total)}. {t("Download it again only if you need a fresh copy.")}
         </Notice>
       );
     }
@@ -87,7 +87,7 @@ export function DuplicateNotice({ url, dir, filename, onHandled }: { url: string
           }
         >
           {e.name}
-          {pct} — resuming keeps what is already downloaded.
+          {pct} — {t("resuming keeps what is already downloaded.")}
         </Notice>
       );
     }

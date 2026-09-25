@@ -1,3 +1,4 @@
+import { t, t as tr, tf, tj } from "../lib/i18n";
 import { useEffect, useState } from "react";
 import { CircleAlert, CircleCheck, FolderOpen, Globe, RefreshCw, Copy, Package, ChevronRight, ChevronDown } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
@@ -52,11 +53,11 @@ export function YourBrowsers({ dirs, status, onChanged, compact }: { dirs: Exten
     setBusy(b.id);
     try {
       const r = await invoke<{ mode: string; copied?: boolean }>("install_extension", { browser: b.id });
-      if (!quiet) toast({ level: "info", title: `Opened ${b.name}`, message: nextStep(b, r), timeout: 20000 });
+      if (!quiet) toast({ level: "info", title: tf("Opened {browser}", { browser: b.name }), message: nextStep(b, r), timeout: 20000 });
       onChanged();
       return true;
     } catch (e) {
-      toast({ level: "error", title: `Could not open ${b.name}`, message: errorText(e) });
+      toast({ level: "error", title: tf("Could not open {name}", { name: b.name }), message: errorText(e) });
       return false;
     } finally {
       setBusy(null);
@@ -72,8 +73,8 @@ export function YourBrowsers({ dirs, status, onChanged, compact }: { dirs: Exten
     }
     toast({
       level: "info",
-      title: `Opened ${browsers.length} browser${browsers.length === 1 ? "" : "s"}`,
-      message: "In each Chromium browser: Developer mode → “Load unpacked” → paste the copied folder path. In Firefox-based browsers: “Load Temporary Add-on…” → manifest.json. Restart each browser afterwards.",
+      title: browsers.length === 1 ? t("Opened 1 browser") : tf("Opened {n} browsers", { n: browsers.length }),
+      message: t("In each Chromium browser: Developer mode → “Load unpacked” → paste the copied folder path. In Firefox-based browsers: “Load Temporary Add-on…” → manifest.json. Restart each browser afterwards."),
       timeout: 20000,
     });
   };
@@ -82,22 +83,22 @@ export function YourBrowsers({ dirs, status, onChanged, compact }: { dirs: Exten
   return (
     <>
       <div className="pref-group-title" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <span style={{ flex: 1 }}>Your browsers</span>
+        <span style={{ flex: 1 }}>{t("Your browsers")}</span>
         {seen ? (
           <span className="status" data-state="completed">
-            Extension active · {fmt.relativeDate(lastSeen)}
+            {tf("Extension active · {when}", { when: fmt.relativeDate(lastSeen) })}
           </span>
         ) : (
           <span className="status" data-state="paused">
-            Extension not detected yet
+            {t("Extension not detected yet")}
           </span>
         )}
       </div>
       <div className="pref-group">
         {browsers == null ? (
-          <PrefRow label="Looking for browsers…" />
+          <PrefRow label={t("Looking for browsers…")} />
         ) : browsers.length === 0 ? (
-          <PrefRow label="No supported browser found" desc="KuDownloader supports Chrome, Edge, Brave, Vivaldi, Opera, Chromium and Firefox." />
+          <PrefRow label={t("No supported browser found")} desc={t("KuDownloader supports Chrome, Edge, Brave, Vivaldi, Opera, Chromium and Firefox.")} />
         ) : (
           browsers.map((b) => (
             <PrefRow
@@ -109,27 +110,27 @@ export function YourBrowsers({ dirs, status, onChanged, compact }: { dirs: Exten
               }
               desc={
                 <span>
-                  {hostFor(b) ? "Connection to KuDownloader ready" : "Connection not registered — use “Register again” below"} · <span className="mono">{dirOf(b.path)}</span>
+                  {hostFor(b) ? t("Connection to KuDownloader ready") : t("Connection not registered — use “Register again” below")} · <span className="mono">{dirOf(b.path)}</span>
                 </span>
               }
             >
               <Button size="sm" variant="secondary" busy={busy === b.id} disabled={!!busy} onClick={() => void install(b)}>
-                {b.family === "firefox" ? "Install add-on" : "Install extension"}
+                {b.family === "firefox" ? t("Install add-on") : t("Install extension")}
               </Button>
             </PrefRow>
           ))
         )}
         {!!browsers?.length && (
-          <PrefRow label="All browsers" desc="Opens every browser above at its extensions page, one after another.">
+          <PrefRow label={t("All browsers")} desc={t("Opens every browser above at its extensions page, one after another.")}>
             <Button size="sm" variant="primary" disabled={!!busy} onClick={() => void installAll()}>
-              Install in all browsers
+              {t("Install in all browsers")}
             </Button>
           </PrefRow>
         )}
       </div>
       {!compact && (dirs.crx || dirs.xpi) && (
         <div className="faint" style={{ fontSize: "var(--text-xs)", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-          <Icon icon={Package} size={13} /> Packages for store or policy deployment:
+          <Icon icon={Package} size={13} /> {t("Packages for store or policy deployment:")}
           {dirs.crx && (
             <Button size="sm" variant="ghost" onClick={() => void invoke("reveal_path", { path: dirOf(dirs.crx!) })}>
               kudmx.crx
@@ -141,8 +142,8 @@ export function YourBrowsers({ dirs, status, onChanged, compact }: { dirs: Exten
             </Button>
           )}
           <span>
-            Chromium browsers on Windows reject .crx files that don&apos;t come from their web store (error CRX_REQUIRED_PROOF_MISSING), so use Install extension above instead.
-            {!dirs.xpiSigned && " Release Firefox installs only Mozilla-signed .xpi files permanently."}
+            {t("Chromium browsers on Windows reject .crx files that don't come from their web store (error CRX_REQUIRED_PROOF_MISSING), so use Install extension above instead.")}
+            {!dirs.xpiSigned && ` ${t("Release Firefox installs only Mozilla-signed .xpi files permanently.")}`}
           </span>
         </div>
       )}
@@ -174,85 +175,85 @@ export function BrowserView() {
     setBusy(true);
     try {
       setStatus(await api.hostRegister());
-      toast({ level: "success", title: "Browser connection registered" });
+      toast({ level: "success", title: t("Browser connection registered") });
     } catch (e) {
-      toast({ level: "error", title: "Registration failed", message: errorText(e) });
+      toast({ level: "error", title: t("Registration failed"), message: errorText(e) });
     } finally {
       setBusy(false);
     }
   };
   const copy = (t: string) => {
     void navigator.clipboard.writeText(t);
-    toast({ level: "success", title: "Copied" });
+    toast({ level: "success", title: tr("Copied") });
   };
-  const reveal = (p?: string | null) => p && void invoke("reveal_path", { path: p }).catch((e) => toast({ level: "error", title: "Could not open the folder", message: errorText(e) }));
+  const reveal = (p?: string | null) => p && void invoke("reveal_path", { path: p }).catch((e) => toast({ level: "error", title: t("Could not open the folder"), message: errorText(e) }));
 
   return (
     <div className="main">
       <div className="toolbar">
-        <span className="toolbar-title">Browser Integration</span>
+        <span className="toolbar-title">{t("Browser Integration")}</span>
       </div>
       <div className="page">
         <div className="page-inner">
           <p className="page-lede">
-            The KuDownloader extension sends downloads, videos and links from your browser to this app. It only talks to KuDownloader on this computer.
+            {t("The KuDownloader extension sends downloads, videos and links from your browser to this app. It only talks to KuDownloader on this computer.")}
           </p>
 
           {status && !status.hostExists && (
-            <Notice level="error" icon={CircleAlert} title="Connector missing">
-              The browser connector (ku-native-host) was not found next to KuDownloader. Reinstall KuDownloader to restore it.
+            <Notice level="error" icon={CircleAlert} title={t("Connector missing")}>
+              {t("The browser connector (ku-native-host) was not found next to KuDownloader. Reinstall KuDownloader to restore it.")}
             </Notice>
           )}
 
           <YourBrowsers dirs={dirs} status={status} onChanged={() => void api.hostStatus().then(setStatus)} />
 
-          <PrefGroup title="Connection">
+          <PrefGroup title={t("Connection")}>
             {status?.browsers.filter((b) => b.installed).map((b) => (
               <PrefRow key={b.browser} label={b.browser} desc={b.location}>
                 <span className="status" data-state={b.registered ? "completed" : "paused"}>
-                  {b.registered ? "Registered" : "Not registered"}
+                  {b.registered ? t("Registered") : t("Not registered")}
                 </span>
               </PrefRow>
             ))}
-            <PrefRow label="Register again" desc="Run this if you moved KuDownloader or the extension says it cannot reach the app.">
+            <PrefRow label={t("Register again")} desc={t("Run this if you moved KuDownloader or the extension says it cannot reach the app.")}>
               <Button size="sm" icon={RefreshCw} busy={busy} onClick={() => void register()}>
-                Register again
+                {t("Register again")}
               </Button>
             </PrefRow>
           </PrefGroup>
 
           <button type="button" className="dl-more" onClick={() => setManual(!manual)} aria-expanded={manual}>
-            <Icon icon={manual ? ChevronDown : ChevronRight} size={14} /> Manual setup
+            <Icon icon={manual ? ChevronDown : ChevronRight} size={14} /> {t("Manual setup")}
           </button>
           {manual && (
             <div className="card" style={{ padding: "var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-              <div className="section-title">Chrome, Edge, Brave, Vivaldi, Opera, Chromium</div>
+              <div className="section-title">{t("Chrome, Edge, Brave, Vivaldi, Opera, Chromium")}</div>
               <Step n={1}>
-                Open the browser&apos;s extensions page (for example <span className="mono selectable">chrome://extensions</span>) and turn on <b>Developer mode</b>.
+                {tj("Open the browser's extensions page (for example {url}) and turn on {mode}.", { url: <span className="mono selectable">chrome://extensions</span>, mode: <b>{t("Developer mode")}</b> })}
               </Step>
               <Step n={2}>
-                Choose <b>Load unpacked</b> and select:
+                {tj("Choose {button} and select:", { button: <b>{t("Load unpacked")}</b> })}
                 <div className="fact-link" style={{ marginTop: 6 }}>
-                  <span className="mono selectable truncate">{dirs.chrome ?? "Not bundled with this build"}</span>
-                  {dirs.chrome && <IconButton icon={Copy} label="Copy path" size="sm" onClick={() => copy(dirs.chrome!)} />}
-                  {dirs.chrome && <IconButton icon={FolderOpen} label="Open folder" size="sm" onClick={() => reveal(dirs.chrome)} />}
+                  <span className="mono selectable truncate">{dirs.chrome ?? t("Not bundled with this build")}</span>
+                  {dirs.chrome && <IconButton icon={Copy} label={t("Copy path")} size="sm" onClick={() => copy(dirs.chrome!)} />}
+                  {dirs.chrome && <IconButton icon={FolderOpen} label={t("Open folder")} size="sm" onClick={() => reveal(dirs.chrome)} />}
                 </div>
               </Step>
               <Step n={3}>
-                The extension id is <span className="mono selectable">{status?.chromeExtensionId}</span>, fixed by the bundled key.
+                {tj("The extension id is {id}, fixed by the bundled key.", { id: <span className="mono selectable">{status?.chromeExtensionId}</span> })}
               </Step>
               <div className="section-title" style={{ marginTop: "var(--space-2)" }}>
                 Firefox
               </div>
               <Step n={1}>
-                Open <span className="mono selectable">about:debugging#/runtime/this-firefox</span> → <b>Load Temporary Add-on…</b> and pick <span className="mono">manifest.json</span> in:
+                {tj("Open {page} → {button} and pick {file} in:", { page: <span className="mono selectable">about:debugging#/runtime/this-firefox</span>, button: <b>{t("Load Temporary Add-on…")}</b>, file: <span className="mono">manifest.json</span> })}
                 <div className="fact-link" style={{ marginTop: 6 }}>
-                  <span className="mono selectable truncate">{dirs.firefox ?? "Not bundled with this build"}</span>
-                  {dirs.firefox && <IconButton icon={FolderOpen} label="Open folder" size="sm" onClick={() => reveal(dirs.firefox)} />}
+                  <span className="mono selectable truncate">{dirs.firefox ?? t("Not bundled with this build")}</span>
+                  {dirs.firefox && <IconButton icon={FolderOpen} label={t("Open folder")} size="sm" onClick={() => reveal(dirs.firefox)} />}
                 </div>
               </Step>
               <div className="faint" style={{ fontSize: "var(--text-xs)", display: "flex", gap: 6, alignItems: "center" }}>
-                <Icon icon={CircleCheck} size={13} /> Restart the browser after installing so it picks up the connection.
+                <Icon icon={CircleCheck} size={13} /> {t("Restart the browser after installing so it picks up the connection.")}
               </div>
             </div>
           )}
@@ -268,12 +269,12 @@ export function MediaView() {
   return (
     <div className="main">
       <div className="toolbar">
-        <span className="toolbar-title">Media Detection</span>
+        <span className="toolbar-title">{t("Media Detection")}</span>
       </div>
       <div className="page">
         <div className="page-inner">
           <p className="page-lede">
-            On supported pages the extension adds a small <b>KuDownload</b> button to videos. Choosing a quality sends the page to KuDownloader, which downloads it with yt-dlp. Detection runs only in your browser and can be switched off per site.
+            {tj("On supported pages the extension adds a small {button} button to videos. Choosing a quality sends the page to KuDownloader, which downloads it with yt-dlp. Detection runs only in your browser and can be switched off per site.", { button: <b>KuDownload</b> })}
           </p>
           <MediaPrefs />
           <EngineStatus />

@@ -43,7 +43,7 @@ export function primaryAction(d: Download): { icon: LucideIcon; label: string; r
     case "queued":
       return { icon: Pause, label: t("Pause"), run: () => void run(api.pause([d.id]), "Could not pause") };
     case "seeding":
-      return { icon: Pause, label: "Stop seeding", run: () => void run(api.pause([d.id]), "Could not stop seeding") };
+      return { icon: Pause, label: t("Stop seeding"), run: () => void run(api.pause([d.id]), "Could not stop seeding") };
     case "paused":
       return { icon: Play, label: t("Resume"), run: () => void run(api.resume([d.id]), "Could not resume") };
     case "error":
@@ -103,11 +103,11 @@ export function contextMenu(ids: string[], opts: { confirmRemove: (ids: string[]
       disabled: one.url.startsWith("torrent:"),
       onSelect: () => {
         void navigator.clipboard.writeText(one.url);
-        toast({ level: "success", title: "Link copied" });
+        toast({ level: "success", title: t("Link copied") });
       },
     });
     if (finished && one.engine === "aria2" && one.kind !== "torrent" && one.kind !== "magnet") {
-      items.push({ label: "Verify checksum…", icon: ShieldCheck, onSelect: () => opts.onVerify(one.id) });
+      items.push({ label: t("Verify checksum…"), icon: ShieldCheck, onSelect: () => opts.onVerify(one.id) });
     }
     items.push("sep");
   }

@@ -1,3 +1,4 @@
+import { Fragment, type ReactNode } from "react";
 /**
  * Interface translations. Keys are the English strings themselves, so an
  * untranslated string simply stays English. Each language lives in
@@ -53,6 +54,24 @@ export async function initLanguage(): Promise<void> {
 /** Translate an interface string (English is the key). */
 export function t(s: string): string {
   return dict?.[s] ?? s;
+}
+
+/**
+ * Translate a whole sentence and fill in its {placeholders}, so translators
+ * can put the values where their language needs them.
+ */
+export function tf(s: string, vars: Record<string, string | number>): string {
+  return t(s).replace(/\{(\w+)\}/g, (m, k: string) => (k in vars ? String(vars[k]) : m));
+}
+
+/** Like tf, but values can be elements (bold text, code, links). */
+export function tj(s: string, vars: Record<string, ReactNode>): ReactNode[] {
+  return t(s)
+    .split(/(\{\w+\})/)
+    .map((part, i) => {
+      const k = part.match(/^\{(\w+)\}$/)?.[1];
+      return k && k in vars ? <Fragment key={i}>{vars[k]}</Fragment> : part;
+    });
 }
 
 /** Remember the language setting; reloads the window when it changes. */

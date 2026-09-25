@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { t } from "../lib/i18n";
+import { t, tf } from "../lib/i18n";
 import { CircleAlert, Link2, Search, Folder } from "lucide-react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { api, errorText } from "../lib/api";
-import { settingsStore, queuesStore } from "../lib/store";
+import { settingsStore, queuesStore, queueName } from "../lib/store";
 import * as fmt from "../lib/format";
 import type { GrabLink } from "../lib/types";
 import { Button, Checkbox, EmptyState, Icon, IconButton, Input, Notice } from "../ui/primitives";
@@ -97,13 +97,13 @@ export function GrabberView() {
       });
       toast({
         level: r.failed.length ? "warning" : "success",
-        title: `${r.added.length} added${r.failed.length ? `, ${r.failed.length} skipped` : ""}`,
+        title: r.failed.length ? tf("{added} added, {skipped} skipped", { added: r.added.length, skipped: r.failed.length }) : tf("{n} added", { n: r.added.length }),
         message: r.failed[0] ? `${fmt.host(r.failed[0].url)}: ${r.failed[0].error}` : undefined,
-        actions: [{ label: "View", onClick: () => showList(queueId ? { scope: "queue", queueId } : { scope: "all" }) }],
+        actions: [{ label: t("View"), onClick: () => showList(queueId ? { scope: "queue", queueId } : { scope: "all" }) }],
       });
       setSelected(new Set());
     } catch (e) {
-      toast({ level: "error", title: "Could not add the downloads", message: errorText(e) });
+      toast({ level: "error", title: t("Could not add the downloads"), message: errorText(e) });
     } finally {
       setBusy(false);
     }
@@ -125,10 +125,10 @@ export function GrabberView() {
           >
             <div className="input-with-icon" style={{ flex: 1 }}>
               <Icon icon={Link2} size={14} />
-              <Input value={pageUrl} onChange={(e) => setPageUrl(e.target.value)} placeholder="Page address — or use “Download all links” in the browser extension" />
+              <Input value={pageUrl} onChange={(e) => setPageUrl(e.target.value)} placeholder={t("Page address — or use “Download all links” in the browser extension")} />
             </div>
             <Button type="submit" variant="primary" busy={loading} disabled={!/^https?:\/\//i.test(pageUrl.trim())}>
-              Find links
+              {t("Find links")}
             </Button>
           </form>
           {error && (
@@ -141,10 +141,10 @@ export function GrabberView() {
               <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                 <div className="input-with-icon" style={{ width: 240 }}>
                   <Icon icon={Search} size={14} />
-                  <Input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Filter" style={{ height: 28 }} />
+                  <Input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder={t("Filter")} style={{ height: 28 }} />
                 </div>
                 <Checkbox checked={filesOnly} onChange={setFilesOnly}>
-                  Files only
+                  {t("Files only")}
                 </Checkbox>
                 <span className="toolbar-sep" />
                 {allTypes.map(([t, n]) => (
@@ -180,9 +180,9 @@ export function GrabberView() {
                             }}
                           />
                         </th>
-                        <th>Name</th>
-                        <th style={{ width: 70 }}>Type</th>
-                        <th style={{ width: 200 }}>Host</th>
+                        <th>{t("Name")}</th>
+                        <th style={{ width: 70 }}>{t("Type")}</th>
+                        <th style={{ width: 200 }}>{t("Host")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -219,7 +219,7 @@ export function GrabberView() {
                     </tbody>
                   </table>
                 ) : (
-                  <EmptyState title="No links match" text="Change the filter or show pages too." />
+                  <EmptyState title={t("No links match")} text={t("Change the filter or show pages too.")} />
                 )}
               </div>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -227,7 +227,7 @@ export function GrabberView() {
                   <Input value={dir} onChange={(e) => setDir(e.target.value)} placeholder={`Automatic (${settings?.downloadDir ?? "Downloads"})`} />
                   <IconButton
                     icon={Folder}
-                    label="Choose folder"
+                    label={t("Choose folder")}
                     onClick={async () => {
                       const p = await open({ directory: true });
                       if (typeof p === "string") setDir(p);
@@ -238,18 +238,18 @@ export function GrabberView() {
                 <span className="faint num" style={{ fontSize: "var(--text-sm)" }}>
                   {chosen.length} of {visible.length} selected
                 </span>
-                <Button ref={queueBtn} disabled={!chosen.length || busy} onClick={() => showMenuAt(queueBtn.current!, queues.map((q) => ({ label: q.name, onSelect: () => void add(q.id) })))}>
-                  Add to queue
+                <Button ref={queueBtn} disabled={!chosen.length || busy} onClick={() => showMenuAt(queueBtn.current!, queues.map((q) => ({ label: queueName(q), onSelect: () => void add(q.id) })))}>
+                  {t("Add to queue")}
                 </Button>
                 <Button variant="primary" busy={busy} disabled={!chosen.length} onClick={() => void add(null)}>
-                  Download {chosen.length || ""}
+                  {t("Download")}{' '}{chosen.length || ""}
                 </Button>
               </div>
             </>
           )}
           {!links.length && !loading && !error && (
             <div className="faint" style={{ fontSize: "var(--text-sm)" }}>
-              KuDownloader reads the page once and lists the files it links to. Nothing is downloaded until you choose.
+              {t("KuDownloader reads the page once and lists the files it links to. Nothing is downloaded until you choose.")}
             </div>
           )}
         </div>

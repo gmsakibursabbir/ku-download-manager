@@ -1,3 +1,4 @@
+import { t, t as tr, tf } from "../../lib/i18n";
 import { useEffect, useMemo, useState } from "react";
 import { Copy, FolderOpen, ExternalLink, Pause, Play, RotateCcw, Trash2, X, CircleAlert, Gauge, ChevronRight, ChevronDown, ShieldCheck, Link as LinkIcon } from "lucide-react";
 import { useDownload } from "../../lib/store";
@@ -19,7 +20,7 @@ function connectionsLabel(d: Download, smartTarget?: number | null) {
   if (d.engine === "ytdlp") return "Managed by yt-dlp";
   if (d.kind === "torrent" || d.kind === "magnet") return `${d.activeConnections} peers`;
   const mode = d.connections === 0 ? `Smart${smartTarget ? ` (target ${smartTarget})` : ""}` : `${d.connections}`;
-  const live = d.status === "downloading" ? ` · ${d.activeConnections} active` : "";
+  const live = d.status === "downloading" ? ` · ${tf("{n} active", { n: d.activeConnections })}` : "";
   return mode + live;
 }
 
@@ -42,11 +43,11 @@ function Advanced({ d }: { d: Download }) {
   const bt = d.kind === "torrent" || d.kind === "magnet";
   const tabs: { value: AdvTab; label: string }[] = useMemo(() => {
     const t: { value: AdvTab; label: string }[] = [];
-    if (d.engine === "aria2" && !bt) t.push({ value: "connections", label: "Connections" });
-    if (d.engine === "kuhttp") t.push({ value: "connections", label: "Segments" });
-    if (d.engine === "aria2") t.push({ value: "pieces", label: "Pieces" });
-    if (bt) t.push({ value: "files", label: "Files" }, { value: "peers", label: "Peers" }, { value: "trackers", label: "Trackers" });
-    t.push({ value: "log", label: "Log" });
+    if (d.engine === "aria2" && !bt) t.push({ value: "connections", label: tr("Connections") });
+    if (d.engine === "kuhttp") t.push({ value: "connections", label: tr("Segments") });
+    if (d.engine === "aria2") t.push({ value: "pieces", label: tr("Pieces") });
+    if (bt) t.push({ value: "files", label: tr("Files") }, { value: "peers", label: tr("Peers") }, { value: "trackers", label: tr("Trackers") });
+    t.push({ value: "log", label: tr("Log") });
     return t;
   }, [d.engine, bt]);
   const [tab, setTab] = useState<AdvTab>(tabs[0].value);
@@ -83,7 +84,7 @@ function Advanced({ d }: { d: Download }) {
     <div className="insp-advanced">
       <button type="button" className="insp-section-title" onClick={() => setOpen(!open)} aria-expanded={open}>
         <Icon icon={open ? ChevronDown : ChevronRight} size={14} />
-        Technical details
+        {t("Technical details")}
       </button>
       {open && (
         <div style={{ marginTop: "var(--space-3)" }}>
@@ -93,15 +94,15 @@ function Advanced({ d }: { d: Download }) {
               <div className="conn-list num">
                 {conns.map((c, i) => (
                   <div key={i} className="conn-row" title={c.currentUri}>
-                    <span className="faint">{d.engine === "kuhttp" ? "Seg" : "Conn"} {String(i + 1).padStart(2, "0")}</span>
+                    <span className="faint">{d.engine === "kuhttp" ? t("Seg") : t("Conn")} {String(i + 1).padStart(2, "0")}</span>
                     <Progress value={c.pct >= 0 ? c.pct : (c.speed / maxSpeed) * 100} state={c.done ? "completed" : "downloading"} />
-                    <span style={{ textAlign: "right" }}>{c.done ? "Done" : fmt.speed(c.speed)}</span>
+                    <span style={{ textAlign: "right" }}>{c.done ? t("Done") : fmt.speed(c.speed)}</span>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="faint" style={{ fontSize: "var(--text-xs)" }}>
-                {live ? "Connecting…" : "No active connections."}
+                {live ? t("Connecting…") : t("No active connections.")}
               </div>
             ))}
           {tab === "pieces" &&
@@ -113,11 +114,11 @@ function Advanced({ d }: { d: Download }) {
                   ))}
                 </div>
                 <div className="faint" style={{ fontSize: "var(--text-xs)", marginTop: 8 }}>
-                  {details?.pieces?.count} pieces of {fmt.bytes(details?.pieces?.length)}
+                  {tf("{n} pieces of {size}", { n: details?.pieces?.count ?? 0, size: fmt.bytes(details?.pieces?.length) })}
                 </div>
               </>
             ) : (
-              <div className="faint" style={{ fontSize: "var(--text-xs)" }}>Piece information is available while the download is active.</div>
+              <div className="faint" style={{ fontSize: "var(--text-xs)" }}>{t("Piece information is available while the download is active.")}</div>
             ))}
           {tab === "files" && (
             <div className="conn-list">
@@ -140,7 +141,7 @@ function Advanced({ d }: { d: Download }) {
                   <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 70px 70px", gap: 8 }}>
                     <span className="truncate mono">
                       {p.ip}
-                      {p.seeder ? " · seed" : ""}
+                      {p.seeder ? ` · ${t("seed")}` : ""}
                     </span>
                     <span style={{ textAlign: "right" }}>↓ {fmt.speed(p.downloadSpeed)}</span>
                     <span className="faint" style={{ textAlign: "right" }}>
@@ -150,7 +151,7 @@ function Advanced({ d }: { d: Download }) {
                 ))}
               </div>
             ) : (
-              <div className="faint" style={{ fontSize: "var(--text-xs)" }}>{live ? "Looking for peers…" : "Not connected to peers."}</div>
+              <div className="faint" style={{ fontSize: "var(--text-xs)" }}>{live ? t("Looking for peers…") : t("Not connected to peers.")}</div>
             ))}
           {tab === "trackers" && (
             <div className="conn-list">
@@ -159,7 +160,7 @@ function Advanced({ d }: { d: Download }) {
                   {t}
                 </span>
               ))}
-              {!details?.trackers?.length && <span className="faint">Trackerless (DHT) or not loaded yet.</span>}
+              {!details?.trackers?.length && <span className="faint">{t("Trackerless (DHT) or not loaded yet.")}</span>}
             </div>
           )}
           {tab === "log" && (
@@ -169,7 +170,7 @@ function Advanced({ d }: { d: Download }) {
                   <span className="faint">{new Date(l.ts).toLocaleTimeString()}</span> {l.message}
                 </div>
               ))}
-              {!details?.log?.length && <span className="faint">No log entries in this session.</span>}
+              {!details?.log?.length && <span className="faint">{t("No log entries in this session.")}</span>}
             </div>
           )}
         </div>
@@ -201,16 +202,16 @@ export function VerifyDialog({ id, onClose }: { id: string; onClose: () => void 
   };
   return (
     <Dialog
-      title="Verify checksum"
+      title={t("Verify checksum")}
       onClose={onClose}
       width={520}
       onSubmit={verify}
       footer={
         <>
           <span className="spacer" />
-          <Button onClick={onClose}>Close</Button>
+          <Button onClick={onClose}>{t("Close")}</Button>
           <Button type="submit" variant="primary" busy={busy}>
-            Compute
+            {t("Compute")}
           </Button>
         </>
       }
@@ -219,15 +220,15 @@ export function VerifyDialog({ id, onClose }: { id: string; onClose: () => void 
         {d.name}
       </div>
       <div className="form-grid">
-        <label>Algorithm</label>
+        <label>{t("Algorithm")}</label>
         <select className="select" value={algo} onChange={(e) => setAlgo(e.target.value)}>
           <option value="sha-256">SHA-256</option>
           <option value="sha-512">SHA-512</option>
           <option value="sha-1">SHA-1</option>
           <option value="md5">MD5</option>
         </select>
-        <label>Expected</label>
-        <Input value={expected} onChange={(e) => setExpected(e.target.value)} placeholder="Optional — paste the published hash" className="mono" />
+        <label>{t("Expected")}</label>
+        <Input value={expected} onChange={(e) => setExpected(e.target.value)} placeholder={t("Optional — paste the published hash")} className="mono" />
       </div>
       {error && (
         <Notice level="error" icon={CircleAlert}>
@@ -235,7 +236,7 @@ export function VerifyDialog({ id, onClose }: { id: string; onClose: () => void 
         </Notice>
       )}
       {result && (
-        <Notice level={result.match === false ? "error" : "info"} icon={result.match === false ? CircleAlert : ShieldCheck} title={result.match == null ? "Hash computed" : result.match ? "The file matches" : "The file does not match"}>
+        <Notice level={result.match === false ? "error" : "info"} icon={result.match === false ? CircleAlert : ShieldCheck} title={result.match == null ? t("Hash computed") : result.match ? t("The file matches") : t("The file does not match")}>
           <span className="mono selectable" style={{ overflowWrap: "anywhere" }}>
             {result.hash}
           </span>
@@ -257,16 +258,16 @@ export function Inspector({ id, onClose, onVerify }: { id: string; onClose: () =
   const path = d.filePath ?? `${d.dir}${d.dir.includes("\\") ? "\\" : "/"}${d.name}`;
   const copy = (text: string, what: string) => {
     void navigator.clipboard.writeText(text);
-    toast({ level: "success", title: `${what} copied` });
+    toast({ level: "success", title: tf("{what} copied", { what: t(what) }) });
   };
 
   return (
-    <aside className="inspector" aria-label="Download details">
+    <aside className="inspector" aria-label={t("Download details")}>
       <div className="toolbar" style={{ padding: "0 var(--space-2) 0 var(--space-4)" }}>
         <span className="section-title" style={{ flex: 1 }}>
-          Details
+          {t("Details")}
         </span>
-        <IconButton icon={X} label="Close details (Ctrl I)" size="sm" onClick={onClose} />
+        <IconButton icon={X} label={t("Close details (Ctrl I)")} size="sm" onClick={onClose} />
       </div>
       <div className="inspector-scroll">
         {d.meta.thumbnail && <img className="insp-thumb" src={d.meta.thumbnail} alt="" referrerPolicy="no-referrer" />}
@@ -287,15 +288,15 @@ export function Inspector({ id, onClose, onVerify }: { id: string; onClose: () =
           <Notice
             level="error"
             icon={CircleAlert}
-            title="Download failed"
+            title={t("Download failed")}
             action={
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 <Button size="sm" icon={RotateCcw} onClick={() => void run(api.resume([d.id]), "Could not retry")}>
-                  Retry
+                  {t("Retry")}
                 </Button>
                 {d.engine === "aria2" && !d.url.startsWith("torrent:") && (
                   <Button size="sm" variant="ghost" icon={LinkIcon} onClick={() => setEditUrl(d.url)}>
-                    New link
+                    {t("New link")}
                   </Button>
                 )}
               </div>
@@ -319,15 +320,15 @@ export function Inspector({ id, onClose, onVerify }: { id: string; onClose: () =
             <Progress value={pct} state={d.status} indeterminate={(active && d.total === 0) || d.status === "processing"} />
             <div className="insp-stats num">
               <div className="insp-stat">
-                <div className="k">Speed</div>
+                <div className="k">{t("Speed")}</div>
                 <div className="v">{active ? fmt.speed(d.speed) : "—"}</div>
               </div>
               <div className="insp-stat">
-                <div className="k">Time left</div>
+                <div className="k">{t("Time left")}</div>
                 <div className="v">{eta != null ? fmt.duration(eta) : "—"}</div>
               </div>
               <div className="insp-stat">
-                <div className="k">{d.kind === "torrent" || d.kind === "magnet" ? "Peers" : "Connections"}</div>
+                <div className="k">{d.kind === "torrent" || d.kind === "magnet" ? t("Peers") : t("Connections")}</div>
                 <div className="v">{active ? d.activeConnections : "—"}</div>
               </div>
             </div>
@@ -337,54 +338,54 @@ export function Inspector({ id, onClose, onVerify }: { id: string; onClose: () =
         <div className="insp-actions">
           {finished && (
             <Button variant="primary" size="sm" icon={ExternalLink} onClick={() => openDownload(d)}>
-              Open
+              {t("Open")}
             </Button>
           )}
           <Button size="sm" icon={FolderOpen} onClick={() => void run(api.openFolder(d.id), "Could not open the folder")}>
-            Show in folder
+            {t("Show in folder")}
           </Button>
           {canPause(d) && (
             <Button size="sm" icon={Pause} onClick={() => void run(api.pause([d.id]), "Could not pause")}>
-              {d.status === "seeding" ? "Stop seeding" : "Pause"}
+              {d.status === "seeding" ? t("Stop seeding") : t("Pause")}
             </Button>
           )}
           {canResume(d) && d.status !== "error" && (
             <Button size="sm" icon={Play} onClick={() => void run(api.resume([d.id]), "Could not resume")}>
-              Resume
+              {t("Resume")}
             </Button>
           )}
-          <IconButton icon={Trash2} className="is-danger" label="Remove…" size="sm" onClick={() => confirmRemove([d.id])} />
+          <IconButton icon={Trash2} className="is-danger" label={t("Remove…")} size="sm" onClick={() => confirmRemove([d.id])} />
         </div>
 
         <dl className="facts">
-          <dt>Saved to</dt>
+          <dt>{t("Saved to")}</dt>
           <dd className="fact-link">
             <span className="selectable" title={path}>
               {path}
             </span>
           </dd>
-          <dt>Link</dt>
+          <dt>{t("Link")}</dt>
           <dd className="fact-link">
             <span className="truncate" title={d.url}>
-              {d.url.startsWith("torrent:") ? "Local .torrent file" : d.url}
+              {d.url.startsWith("torrent:") ? t("Local .torrent file") : d.url}
             </span>
-            {!d.url.startsWith("torrent:") && <IconButton icon={Copy} label="Copy link" size="sm" onClick={() => copy(d.url, "Link")} />}
+            {!d.url.startsWith("torrent:") && <IconButton icon={Copy} label={t("Copy link")} size="sm" onClick={() => copy(d.url, "Link")} />}
           </dd>
-          <dt>Size</dt>
-          <dd className="num">{d.total > 0 ? `${fmt.bytes(d.total)} (${Math.round(d.total).toLocaleString()} bytes)` : "Unknown"}</dd>
-          <dt>Type</dt>
+          <dt>{t("Size")}</dt>
+          <dd className="num">{d.total > 0 ? `${fmt.bytes(d.total)} (${Math.round(d.total).toLocaleString()} bytes)` : t("Unknown")}</dd>
+          <dt>{t("Type")}</dt>
           <dd>{engineLabel(d)}</dd>
-          <dt>Connections</dt>
+          <dt>{t("Connections")}</dt>
           <dd>{connectionsLabel(d)}</dd>
           {d.meta.resumable === false && (
             <>
-              <dt>Resume</dt>
-              <dd>Not supported by the server</dd>
+              <dt>{t("Resume")}</dt>
+              <dd>{t("Not supported by the server")}</dd>
             </>
           )}
           {d.meta.infoHash && (
             <>
-              <dt>Info hash</dt>
+              <dt>{t("Info hash")}</dt>
               <dd className="mono selectable" style={{ fontSize: "var(--text-2xs)" }}>
                 {d.meta.infoHash}
               </dd>
@@ -392,29 +393,29 @@ export function Inspector({ id, onClose, onVerify }: { id: string; onClose: () =
           )}
           {d.kind === "torrent" && d.uploaded > 0 && (
             <>
-              <dt>Uploaded</dt>
+              <dt>{t("Uploaded")}</dt>
               <dd className="num">
-                {fmt.bytes(d.uploaded)} · ratio {(d.uploaded / Math.max(1, d.total)).toFixed(2)}
+                {fmt.bytes(d.uploaded)} · {tf("ratio {ratio}", { ratio: (d.uploaded / Math.max(1, d.total)).toFixed(2) })}
               </dd>
             </>
           )}
           {d.mirrors.length > 0 && (
             <>
-              <dt>Mirrors</dt>
+              <dt>{t("Mirrors")}</dt>
               <dd>{d.mirrors.length}</dd>
             </>
           )}
           {d.meta.verified && (
             <>
-              <dt>Checksum</dt>
-              <dd style={{ color: "var(--success)" }}>Verified ({d.meta.verified.split("=")[0]})</dd>
+              <dt>{t("Checksum")}</dt>
+              <dd style={{ color: "var(--success)" }}>{tf("Verified ({algorithm})", { algorithm: d.meta.verified.split("=")[0] })}</dd>
             </>
           )}
-          <dt>Added</dt>
+          <dt>{t("Added")}</dt>
           <dd>{fmt.relativeDate(d.createdAt)} · {d.source}</dd>
           {d.completedAt && (
             <>
-              <dt>Completed</dt>
+              <dt>{t("Completed")}</dt>
               <dd>{fmt.relativeDate(d.completedAt)}</dd>
             </>
           )}
@@ -422,7 +423,7 @@ export function Inspector({ id, onClose, onVerify }: { id: string; onClose: () =
 
         {finished && d.engine === "aria2" && d.kind !== "torrent" && d.kind !== "magnet" && (
           <Button size="sm" variant="ghost" icon={ShieldCheck} onClick={() => onVerify(d.id)} style={{ alignSelf: "flex-start" }}>
-            Verify checksum…
+            {t("Verify checksum…")}
           </Button>
         )}
 
@@ -430,7 +431,7 @@ export function Inspector({ id, onClose, onVerify }: { id: string; onClose: () =
       </div>
       {editUrl != null && (
         <Dialog
-          title="Refresh download link"
+          title={t("Refresh download link")}
           width={520}
           onClose={() => setEditUrl(null)}
           onSubmit={async () => {
@@ -439,21 +440,21 @@ export function Inspector({ id, onClose, onVerify }: { id: string; onClose: () =
               await api.resume([d.id]);
               setEditUrl(null);
             } catch (e) {
-              toast({ level: "error", title: "Could not update the link", message: errorText(e) });
+              toast({ level: "error", title: t("Could not update the link"), message: errorText(e) });
             }
           }}
           footer={
             <>
               <span className="spacer" />
-              <Button onClick={() => setEditUrl(null)}>Cancel</Button>
+              <Button onClick={() => setEditUrl(null)}>{t("Cancel")}</Button>
               <Button type="submit" variant="primary">
-                Update and resume
+                {t("Update and resume")}
               </Button>
             </>
           }
         >
           <div className="muted" style={{ fontSize: "var(--text-sm)" }}>
-            Paste a fresh link to the same file. Already downloaded data is kept.
+            {t("Paste a fresh link to the same file. Already downloaded data is kept.")}
           </div>
           <Input value={editUrl} onChange={(e) => setEditUrl(e.target.value)} />
         </Dialog>

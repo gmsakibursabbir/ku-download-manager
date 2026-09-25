@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { t } from "../lib/i18n";
+import { t, t as tr } from "../lib/i18n";
 import { open } from "@tauri-apps/plugin-dialog";
 import { Download, Folder, RefreshCw } from "lucide-react";
 import { settingsStore, updateSettings } from "../lib/store";
@@ -27,7 +27,7 @@ export async function save(patch: Partial<Settings>) {
   try {
     await updateSettings(patch);
   } catch (e) {
-    toast({ level: "error", title: "Could not save the setting", message: errorText(e) });
+    toast({ level: "error", title: t("Could not save the setting"), message: errorText(e) });
   }
 }
 
@@ -167,36 +167,36 @@ export function MediaPrefs() {
   const toggleAdapter = (id: string, on: boolean) => void save({ adapters: on ? [...new Set([...s.adapters, id])] : s.adapters.filter((a) => a !== id) });
   return (
     <>
-      <PrefGroup title="In the browser">
-        <SwitchPref k="hoverButton" label="Show the KuDownload button on videos" desc="Adds a small download button to supported media on web pages." />
-        <SwitchPref k="mediaDetection" label="Detect media on pages" desc="Lists video and audio streams in the extension popup." />
+      <PrefGroup title={t("In the browser")}>
+        <SwitchPref k="hoverButton" label={t("Show the KuDownload button on videos")} desc={t("Adds a small download button to supported media on web pages.")} />
+        <SwitchPref k="mediaDetection" label={t("Detect media on pages")} desc={t("Lists video and audio streams in the extension popup.")} />
       </PrefGroup>
-      <PrefGroup title="Sites">
+      <PrefGroup title={t("Sites")}>
         {ADAPTERS.map((a) => (
-          <PrefRow key={a.id} label={a.label} desc={a.desc}>
-            <Switch label={a.label} checked={s.adapters.includes(a.id)} disabled={!s.hoverButton} onChange={(v) => toggleAdapter(a.id, v)} />
+          <PrefRow key={a.id} label={t(a.label)} desc={t(a.desc)}>
+            <Switch label={t(a.label)} checked={s.adapters.includes(a.id)} disabled={!s.hoverButton} onChange={(v) => toggleAdapter(a.id, v)} />
           </PrefRow>
         ))}
       </PrefGroup>
-      <PrefGroup title="Defaults">
-        <SelectPref k="videoHeight" label="Video quality" desc="Used when a quality isn't chosen explicitly. Lower qualities are picked when unavailable." options={VIDEO_HEIGHTS} width={120} />
-        <SelectPref k="videoContainer" label="Video format" options={[{ value: "mp4", label: "MP4" }, { value: "mkv", label: "MKV" }, { value: "webm", label: "WebM" }]} width={120} />
-        <SelectPref k="audioFormat" label="Audio format" options={AUDIO_FORMATS()} width={120} />
-        <SelectPref k="audioBitrate" label="Audio bitrate" options={[320, 256, 192, 128].map((b) => ({ value: b, label: `${b} kbps` }))} width={120} />
-        <SwitchPref k="subtitles" label="Download subtitles" desc="When available, embedded into the video." />
-        <TextPref k="subLangs" label="Subtitle languages" desc="Comma separated codes, e.g. en, de, fr." width={160} />
-        <SwitchPref k="embedThumbnail" label="Embed thumbnail as cover art" />
-        <FolderPref k="videoDir" label="Save videos to" />
+      <PrefGroup title={t("Defaults")}>
+        <SelectPref k="videoHeight" label={t("Video quality")} desc={t("Used when a quality isn't chosen explicitly. Lower qualities are picked when unavailable.")} options={VIDEO_HEIGHTS} width={120} />
+        <SelectPref k="videoContainer" label={t("Video format")} options={[{ value: "mp4", label: "MP4" }, { value: "mkv", label: "MKV" }, { value: "webm", label: "WebM" }]} width={120} />
+        <SelectPref k="audioFormat" label={t("Audio format")} options={AUDIO_FORMATS()} width={120} />
+        <SelectPref k="audioBitrate" label={t("Audio bitrate")} options={[320, 256, 192, 128].map((b) => ({ value: b, label: `${b} kbps` }))} width={120} />
+        <SwitchPref k="subtitles" label={t("Download subtitles")} desc={t("When available, embedded into the video.")} />
+        <TextPref k="subLangs" label={t("Subtitle languages")} desc={t("Comma separated codes, e.g. en, de, fr.")} width={160} />
+        <SwitchPref k="embedThumbnail" label={t("Embed thumbnail as cover art")} />
+        <FolderPref k="videoDir" label={t("Save videos to")} />
       </PrefGroup>
-      <PrefGroup title="Sign-in for media sites">
+      <PrefGroup title={t("Sign-in for media sites")}>
         <SelectPref
           k="cookiesFromBrowser"
-          label="Use cookies from a browser"
-          desc="For age-restricted or members-only videos added without the extension. Firefox works best; recent Chrome versions on Windows lock their cookies while running."
+          label={t("Use cookies from a browser")}
+          desc={t("For age-restricted or members-only videos added without the extension. Firefox works best; recent Chrome versions on Windows lock their cookies while running.")}
           options={[{ value: "", label: t("Off") }, ...["firefox", "chrome", "edge", "brave", "chromium", "vivaldi", "opera"].map((b) => ({ value: b, label: b[0].toUpperCase() + b.slice(1) }))]}
           width={160}
         />
-        <TextPref k="cookiesFile" label="Or a cookies.txt file" desc="Netscape format, exported with a browser add-on. Cookies sent by the KuDownloader extension are always preferred." placeholder="None" mono />
+        <TextPref k="cookiesFile" label={t("Or a cookies.txt file")} desc={t("Netscape format, exported with a browser add-on. Cookies sent by the KuDownloader extension are always preferred.")} placeholder={t("None")} mono />
       </PrefGroup>
     </>
   );
@@ -205,12 +205,12 @@ export function MediaPrefs() {
 export function BrowserPrefs() {
   return (
     <>
-      <PrefGroup title="Downloads from the browser">
-        <SwitchPref k="interceptDownloads" label="Take over browser downloads" desc="Files you download in the browser are sent to KuDownloader instead." />
-        <SwitchPref k="confirmBrowserDownloads" label="Ask before downloading" desc="Shows the Add download dialog so you can pick the folder and name." />
-        <NumberPref k="interceptMinSize" label="Only files larger than" desc="Smaller files stay in the browser. 0 = all files." min={0} max={1024 * 1024} unit="MB" scale={1024 * 1024} step={0.5} />
-        <ListPref k="interceptExtensions" label="Only these file types" desc="Leave empty to take over every download." placeholder="zip, iso, exe, mp4" />
-        <ListPref k="skipDomains" label="Never take over from these sites" placeholder="example.com, intranet.local" />
+      <PrefGroup title={t("Downloads from the browser")}>
+        <SwitchPref k="interceptDownloads" label={t("Take over browser downloads")} desc={t("Files you download in the browser are sent to KuDownloader instead.")} />
+        <SwitchPref k="confirmBrowserDownloads" label={t("Ask before downloading")} desc={t("Shows the Add download dialog so you can pick the folder and name.")} />
+        <NumberPref k="interceptMinSize" label={t("Only files larger than")} desc={t("Smaller files stay in the browser. 0 = all files.")} min={0} max={1024 * 1024} unit="MB" scale={1024 * 1024} step={0.5} />
+        <ListPref k="interceptExtensions" label={t("Only these file types")} desc={t("Leave empty to take over every download.")} placeholder="zip, iso, exe, mp4" />
+        <ListPref k="skipDomains" label={t("Never take over from these sites")} placeholder="example.com, intranet.local" />
       </PrefGroup>
     </>
   );
@@ -227,7 +227,7 @@ export function EngineStatus({ compact }: { compact?: boolean }) {
   const get = (t: "yt-dlp" | "ffmpeg") =>
     compact ? undefined : (
       <Button size="sm" icon={Download} busy={tools.busy === t} disabled={!!tools.busy} onClick={() => void tools.install([t])}>
-        {tools.label(t) ?? "Download"}
+        {tools.label(t) ?? tr("Download")}
       </Button>
     );
   const update = async () => {
@@ -237,7 +237,7 @@ export function EngineStatus({ compact }: { compact?: boolean }) {
       toast({ level: "success", title: "yt-dlp", message: msg });
       load();
     } catch (e) {
-      toast({ level: "error", title: "Could not update yt-dlp", message: errorText(e) });
+      toast({ level: "error", title: t("Could not update yt-dlp"), message: errorText(e) });
     } finally {
       setUpdating(false);
     }
@@ -245,13 +245,13 @@ export function EngineStatus({ compact }: { compact?: boolean }) {
   const row = (label: string, found: boolean, detail: string, action?: React.ReactNode) => (
     <PrefRow label={label} desc={detail}>
       <span className="status" data-state={found ? "completed" : "error"}>
-        {found ? "Available" : "Not found"}
+        {found ? t("Available") : t("Not found")}
       </span>
       {action}
     </PrefRow>
   );
   return (
-    <PrefGroup title="Engines">
+    <PrefGroup title={t("Engines")}>
       {row("aria2", !!info?.aria2.path, info?.aria2.path ? `${info.aria2.version ? `Version ${info.aria2.version} · ` : ""}${info.aria2.path}` : "Required for file, FTP and torrent downloads.")}
       {row(
         "yt-dlp",
@@ -259,7 +259,7 @@ export function EngineStatus({ compact }: { compact?: boolean }) {
         info?.ytdlp.path ? `Version ${info.ytdlp.version ?? "unknown"} · ${info.ytdlp.path}` : "Required for video and audio downloads.",
         info?.ytdlp.path && !compact ? (
           <Button size="sm" icon={RefreshCw} busy={updating} onClick={() => void update()}>
-            Update
+            {t("Update")}
           </Button>
         ) : info && !info.ytdlp.path ? (
           get("yt-dlp")

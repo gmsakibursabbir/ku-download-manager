@@ -1,3 +1,4 @@
+import { t, tf } from "../lib/i18n";
 import { useEffect, useRef } from "react";
 import { Download as DownloadIcon } from "lucide-react";
 import { installTools, jobLabel, useToolJobs, type ToolName } from "../lib/tools";
@@ -65,17 +66,19 @@ export function MediaToolsNotice({ info, onInstalled }: { info: EngineInfo | nul
     <Notice
       level={needsYt ? "warning" : "info"}
       icon={DownloadIcon}
-      title={needsYt ? "Media tools needed" : "FFmpeg recommended"}
+      title={needsYt ? t("Media tools needed") : t("FFmpeg recommended")}
       action={
         <Button size="sm" variant="primary" busy={!!busy} onClick={() => void install(missing)}>
-          {busy ? label(busy) : `Download ${missing.map((m) => (m === "ffmpeg" ? "FFmpeg" : m)).join(" + ")}`}
+          {busy ? label(busy) : tf("Download {tools}", { tools: missing.map((m) => (m === "ffmpeg" ? "FFmpeg" : m)).join(" + ") })}
         </Button>
       }
     >
-      {needsYt
-        ? "Video and audio downloads use yt-dlp (about 17 MB)"
-        : "Merging high-quality video with audio uses FFmpeg"}
-      {missing.includes("ffmpeg") && needsYt ? " and FFmpeg (about 80 MB)" : missing.includes("ffmpeg") ? " (about 80 MB)" : ""}. They are downloaded once from their official releases and checked against the published checksums.
+      {needsYt && missing.includes("ffmpeg")
+        ? t("Video and audio downloads use yt-dlp (about 17 MB) and FFmpeg (about 80 MB).")
+        : needsYt
+          ? t("Video and audio downloads use yt-dlp (about 17 MB).")
+          : t("Merging high-quality video with audio uses FFmpeg (about 80 MB).")}{" "}
+      {t("They are downloaded once from their official releases and checked against the published checksums.")}
     </Notice>
   );
 }

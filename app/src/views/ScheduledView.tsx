@@ -1,26 +1,28 @@
+import { t, tf } from "../lib/i18n";
 import { useState } from "react";
 import { Plus, Pencil, Trash2, CalendarClock, CircleAlert } from "lucide-react";
 import { api, errorText } from "../lib/api";
-import { queuesStore, schedulesStore, settingsStore } from "../lib/store";
+import { queuesStore, schedulesStore, settingsStore, queueName } from "../lib/store";
 import type { Schedule } from "../lib/types";
 import { Button, Checkbox, EmptyState, IconButton, Input, Notice, Segmented, Select, Switch } from "../ui/primitives";
 import { Dialog, toast } from "../ui/overlays";
 import { run } from "../app/downloads/actions";
 
-const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+/** Short weekday names (Monday first) in the interface language. */
+const DAYS = () => Array.from({ length: 7 }, (_, i) => new Date(2024, 0, 1 + i).toLocaleDateString(document.documentElement.lang || undefined, { weekday: "short" }));
 const AFTER: Record<string, string> = { none: "Do nothing", sleep: "Sleep", shutdown: "Shut down", quit: "Quit KuDownloader" };
 
 export function describeSchedule(s: Schedule): string {
   const when = s.date
-    ? `Once on ${new Date(`${s.date}T00:00`).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })}`
+    ? t("Once on {date}").replace("{date}", new Date(`${s.date}T00:00`).toLocaleDateString(document.documentElement.lang || undefined, { weekday: "short", day: "numeric", month: "short" }))
     : !s.days.length || s.days.length === 7
-      ? "Every day"
+      ? t("Every day")
       : s.days.length === 5 && [1, 2, 3, 4, 5].every((d) => s.days.includes(d))
-        ? "Weekdays"
+        ? t("Weekdays")
         : s.days
             .slice()
             .sort()
-            .map((d) => DAYS[d - 1])
+            .map((d) => DAYS()[d - 1])
             .join(", ");
   return `${when} · ${s.start}${s.stop ? `–${s.stop}` : ""}`;
 }
@@ -53,41 +55,41 @@ function ScheduleDialog({ initial, onClose }: { initial: Partial<Schedule>; onCl
   };
   return (
     <Dialog
-      title={initial.id ? "Edit schedule" : "New schedule"}
+      title={initial.id ? t("Edit schedule") : t("New schedule")}
       onClose={onClose}
       width={520}
       onSubmit={() => void submit()}
       footer={
         <>
           <span className="spacer" />
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>{t("Cancel")}</Button>
           <Button type="submit" variant="primary">
-            Save
+            {t("Save")}
           </Button>
         </>
       }
     >
       <div className="form-grid">
-        <label>Name</label>
+        <label>{t("Name")}</label>
         <Input value={s.name ?? ""} onChange={(e) => set({ name: e.target.value })} />
-        <label>Queue</label>
-        <Select value={s.queueId} onChange={(e) => set({ queueId: e.target.value })} options={queues.map((q) => ({ value: q.id, label: q.name }))} />
-        <label>Repeat</label>
+        <label>{t("Queue")}</label>
+        <Select value={s.queueId} onChange={(e) => set({ queueId: e.target.value })} options={queues.map((q) => ({ value: q.id, label: queueName(q) }))} />
+        <label>{t("Repeat")}</label>
         <Segmented
-          label="Repeat"
+          label={t("Repeat")}
           value={repeat}
           onChange={setRepeat}
           options={[
-            { value: "daily", label: "Every day" },
-            { value: "days", label: "On days" },
-            { value: "once", label: "Once" },
+            { value: "daily", label: t("Every day") },
+            { value: "days", label: t("On days") },
+            { value: "once", label: t("Once") },
           ]}
         />
         {repeat === "days" && (
           <>
             <label />
             <div style={{ display: "flex", gap: 4 }}>
-              {DAYS.map((d, i) => {
+              {DAYS().map((d, i) => {
                 const on = s.days?.includes(i + 1);
                 return (
                   <button
@@ -107,27 +109,27 @@ function ScheduleDialog({ initial, onClose }: { initial: Partial<Schedule>; onCl
         )}
         {repeat === "once" && (
           <>
-            <label>Date</label>
+            <label>{t("Date")}</label>
             <Input type="date" value={s.date ?? new Date().toISOString().slice(0, 10)} onChange={(e) => set({ date: e.target.value })} style={{ width: 180 }} />
           </>
         )}
-        <label>Start at</label>
+        <label>{t("Start at")}</label>
         <Input type="time" value={s.start} onChange={(e) => set({ start: e.target.value })} style={{ width: 140 }} />
-        <label>Stop at</label>
+        <label>{t("Stop at")}</label>
         <div className="input-group">
           <Checkbox checked={!!s.stop} onChange={(v) => set({ stop: v ? "07:00" : null })}>
-            Pause the queue at
+            {t("Pause the queue at")}
           </Checkbox>
           {s.stop && <Input type="time" value={s.stop} onChange={(e) => set({ stop: e.target.value })} style={{ width: 140 }} />}
         </div>
-        <label>Speed</label>
-        <Select value={s.profile ?? ""} onChange={(e) => set({ profile: e.target.value || null })} options={[{ value: "", label: "Keep current limit" }, ...(settings?.profiles ?? []).map((p) => ({ value: p.id, label: p.name }))]} />
-        <label>When done</label>
-        <Select value={s.after} onChange={(e) => set({ after: e.target.value })} options={Object.entries(AFTER).map(([value, label]) => ({ value, label }))} />
+        <label>{t("Speed")}</label>
+        <Select value={s.profile ?? ""} onChange={(e) => set({ profile: e.target.value || null })} options={[{ value: "", label: t("Keep current limit") }, ...(settings?.profiles ?? []).map((p) => ({ value: p.id, label: p.name }))]} />
+        <label>{t("When done")}</label>
+        <Select value={s.after} onChange={(e) => set({ after: e.target.value })} options={Object.entries(AFTER).map(([value, label]) => ({ value, label: t(label) }))} />
       </div>
       {s.after === "shutdown" || s.after === "sleep" ? (
         <div className="faint" style={{ fontSize: "var(--text-xs)" }}>
-          You get a 60-second warning with the option to cancel before the computer {s.after === "sleep" ? "sleeps" : "shuts down"}.
+          {s.after === "sleep" ? t("You get a 60-second warning with the option to cancel before the computer sleeps.") : t("You get a 60-second warning with the option to cancel before the computer shuts down.")}
         </div>
       ) : null}
       {error && (
@@ -147,19 +149,19 @@ export function ScheduledView() {
   return (
     <div className="main">
       <div className="toolbar">
-        <span className="toolbar-title">Scheduled</span>
+        <span className="toolbar-title">{t("Scheduled")}</span>
         <Button variant="primary" icon={Plus} onClick={() => setEditing({})}>
-          New schedule
+          {t("New schedule")}
         </Button>
       </div>
       <div className="page">
         {schedules.length === 0 ? (
           <EmptyState
-            title="No schedules"
-            text="Start a queue at a set time — for example overnight — and optionally sleep or shut down when it finishes."
+            title={t("No schedules")}
+            text={t("Start a queue at a set time — for example overnight — and optionally sleep or shut down when it finishes.")}
             action={
               <Button icon={CalendarClock} onClick={() => setEditing({})}>
-                Create a schedule
+                {t("Create a schedule")}
               </Button>
             }
           />
@@ -168,25 +170,25 @@ export function ScheduledView() {
             <div className="pref-group">
               {schedules.map((s) => (
                 <div key={s.id} className="pref-row">
-                  <Switch label={`Enable ${s.name}`} checked={s.enabled} onChange={(v) => void toggle(s, v)} />
+                  <Switch label={t("Enable {name}").replace("{name}", s.name)} checked={s.enabled} onChange={(v) => void toggle(s, v)} />
                   <div className="pref-text">
                     <div className="pref-label">{s.name}</div>
                     <div className="pref-desc">
-                      {describeSchedule(s)} · {queues.find((q) => q.id === s.queueId)?.name ?? "Unknown queue"}
-                      {s.after !== "none" ? ` · then ${AFTER[s.after].toLowerCase()}` : ""}
-                      {s.lastStart ? ` · last run ${s.lastStart}` : ""}
+                      {describeSchedule(s)} · {(() => { const q = queues.find((x) => x.id === s.queueId); return q ? queueName(q) : t("Unknown queue"); })()}
+                      {s.after !== "none" ? ` · ${t("then {action}").replace("{action}", t(AFTER[s.after]).toLowerCase())}` : ""}
+                      {s.lastStart ? ` · ${t("last run {time}").replace("{time}", s.lastStart)}` : ""}
                     </div>
                   </div>
-                  <IconButton icon={Pencil} label="Edit" size="sm" onClick={() => setEditing(s)} />
+                  <IconButton icon={Pencil} label={t("Edit")} size="sm" onClick={() => setEditing(s)} />
                   <IconButton
                     icon={Trash2}
                     className="is-danger"
-                    label="Delete"
+                    label={t("Delete")}
                     size="sm"
                     onClick={() =>
                       void run(
                         api.deleteSchedule(s.id).then(() => {
-                          toast({ level: "info", title: `Deleted “${s.name}”` });
+                          toast({ level: "info", title: tf("Deleted “{name}”", { name: s.name }) });
                           return schedulesStore.refresh();
                         }),
                         "Could not delete the schedule",
@@ -197,7 +199,7 @@ export function ScheduledView() {
               ))}
             </div>
             <div className="faint" style={{ fontSize: "var(--text-xs)" }}>
-              Schedules run while KuDownloader is open or in the tray. Enable “Start with Windows” in Settings to never miss one.
+              {t("Schedules run while KuDownloader is open or in the tray. Enable “Start with Windows” in Settings to never miss one.")}
             </div>
           </div>
         )}

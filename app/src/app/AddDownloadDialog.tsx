@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { t } from "../lib/i18n";
+import { t, tf } from "../lib/i18n";
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import { Folder, ChevronDown, ChevronRight, CircleAlert, Clapperboard, Globe, FileUp, File as FileIcon, ArrowDownToLine } from "lucide-react";
@@ -13,13 +13,14 @@ import { CATEGORY_ICON } from "./downloads/FileGlyph";
 import { DuplicateNotice } from "./DuplicateNotice";
 import { useApp } from "./context";
 
-const CONNECTION_CHOICES = [
+/** Translated when shown (the language loads after this module). */
+const CONNECTION_CHOICES = () => [
   { value: 0, label: t("Smart") },
   { value: 4, label: "4" },
   { value: 8, label: "8" },
   { value: 16, label: "16" },
   { value: 32, label: "32" },
-  { value: -1, label: "Custom" },
+  { value: -1, label: t("Custom") },
 ];
 
 function isUrl(s: string) {
@@ -176,14 +177,14 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
         if (res.failed.length) {
           toast({
             level: res.added.length ? "warning" : "error",
-            title: `${res.added.length} added, ${res.failed.length} failed`,
+            title: tf("{added} added, {failed} failed", { added: res.added.length, failed: res.failed.length }),
             message: res.failed
               .slice(0, 3)
               .map((f) => `${fmt.host(f.url)}: ${f.error}`)
               .join("\n"),
           });
         } else {
-          toast({ level: "success", title: `${res.added.length} downloads added` });
+          toast({ level: "success", title: tf("{n} downloads added", { n: res.added.length }) });
         }
       } else {
         const d = await api.add(build(queueId, start));
@@ -248,7 +249,7 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
     >
       {fromBrowser && (
         <div className="faint" style={{ fontSize: "var(--text-xs)", display: "flex", gap: 6, alignItems: "center" }}>
-          <Icon icon={Globe} size={13} /> Sent from your browser{prefill?.options?.cookies?.length ? " with your session cookies" : ""}
+          <Icon icon={Globe} size={13} /> {prefill?.options?.cookies?.length ? t("Sent from your browser with your session cookies") : t("Sent from your browser")}
         </div>
       )}
       <div className="dl-card">
@@ -271,7 +272,7 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
                     indeterminate={selected.size > 0 && selected.size < torrent.info.files.length}
                     onChange={(v) => setSelected(v ? new Set(torrent.info.files.map((f) => f.index)) : new Set())}
                   >
-                    <span className="muted">All files ({torrent.info.files.length})</span>
+                    <span className="muted">{tf("All files ({n})", { n: torrent.info.files.length })}</span>
                   </Checkbox>
                   {torrent.info.files.map((f) => (
                     <Checkbox
@@ -320,7 +321,7 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
                 data-autofocus
                 spellCheck={false}
               />
-              <IconButton icon={FileUp} label="Open .torrent file" onClick={() => void pickTorrentFile()} />
+              <IconButton icon={FileUp} label={t("Open .torrent file")} onClick={() => void pickTorrentFile()} />
             </div>
           </div>
         )}
@@ -361,7 +362,7 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
             <label>{t("Remember path for this category")}</label>
             <div className="dl-control">
               <span className="muted" style={{ fontSize: "var(--text-sm)" }}>
-                {remember ? "Yes" : "No"}
+                {remember ? t("Yes") : t("No")}
               </span>
               <Switch label={t("Remember path for this category")} checked={remember} disabled={!category} onChange={setRemember} />
             </div>
@@ -373,17 +374,17 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
         <div className="faint" style={{ fontSize: "var(--text-xs)", display: "flex", gap: 8, alignItems: "center", minHeight: 18 }}>
           {probing ? (
             <>
-              <span className="spinner" /> Checking the link…
+              <span className="spinner" /> {t("Checking the link…")}
             </>
           ) : probe?.error ? (
-            <span style={{ color: "var(--warning)" }}>{probe.error} You can still try to download it.</span>
+            <span style={{ color: "var(--warning)" }}>{probe.error} {t("You can still try to download it.")}</span>
           ) : probe && !media ? (
             <>
               <span className="num">
                 {filename ? `${filename} · ` : ""}
-                {probe.size ? fmt.bytes(probe.size) : "Size unknown"}
+                {probe.size ? fmt.bytes(probe.size) : t("Size unknown")}
               </span>
-              <span>· {probe.resumable ? "Resumable" : probe.resumable === false ? "Not resumable" : "Resume unknown"}</span>
+              <span>· {probe.resumable ? t("Resumable") : probe.resumable === false ? t("Not resumable") : t("Resume unknown")}</span>
             </>
           ) : null}
         </div>
@@ -391,7 +392,7 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
       {!torrent && !media && <DuplicateNotice url={single} dir={dir} filename={filename || probe?.filename || ""} onHandled={onClose} />}
       {lines.length > 0 && validLines.length < lines.length && (
         <div style={{ color: "var(--danger)", fontSize: "var(--text-xs)" }}>
-          {lines.length - validLines.length} line{lines.length - validLines.length === 1 ? " is" : "s are"} not a valid link and will be skipped.
+          {lines.length - validLines.length === 1 ? t("1 line is not a valid link and will be skipped.") : tf("{n} lines are not valid links and will be skipped.", { n: lines.length - validLines.length })}
         </div>
       )}
       {media && single && (
@@ -410,12 +411,12 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
             </Button>
           }
         >
-          It will be downloaded with yt-dlp at your default quality ({settings?.videoHeight}p).
+          {tf("It will be downloaded with yt-dlp at your default quality ({quality}).", { quality: `${settings?.videoHeight}p` })}
         </Notice>
       )}
 
       <button type="button" className="dl-more" onClick={() => setAdvanced(!advanced)} aria-expanded={advanced}>
-        <Icon icon={advanced ? ChevronDown : ChevronRight} size={14} /> More options
+        <Icon icon={advanced ? ChevronDown : ChevronRight} size={14} /> {t("More options")}
       </button>
       {advanced && (
         <div className="form-grid">
@@ -425,7 +426,7 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
               <Input
                 id="add-name"
                 value={filename}
-                placeholder={probing ? "…" : "Automatic"}
+                placeholder={probing ? "…" : t("Automatic")}
                 onChange={(e) => {
                   setFilename(e.target.value);
                   setNameTouched(true);
@@ -435,30 +436,30 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
           )}
           {!torrent && !media && (
             <>
-              <label htmlFor="add-conn">Connections</label>
+              <label htmlFor="add-conn">{t("Connections")}</label>
               <div className="input-group">
-                <Select id="add-conn" value={connections} onChange={(e) => setConnections(+e.target.value)} options={CONNECTION_CHOICES} style={{ width: 120 }} />
-                {connections === -1 && <Input value={customConn} onChange={(e) => setCustomConn(e.target.value.replace(/\D/g, ""))} style={{ width: 56 }} aria-label="Custom connections (1-32)" />}
+                <Select id="add-conn" value={connections} onChange={(e) => setConnections(+e.target.value)} options={CONNECTION_CHOICES()} style={{ width: 120 }} />
+                {connections === -1 && <Input value={customConn} onChange={(e) => setCustomConn(e.target.value.replace(/\D/g, ""))} style={{ width: 56 }} aria-label={t("Custom connections (1-32)")} />}
               </div>
             </>
           )}
-          <label>Referer</label>
-          <Input value={referer} onChange={(e) => setReferer(e.target.value)} placeholder="Page the link came from" />
-          <label>User agent</label>
-          <Input value={userAgent} onChange={(e) => setUserAgent(e.target.value)} placeholder="Default" />
-          <label>Sign in</label>
+          <label>{t("Referer")}</label>
+          <Input value={referer} onChange={(e) => setReferer(e.target.value)} placeholder={t("Page the link came from")} />
+          <label>{t("User agent")}</label>
+          <Input value={userAgent} onChange={(e) => setUserAgent(e.target.value)} placeholder={t("Default")} />
+          <label>{t("Sign in")}</label>
           <div className="input-group">
-            <Input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="User name" />
-            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
+            <Input value={username} onChange={(e) => setUsername(e.target.value)} placeholder={t("User name")} />
+            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t("Password")} />
           </div>
-          <label>Checksum</label>
-          <Input value={checksum} onChange={(e) => setChecksum(e.target.value)} placeholder="sha-256=… (verified when finished)" className="mono" />
-          <label>Speed limit</label>
-          <Input value={limit} onChange={(e) => setLimit(e.target.value)} placeholder="Unlimited — e.g. 2 MB" />
-          <label style={{ alignSelf: "start", paddingTop: 6 }}>Mirrors</label>
-          <textarea className="textarea" rows={2} value={mirrors} onChange={(e) => setMirrors(e.target.value)} placeholder="Other links to the same file, one per line" />
-          <label style={{ alignSelf: "start", paddingTop: 6 }}>Headers</label>
-          <textarea className="textarea" rows={2} value={headers} onChange={(e) => setHeaders(e.target.value)} placeholder="Name: value, one per line" />
+          <label>{t("Checksum")}</label>
+          <Input value={checksum} onChange={(e) => setChecksum(e.target.value)} placeholder={t("sha-256=… (verified when finished)")} className="mono" />
+          <label>{t("Speed limit")}</label>
+          <Input value={limit} onChange={(e) => setLimit(e.target.value)} placeholder={t("Unlimited — e.g. 2 MB")} />
+          <label style={{ alignSelf: "start", paddingTop: 6 }}>{t("Mirrors")}</label>
+          <textarea className="textarea" rows={2} value={mirrors} onChange={(e) => setMirrors(e.target.value)} placeholder={t("Other links to the same file, one per line")} />
+          <label style={{ alignSelf: "start", paddingTop: 6 }}>{t("Headers")}</label>
+          <textarea className="textarea" rows={2} value={headers} onChange={(e) => setHeaders(e.target.value)} placeholder={t("Name: value, one per line")} />
         </div>
       )}
 
@@ -469,7 +470,7 @@ export function AddDownloadDialog({ prefill, onClose }: { prefill?: Partial<AddR
       )}
 
       <div className="dl-actions" style={{ padding: "var(--space-2) 0 0" }}>
-        <Button disabled={!canSubmit} onClick={() => void go(true)} title="Add to the queue without starting">
+        <Button disabled={!canSubmit} onClick={() => void go(true)} title={t("Add to the queue without starting")}>
           {t("Download Later")}
         </Button>
         <Button type="submit" variant="primary" disabled={!canSubmit} busy={busy}>

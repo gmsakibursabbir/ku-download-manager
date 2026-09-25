@@ -1,3 +1,4 @@
+import { tf } from "./i18n";
 const UNITS = ["B", "KB", "MB", "GB", "TB"];
 
 export function bytes(n: number | null | undefined, digits = 1): string {
@@ -62,10 +63,11 @@ export function relativeDate(ms: number | null | undefined): string {
   const now = new Date();
   const sameDay = d.toDateString() === now.toDateString();
   const yesterday = new Date(now.getTime() - 86400000).toDateString() === d.toDateString();
-  const time = d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
-  if (sameDay) return `Today ${time}`;
-  if (yesterday) return `Yesterday ${time}`;
-  return d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: d.getFullYear() === now.getFullYear() ? undefined : "numeric" }) + ` ${time}`;
+  const lang = document.documentElement.lang || undefined;
+  const time = d.toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" });
+  if (sameDay) return tf("Today {time}", { time });
+  if (yesterday) return tf("Yesterday {time}", { time });
+  return d.toLocaleDateString(lang, { day: "numeric", month: "short", year: d.getFullYear() === now.getFullYear() ? undefined : "numeric" }) + ` ${time}`;
 }
 
 /** Parse "2M", "500K", "1.5 MB/s" into bytes per second. */

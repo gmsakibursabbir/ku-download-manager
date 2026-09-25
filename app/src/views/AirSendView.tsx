@@ -5,7 +5,7 @@ import { ArrowDownLeft, ArrowUpRight, Copy, Download, File as FileIcon, Folder, 
 import { airApi, AVATARS, hashPick, isFinished, loadAir, reloadTransfers, useAir, type AirPeer, type AirStatus, type AirTransfer } from "../lib/airsend";
 import { errorText } from "../lib/api";
 import * as fmt from "../lib/format";
-import { t } from "../lib/i18n";
+import { t, tf } from "../lib/i18n";
 import { settingsStore, updateSettings } from "../lib/store";
 import { Button, Icon, IconButton, Input, PrefRow, Switch } from "../ui/primitives";
 import { Dialog, showMenu, toast } from "../ui/overlays";
@@ -20,7 +20,7 @@ async function send(peer: AirPeer, paths: string[], text?: string, pin?: string)
     const id = await airApi.send(peer.fingerprint, paths, text ?? null, pin ?? null);
     sent.set(id, { fingerprint: peer.fingerprint, paths, text });
   } catch (e) {
-    toast({ level: "error", title: `Could not send to ${peer.alias}`, message: errorText(e) });
+    toast({ level: "error", title: tf("Could not send to {peer}", { peer: peer.alias }), message: errorText(e) });
   }
 }
 
@@ -259,7 +259,7 @@ function AirSettings({ status }: { status: AirStatus }) {
       <PrefRow label={t("Your animal")} stack>
         <div className="air-animals" role="radiogroup">
           {AVATARS.map((a) => (
-            <button key={a} type="button" role="radio" aria-checked={status.avatar === a} title={ANIMAL_NAMES[a]} onClick={() => save({ airsendAvatar: a })}>
+            <button key={a} type="button" role="radio" aria-checked={status.avatar === a} title={t(ANIMAL_NAMES[a])} onClick={() => save({ airsendAvatar: a })}>
               <PixelAnimal animal={a} size={40} still />
             </button>
           ))}

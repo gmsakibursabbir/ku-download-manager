@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { useMemo, useSyncExternalStore } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { api } from "./api";
@@ -188,6 +189,10 @@ function resource<T>(load: () => Promise<T>, initial: T, eventType: CoreEvent["t
 }
 
 export const settingsStore = resource<Settings | null>(() => api.getSettings(), null, "settingsChanged");
+/** A queue's display name; the built-in "Main queue" follows the interface language. */
+export function queueName(q: { id: string; name: string }): string {
+  return q.id === "main" && q.name === "Main queue" ? t("Main queue") : q.name;
+}
 export const queuesStore = resource<Queue[]>(() => api.queues(), [], "queuesChanged");
 export const schedulesStore = resource<Schedule[]>(() => api.schedules(), [], "schedulesChanged");
 

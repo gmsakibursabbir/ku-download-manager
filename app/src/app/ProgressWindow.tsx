@@ -124,7 +124,7 @@ export function ProgressWindow({ id }: { id: string }) {
       <header className="pw-head" data-tauri-drag-region>
         <Icon icon={ArrowDownToLine} />
         <span className="pw-title truncate" data-tauri-drag-region>
-          {complete ? "Download complete" : `${d.done > 0 && d.total > 0 ? `${Math.floor(pct)}% ` : ""}${d.name}`}
+          {complete ? t("Download complete") : `${d.done > 0 && d.total > 0 ? `${Math.floor(pct)}% ` : ""}${d.name}`}
         </span>
         <IconButton icon={Minus} label={t("Minimize")} size="sm" onClick={() => void win.minimize()} />
         <IconButton icon={X} label={t("Close")} size="sm" onClick={() => void win.close()} />
@@ -141,9 +141,9 @@ export function ProgressWindow({ id }: { id: string }) {
             {d.url}
           </span>
           <span>{t("Status")}</span>
-          <span style={{ color: d.status === "error" ? "var(--danger)" : undefined }}>{d.status === "error" ? d.error || status : status}</span>
+          <span style={{ color: d.status === "error" ? "var(--danger)" : undefined }}>{d.status === "error" ? d.error || t(status) : t(status)}</span>
           <span>{t("File size")}</span>
-          <span className="num">{d.total > 0 ? fmt.bytes(d.total) : "Unknown"}</span>
+          <span className="num">{d.total > 0 ? fmt.bytes(d.total) : t("Unknown")}</span>
           <span>{t("Downloaded")}</span>
           <span className="num">
             {fmt.bytes(d.done)}
@@ -153,10 +153,10 @@ export function ProgressWindow({ id }: { id: string }) {
             <>
               <span>{t("Transfer rate")}</span>
               <span className="num">{live ? fmt.speed(d.speed) : "—"}</span>
-              <span>Time left</span>
+              <span>{t("Time left")}</span>
               <span className="num">{eta != null ? fmt.duration(eta) : "—"}</span>
               <span>{t("Resume")}</span>
-              <span>{d.meta.resumable === false ? "No — pausing restarts the file" : d.meta.resumable ? "Yes" : "Unknown"}</span>
+              <span>{d.meta.resumable === false ? t("No — pausing restarts the file") : d.meta.resumable ? t("Yes") : t("Unknown")}</span>
             </>
           )}
         </div>
@@ -166,11 +166,11 @@ export function ProgressWindow({ id }: { id: string }) {
         {!complete && (
           <>
             <button type="button" className="dl-more" onClick={() => setMore(!more)} aria-expanded={more}>
-              <Icon icon={more ? ChevronDown : ChevronRight} size={14} /> {more ? "Hide details" : "Show details"}
+              <Icon icon={more ? ChevronDown : ChevronRight} size={14} /> {more ? t("Hide details") : t("Show details")}
             </button>
             {more && (
               <>
-                <div className="pw-map" aria-label="Downloaded parts of the file" style={{ gridTemplateColumns: `repeat(${cells.length}, 1fr)` }}>
+                <div className="pw-map" aria-label={t("Downloaded parts of the file")} style={{ gridTemplateColumns: `repeat(${cells.length}, 1fr)` }}>
                   {cells.map((v, i) => (
                     <span key={i} style={{ opacity: v > 0 ? 0.35 + v * 0.65 : 1 }} data-have={v > 0} />
                   ))}
@@ -180,7 +180,7 @@ export function ProgressWindow({ id }: { id: string }) {
                     {conns.slice(0, 16).map((c, i) => (
                       <div key={i} className="conn-row" title={c.label}>
                         <span className="faint">
-                          {d.engine === "kuhttp" ? "Part" : "Conn"} {String(i + 1).padStart(2, "0")}
+                          {d.engine === "kuhttp" ? t("Part") : t("Conn")} {String(i + 1).padStart(2, "0")}
                         </span>
                         <Progress value={c.pct >= 0 ? c.pct : (c.speed / maxSpeed) * 100} state="downloading" />
                         <span style={{ textAlign: "right" }}>{fmt.speed(c.speed)}</span>
@@ -210,7 +210,7 @@ export function ProgressWindow({ id }: { id: string }) {
               <Button onClick={() => act(api.pause([d.id]))}>{t("Pause")}</Button>
             ) : (
               <Button variant="primary" onClick={() => act(api.resume([d.id]))}>
-                {d.status === "error" ? "Retry" : "Resume"}
+                {d.status === "error" ? t("Retry") : t("Resume")}
               </Button>
             )}
             {/* Like IDM: Cancel stops the download and keeps it in the list (resumable); deleting is done from the list. */}

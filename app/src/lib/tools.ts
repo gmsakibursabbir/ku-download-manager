@@ -1,3 +1,4 @@
+import { tf } from "./i18n";
 import { useSyncExternalStore } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { api, errorText } from "./api";
@@ -51,7 +52,7 @@ onCoreEvent((e) => {
     jobs = jobs.filter((x) => x.tool !== e.tool);
     delete last[e.tool];
     changed();
-    toast(e.ok ? { level: "success", title: `${label(e.tool)} installed` } : { level: "error", title: `Could not download ${label(e.tool)}`, message: e.message });
+    toast(e.ok ? { level: "success", title: tf("{tool} installed", { tool: label(e.tool) }) } : { level: "error", title: tf("Could not download {tool}", { tool: label(e.tool) }), message: e.message });
     doneWaiters.get(e.tool)?.(e.ok);
     doneWaiters.delete(e.tool);
   }
@@ -81,7 +82,7 @@ export async function installTools(tools: ToolName[]): Promise<boolean> {
         doneWaiters.delete(t);
         jobs = jobs.filter((x) => x.tool !== t);
         changed();
-        toast({ level: "error", title: `Could not download ${label(t)}`, message: errorText(e) });
+        toast({ level: "error", title: tf("Could not download {tool}", { tool: label(t) }), message: errorText(e) });
       }
       jobs = jobs.filter((x) => !todo.includes(x.tool) || x.state !== "waiting");
       changed();

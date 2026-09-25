@@ -1,8 +1,9 @@
+import { t, tf } from "../lib/i18n";
 import { useMemo, useRef, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { Folder, Wand2 } from "lucide-react";
 import { api, errorText } from "../lib/api";
-import { queuesStore, settingsStore } from "../lib/store";
+import { queuesStore, settingsStore, queueName } from "../lib/store";
 import * as fmt from "../lib/format";
 import { Button, IconButton, Input, Select } from "../ui/primitives";
 import { showMenuAt, toast } from "../ui/overlays";
@@ -69,13 +70,13 @@ export function BatchView() {
       const r = await api.addBatch(urls, { url: "", dir: dir.trim() || null, queueId, connections, source: "batch" });
       toast({
         level: r.failed.length ? "warning" : "success",
-        title: `${r.added.length} added${r.failed.length ? `, ${r.failed.length} failed` : ""}`,
+        title: r.failed.length ? tf("{added} added, {failed} failed", { added: r.added.length, failed: r.failed.length }) : tf("{n} added", { n: r.added.length }),
         message: r.failed[0] ? `${fmt.host(r.failed[0].url)}: ${r.failed[0].error}` : undefined,
-        actions: [{ label: "View", onClick: () => showList(queueId ? { scope: "queue", queueId } : { scope: "all" }) }],
+        actions: [{ label: t("View"), onClick: () => showList(queueId ? { scope: "queue", queueId } : { scope: "all" }) }],
       });
       if (!r.failed.length) setText("");
     } catch (e) {
-      toast({ level: "error", title: "Could not add the downloads", message: errorText(e) });
+      toast({ level: "error", title: t("Could not add the downloads"), message: errorText(e) });
     } finally {
       setBusy(false);
     }
@@ -84,13 +85,13 @@ export function BatchView() {
   return (
     <div className="main">
       <div className="toolbar">
-        <span className="toolbar-title">Batch Downloads</span>
+        <span className="toolbar-title">{t("Batch Downloads")}</span>
       </div>
       <div className="page">
         <div className="page-inner">
-          <p className="page-lede">Paste links one per line, or generate a numbered series from a pattern. Duplicates are skipped.</p>
+          <p className="page-lede">{t("Paste links one per line, or generate a numbered series from a pattern. Duplicates are skipped.")}</p>
           <div className="card" style={{ padding: "var(--space-3)", display: "flex", flexDirection: "column", gap: 8 }}>
-            <div className="section-title">Generate from a pattern</div>
+            <div className="section-title">{t("Generate from a pattern")}</div>
             <div className="input-group">
               <Input className="mono" value={pattern} onChange={(e) => setPattern(e.target.value)} placeholder="https://example.com/photos/img[001-120].jpg   ·   [a-z] and [1-100:5] work too" />
               <Button
@@ -101,7 +102,7 @@ export function BatchView() {
                   setPattern("");
                 }}
               >
-                Add {preview.length > 1 ? preview.length : ""} links
+                {preview.length > 1 ? tf("Add {n} links", { n: preview.length }) : t("Add links")}
               </Button>
             </div>
             {preview.length > 1 && (
@@ -112,36 +113,36 @@ export function BatchView() {
           </div>
           <textarea className="textarea" rows={14} value={text} onChange={(e) => setText(e.target.value)} placeholder={"https://example.com/file1.zip\nhttps://example.com/file2.zip\nmagnet:?xt=urn:btih:…"} spellCheck={false} />
           <div className="faint num" style={{ fontSize: "var(--text-xs)" }}>
-            {urls.length} link{urls.length === 1 ? "" : "s"}
-            {invalid > 0 && <span style={{ color: "var(--danger)" }}> · {invalid} invalid line{invalid === 1 ? "" : "s"} will be ignored</span>}
+            {urls.length === 1 ? t("1 link") : tf("{n} links", { n: urls.length })}
+            {invalid > 0 && <span style={{ color: "var(--danger)" }}> · {invalid === 1 ? t("1 invalid line will be ignored") : tf("{n} invalid lines will be ignored", { n: invalid })}</span>}
           </div>
           <div className="form-grid">
-            <label>Save to</label>
+            <label>{t("Save to")}</label>
             <div className="input-group">
-              <Input value={dir} onChange={(e) => setDir(e.target.value)} placeholder={`Automatic by category (${settings?.downloadDir ?? "Downloads"})`} />
+              <Input value={dir} onChange={(e) => setDir(e.target.value)} placeholder={tf("Automatic by category ({folder})", { folder: settings?.downloadDir ?? "Downloads" })} />
               <IconButton
                 icon={Folder}
-                label="Choose folder"
+                label={t("Choose folder")}
                 onClick={async () => {
                   const p = await open({ directory: true });
                   if (typeof p === "string") setDir(p);
                 }}
               />
             </div>
-            <label>Connections</label>
+            <label>{t("Connections")}</label>
             <Select
               value={connections == null ? "" : String(connections)}
               onChange={(e) => setConnections(e.target.value === "" ? null : +e.target.value)}
-              options={[{ value: "", label: "Default" }, { value: "0", label: "Smart" }, ...[1, 2, 4, 8, 16].map((n) => ({ value: String(n), label: String(n) }))]}
+              options={[{ value: "", label: t("Default") }, { value: "0", label: t("Smart") }, ...[1, 2, 4, 8, 16].map((n) => ({ value: String(n), label: String(n) }))]}
               style={{ width: 160 }}
             />
           </div>
           <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-            <Button ref={queueBtn} disabled={!urls.length || busy} onClick={() => showMenuAt(queueBtn.current!, queues.map((q) => ({ label: q.name, onSelect: () => void add(q.id) })))}>
-              Add to queue
+            <Button ref={queueBtn} disabled={!urls.length || busy} onClick={() => showMenuAt(queueBtn.current!, queues.map((q) => ({ label: queueName(q), onSelect: () => void add(q.id) })))}>
+              {t("Add to queue")}
             </Button>
             <Button variant="primary" busy={busy} disabled={!urls.length} onClick={() => void add(null)}>
-              Download {urls.length || ""}
+              {t("Download")}{' '}{urls.length || ""}
             </Button>
           </div>
         </div>
