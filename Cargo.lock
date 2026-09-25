@@ -2491,7 +2491,7 @@ dependencies = [
 
 [[package]]
 name = "ku-android"
-version = "0.2.6"
+version = "0.2.7"
 dependencies = [
  "adblock",
  "anyhow",
@@ -2511,7 +2511,7 @@ dependencies = [
 
 [[package]]
 name = "ku-cli"
-version = "0.2.6"
+version = "0.2.7"
 dependencies = [
  "clap",
  "ku-proto",
@@ -2521,7 +2521,7 @@ dependencies = [
 
 [[package]]
 name = "ku-native-host"
-version = "0.2.6"
+version = "0.2.7"
 dependencies = [
  "ku-proto",
  "serde",
@@ -2530,7 +2530,7 @@ dependencies = [
 
 [[package]]
 name = "ku-proto"
-version = "0.2.6"
+version = "0.2.7"
 dependencies = [
  "dirs 6.0.0",
  "serde",
@@ -2539,7 +2539,7 @@ dependencies = [
 
 [[package]]
 name = "kucore"
-version = "0.2.6"
+version = "0.2.7"
 dependencies = [
  "anyhow",
  "axum",
@@ -2585,7 +2585,7 @@ dependencies = [
 
 [[package]]
 name = "kudownloader"
-version = "0.2.6"
+version = "0.2.7"
 dependencies = [
  "anyhow",
  "arboard",
