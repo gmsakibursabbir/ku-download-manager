@@ -1,7 +1,7 @@
 # Arch Linux package, built in CI from the Tauri .deb (same files, pacman metadata).
 #   makepkg --nodeps   (with kudownloader.deb next to this file)
 pkgname=kudownloader
-pkgver=0.2.5
+pkgver=0.2.6
 pkgrel=1
 pkgdesc="Fast download manager with browser integration (aria2, yt-dlp)"
 arch=('x86_64')

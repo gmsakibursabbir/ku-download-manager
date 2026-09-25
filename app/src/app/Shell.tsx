@@ -19,6 +19,7 @@ import {
   Copy,
   X,
   type LucideIcon,
+  Trash2,
 } from "lucide-react";
 import { Icon } from "../ui/primitives";
 import { showMenuAt, type MenuItem } from "../ui/overlays";
@@ -129,7 +130,7 @@ export function TitleBar() {
       { label: t("Resume all"), onSelect: () => void run(api.resumeAll(), "Could not resume") },
       { label: t("Stop all"), onSelect: () => void run(api.pauseAll(), "Could not stop") },
       "sep",
-      { label: t("Delete all completed"), disabled: !allDownloads().some((d) => d.status === "completed"), onSelect: () => void run(api.clearFinished(), "Could not delete") },
+      { label: t("Delete all completed"), icon: Trash2, danger: true, disabled: !allDownloads().some((d) => d.status === "completed"), onSelect: () => void run(api.clearFinished(), "Could not delete") },
       "sep",
       { label: t("Options…"), shortcut: kb("Ctrl ,"), onSelect: () => app.openSettings("downloads") },
     ],

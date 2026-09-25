@@ -326,8 +326,8 @@ export function DownloadsView() {
           disabled={!sel.length && !allDownloads().some((d) => d.status === "completed")}
           onClick={() => sel.length && confirmRemove([...selection])}
           menu={() => [
-            { label: t("Delete selected…"), icon: Trash2, disabled: !sel.length, onSelect: () => confirmRemove([...selection]) },
-            { label: t("Delete all completed"), disabled: !allDownloads().some((d) => d.status === "completed"), onSelect: () => void run(api.clearFinished(), "Could not delete") },
+            { label: t("Delete selected…"), icon: Trash2, danger: true, disabled: !sel.length, onSelect: () => confirmRemove([...selection]) },
+            { label: t("Delete all completed"), icon: Trash2, danger: true, disabled: !allDownloads().some((d) => d.status === "completed"), onSelect: () => void run(api.clearFinished(), "Could not delete") },
           ]}
           title={t("Delete (Del)")}
         />
