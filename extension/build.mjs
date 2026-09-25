@@ -18,7 +18,16 @@ const targets = {
   firefox: {
     ...base,
     background: { scripts: ["background.js"] },
-    browser_specific_settings: { gecko: { id: "kudownloader@kuduy.digital", strict_min_version: "115.0" } },
+    browser_specific_settings: {
+      gecko: {
+        id: "kudownloader@kuduy.digital",
+        // Firefox 140 is the first to read data_collection_permissions.
+        strict_min_version: "140.0",
+        // Required by AMO for new versions. Nothing is sent to us or third
+        // parties: the extension only talks to KuDownloader on this computer.
+        data_collection_permissions: { required: ["none"] },
+      },
+    },
   },
 };
 

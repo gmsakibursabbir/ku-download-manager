@@ -85,3 +85,22 @@ passed only to the KuDownloader app on the same device.
 
 `docs/screenshots/` — main window, download popup, progress window, video
 button, browser integration.
+
+## Data collection answers
+
+- **Firefox (manifest):** `data_collection_permissions: { required: ["none"] }`.
+  The extension sends page addresses, media links and site cookies only to the
+  KuDownloader app on the same computer (native messaging); nothing goes to
+  the developer or third parties. Requires Firefox 140+ (ESR 140 included).
+- **Chrome Web Store privacy tab:** no user data is collected or transmitted
+  off the device. Permission justifications:
+  - *downloads* — hand browser downloads to KuDownloader.
+  - *nativeMessaging* — talk to the KuDownloader app on this computer.
+  - *cookies* — send the site's cookies with a download so sign-in-only files work.
+  - *contextMenus* — "Download with KuDownloader" on links, media and pages.
+  - *storage* — remember the take-over switch and per-site choices.
+  - *scripting* and host permissions — show the KuDownload button on videos
+    and collect a page's links when asked.
+  - *webRequest* — detect the video and audio streams a page plays.
+  - *tabs* — know which page a download or media stream came from.
+  - *notifications* — report when a hand-off fails.
