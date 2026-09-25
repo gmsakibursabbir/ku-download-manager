@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "KuDownloader",
   "short_name": "KuDownloader",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "__MSG_extDesc__",
   "icons": {
     "16": "icons/16x16.png",
