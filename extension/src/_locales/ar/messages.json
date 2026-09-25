@@ -1,0 +1,110 @@
+{
+  "extDesc": {
+    "message": "أرسل التنزيلات والفيديوهات والروابط من متصفحك إلى KuDownloader."
+  },
+  "notInstalled": {
+    "message": "KuDownloader غير مثبّت أو أن اتصاله بالمتصفح غير مسجّل."
+  },
+  "noResponse": {
+    "message": "لا يوجد رد من KuDownloader"
+  },
+  "browserFallback": {
+    "message": "$1 نزّل المتصفح الملف بدلًا من ذلك."
+  },
+  "menuDownload": {
+    "message": "التنزيل باستخدام KuDownloader"
+  },
+  "menuSelected": {
+    "message": "تنزيل الروابط المحددة باستخدام KuDownloader"
+  },
+  "menuPageMedia": {
+    "message": "تنزيل الوسائط من هذه الصفحة…"
+  },
+  "menuAll": {
+    "message": "تنزيل كل الروابط باستخدام KuDownloader…"
+  },
+  "noLinksFound": {
+    "message": "لم يُعثر على روابط."
+  },
+  "unsupported": {
+    "message": "عنوان غير مدعوم"
+  },
+  "selectFirst": {
+    "message": "حدّد بعض الروابط في الصفحة أولًا."
+  },
+  "noLinksPage": {
+    "message": "لم يُعثر على روابط في هذه الصفحة."
+  },
+  "close": {
+    "message": "إغلاق"
+  },
+  "readingFormats": {
+    "message": "جارٍ قراءة الصيغ المتاحة…"
+  },
+  "downloadVideoFile": {
+    "message": "تنزيل ملف الفيديو"
+  },
+  "sent": {
+    "message": "أُرسل إلى KuDownloader."
+  },
+  "download": {
+    "message": "تنزيل"
+  },
+  "video": {
+    "message": "فيديو"
+  },
+  "audio": {
+    "message": "صوت"
+  },
+  "noFormats": {
+    "message": "لم يُعثر على صيغ قابلة للتنزيل."
+  },
+  "more": {
+    "message": "المزيد…"
+  },
+  "moreTitle": {
+    "message": "افتح في KuDownloader للترجمات وقوائم التشغيل وخيارات أخرى"
+  },
+  "sending": {
+    "message": "جارٍ الإرسال…"
+  },
+  "added": {
+    "message": "أُضيف إلى KuDownloader."
+  },
+  "checking": {
+    "message": "جارٍ التحقق…"
+  },
+  "mediaOnPage": {
+    "message": "الوسائط في هذه الصفحة"
+  },
+  "noMedia": {
+    "message": "لم يُكتشف فيديو أو صوت بعد. شغّل المحتوى لاكتشافه."
+  },
+  "pageMedia": {
+    "message": "تنزيل هذا الفيديو باستخدام KuDownloader…"
+  },
+  "downloadAll": {
+    "message": "تنزيل كل الروابط…"
+  },
+  "downloadSelected": {
+    "message": "تنزيل الروابط المحددة…"
+  },
+  "openApp": {
+    "message": "فتح KuDownloader"
+  },
+  "takeOver": {
+    "message": "تولّي التنزيلات في هذا المتصفح"
+  },
+  "notConnected": {
+    "message": "غير متصل"
+  },
+  "connected": {
+    "message": "متصل"
+  },
+  "ready": {
+    "message": "جاهز"
+  },
+  "stream": {
+    "message": "بث"
+  }
+}

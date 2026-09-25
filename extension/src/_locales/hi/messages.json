@@ -1,0 +1,110 @@
+{
+  "extDesc": {
+    "message": "अपने ब्राउज़र से डाउनलोड, वीडियो और लिंक KuDownloader को भेजें।"
+  },
+  "notInstalled": {
+    "message": "KuDownloader इंस्टॉल नहीं है या उसका ब्राउज़र कनेक्शन पंजीकृत नहीं है।"
+  },
+  "noResponse": {
+    "message": "KuDownloader से कोई जवाब नहीं"
+  },
+  "browserFallback": {
+    "message": "$1 इसके बजाय ब्राउज़र ने फ़ाइल डाउनलोड की।"
+  },
+  "menuDownload": {
+    "message": "KuDownloader से डाउनलोड करें"
+  },
+  "menuSelected": {
+    "message": "चयनित लिंक KuDownloader से डाउनलोड करें"
+  },
+  "menuPageMedia": {
+    "message": "इस पेज का मीडिया डाउनलोड करें…"
+  },
+  "menuAll": {
+    "message": "सभी लिंक KuDownloader से डाउनलोड करें…"
+  },
+  "noLinksFound": {
+    "message": "कोई लिंक नहीं मिला।"
+  },
+  "unsupported": {
+    "message": "असमर्थित पता"
+  },
+  "selectFirst": {
+    "message": "पहले पेज पर कुछ लिंक चुनें।"
+  },
+  "noLinksPage": {
+    "message": "इस पेज पर कोई लिंक नहीं मिला।"
+  },
+  "close": {
+    "message": "बंद करें"
+  },
+  "readingFormats": {
+    "message": "उपलब्ध फ़ॉर्मेट पढ़े जा रहे हैं…"
+  },
+  "downloadVideoFile": {
+    "message": "वीडियो फ़ाइल डाउनलोड करें"
+  },
+  "sent": {
+    "message": "KuDownloader को भेजा गया।"
+  },
+  "download": {
+    "message": "डाउनलोड"
+  },
+  "video": {
+    "message": "वीडियो"
+  },
+  "audio": {
+    "message": "ऑडियो"
+  },
+  "noFormats": {
+    "message": "डाउनलोड करने योग्य कोई फ़ॉर्मेट नहीं मिला।"
+  },
+  "more": {
+    "message": "और…"
+  },
+  "moreTitle": {
+    "message": "सबटाइटल, प्लेलिस्ट और अन्य विकल्पों के लिए KuDownloader में खोलें"
+  },
+  "sending": {
+    "message": "भेजा जा रहा है…"
+  },
+  "added": {
+    "message": "KuDownloader में जोड़ा गया।"
+  },
+  "checking": {
+    "message": "जाँच हो रही है…"
+  },
+  "mediaOnPage": {
+    "message": "इस पेज का मीडिया"
+  },
+  "noMedia": {
+    "message": "अभी कोई वीडियो या ऑडियो नहीं मिला। पहचान के लिए प्ले करें।"
+  },
+  "pageMedia": {
+    "message": "यह वीडियो KuDownloader से डाउनलोड करें…"
+  },
+  "downloadAll": {
+    "message": "सभी लिंक डाउनलोड करें…"
+  },
+  "downloadSelected": {
+    "message": "चयनित लिंक डाउनलोड करें…"
+  },
+  "openApp": {
+    "message": "KuDownloader खोलें"
+  },
+  "takeOver": {
+    "message": "इस ब्राउज़र के डाउनलोड अपने हाथ में लें"
+  },
+  "notConnected": {
+    "message": "कनेक्ट नहीं"
+  },
+  "connected": {
+    "message": "कनेक्ट है"
+  },
+  "ready": {
+    "message": "तैयार"
+  },
+  "stream": {
+    "message": "स्ट्रीम"
+  }
+}

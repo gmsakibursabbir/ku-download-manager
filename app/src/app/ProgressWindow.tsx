@@ -1,3 +1,4 @@
+import { te } from "../lib/engineText";
 import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { t } from "../lib/i18n";
 import { invoke } from "@tauri-apps/api/core";
@@ -141,7 +142,7 @@ export function ProgressWindow({ id }: { id: string }) {
             {d.url}
           </span>
           <span>{t("Status")}</span>
-          <span style={{ color: d.status === "error" ? "var(--danger)" : undefined }}>{d.status === "error" ? d.error || t(status) : t(status)}</span>
+          <span style={{ color: d.status === "error" ? "var(--danger)" : undefined }}>{d.status === "error" ? te(d.error) || t(status) : t(status)}</span>
           <span>{t("File size")}</span>
           <span className="num">{d.total > 0 ? fmt.bytes(d.total) : t("Unknown")}</span>
           <span>{t("Downloaded")}</span>

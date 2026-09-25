@@ -1,0 +1,110 @@
+{
+  "extDesc": {
+    "message": "Send downloads, videos and links from your browser to KuDownloader."
+  },
+  "notInstalled": {
+    "message": "KuDownloader is not installed or its browser connection is not registered."
+  },
+  "noResponse": {
+    "message": "No response from KuDownloader"
+  },
+  "browserFallback": {
+    "message": "$1 The browser downloaded the file instead."
+  },
+  "menuDownload": {
+    "message": "Download with KuDownloader"
+  },
+  "menuSelected": {
+    "message": "Download selected links with KuDownloader"
+  },
+  "menuPageMedia": {
+    "message": "Download media from this page…"
+  },
+  "menuAll": {
+    "message": "Download all links with KuDownloader…"
+  },
+  "noLinksFound": {
+    "message": "No links found."
+  },
+  "unsupported": {
+    "message": "Unsupported address"
+  },
+  "selectFirst": {
+    "message": "Select some links on the page first."
+  },
+  "noLinksPage": {
+    "message": "No links found on this page."
+  },
+  "close": {
+    "message": "Close"
+  },
+  "readingFormats": {
+    "message": "Reading available formats…"
+  },
+  "downloadVideoFile": {
+    "message": "Download video file"
+  },
+  "sent": {
+    "message": "Sent to KuDownloader."
+  },
+  "download": {
+    "message": "Download"
+  },
+  "video": {
+    "message": "Video"
+  },
+  "audio": {
+    "message": "Audio"
+  },
+  "noFormats": {
+    "message": "No downloadable formats were found."
+  },
+  "more": {
+    "message": "More…"
+  },
+  "moreTitle": {
+    "message": "Open in KuDownloader for subtitles, playlists and more options"
+  },
+  "sending": {
+    "message": "Sending…"
+  },
+  "added": {
+    "message": "Added to KuDownloader."
+  },
+  "checking": {
+    "message": "Checking…"
+  },
+  "mediaOnPage": {
+    "message": "Media on this page"
+  },
+  "noMedia": {
+    "message": "No video or audio detected yet. Start playback to detect streams."
+  },
+  "pageMedia": {
+    "message": "Download this video with KuDownloader…"
+  },
+  "downloadAll": {
+    "message": "Download all links…"
+  },
+  "downloadSelected": {
+    "message": "Download selected links…"
+  },
+  "openApp": {
+    "message": "Open KuDownloader"
+  },
+  "takeOver": {
+    "message": "Take over downloads in this browser"
+  },
+  "notConnected": {
+    "message": "Not connected"
+  },
+  "connected": {
+    "message": "Connected"
+  },
+  "ready": {
+    "message": "Ready"
+  },
+  "stream": {
+    "message": "Stream"
+  }
+}

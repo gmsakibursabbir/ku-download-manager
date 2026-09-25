@@ -1,0 +1,110 @@
+{
+  "extDesc": {
+    "message": "브라우저의 다운로드, 동영상, 링크를 KuDownloader로 보냅니다."
+  },
+  "notInstalled": {
+    "message": "KuDownloader가 설치되지 않았거나 브라우저 연결이 등록되지 않았습니다."
+  },
+  "noResponse": {
+    "message": "KuDownloader에서 응답이 없습니다"
+  },
+  "browserFallback": {
+    "message": "$1 대신 브라우저가 파일을 다운로드했습니다."
+  },
+  "menuDownload": {
+    "message": "KuDownloader로 다운로드"
+  },
+  "menuSelected": {
+    "message": "선택한 링크를 KuDownloader로 다운로드"
+  },
+  "menuPageMedia": {
+    "message": "이 페이지의 미디어 다운로드…"
+  },
+  "menuAll": {
+    "message": "모든 링크를 KuDownloader로 다운로드…"
+  },
+  "noLinksFound": {
+    "message": "링크를 찾지 못했습니다."
+  },
+  "unsupported": {
+    "message": "지원되지 않는 주소"
+  },
+  "selectFirst": {
+    "message": "먼저 페이지에서 링크를 선택하세요."
+  },
+  "noLinksPage": {
+    "message": "이 페이지에서 링크를 찾지 못했습니다."
+  },
+  "close": {
+    "message": "닫기"
+  },
+  "readingFormats": {
+    "message": "사용 가능한 형식을 읽는 중…"
+  },
+  "downloadVideoFile": {
+    "message": "동영상 파일 다운로드"
+  },
+  "sent": {
+    "message": "KuDownloader로 보냈습니다."
+  },
+  "download": {
+    "message": "다운로드"
+  },
+  "video": {
+    "message": "동영상"
+  },
+  "audio": {
+    "message": "오디오"
+  },
+  "noFormats": {
+    "message": "다운로드할 수 있는 형식이 없습니다."
+  },
+  "more": {
+    "message": "더 보기…"
+  },
+  "moreTitle": {
+    "message": "자막, 재생목록 등 추가 옵션은 KuDownloader에서 열기"
+  },
+  "sending": {
+    "message": "보내는 중…"
+  },
+  "added": {
+    "message": "KuDownloader에 추가했습니다."
+  },
+  "checking": {
+    "message": "확인 중…"
+  },
+  "mediaOnPage": {
+    "message": "이 페이지의 미디어"
+  },
+  "noMedia": {
+    "message": "아직 동영상이나 오디오가 감지되지 않았습니다. 재생을 시작하면 감지됩니다."
+  },
+  "pageMedia": {
+    "message": "이 동영상을 KuDownloader로 다운로드…"
+  },
+  "downloadAll": {
+    "message": "모든 링크 다운로드…"
+  },
+  "downloadSelected": {
+    "message": "선택한 링크 다운로드…"
+  },
+  "openApp": {
+    "message": "KuDownloader 열기"
+  },
+  "takeOver": {
+    "message": "이 브라우저의 다운로드 가져오기"
+  },
+  "notConnected": {
+    "message": "연결 안 됨"
+  },
+  "connected": {
+    "message": "연결됨"
+  },
+  "ready": {
+    "message": "준비됨"
+  },
+  "stream": {
+    "message": "스트림"
+  }
+}

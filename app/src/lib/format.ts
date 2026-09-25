@@ -18,15 +18,34 @@ export function speed(n: number): string {
   return `${bytes(n)}/s`;
 }
 
+const unitFormats = new Map<string, Intl.NumberFormat>();
+
+/** "22 s" in the interface language (English keeps the compact "22s"). */
+function unit(n: number, u: "second" | "minute" | "hour" | "day", pad = false): string {
+  const lang = document.documentElement.lang || "en";
+  if (lang.startsWith("en")) return `${pad ? String(n).padStart(2, "0") : n}${u[0]}`;
+  const key = `${lang}:${u}`;
+  let f = unitFormats.get(key);
+  if (!f) {
+    try {
+      f = new Intl.NumberFormat(lang, { style: "unit", unit: u, unitDisplay: "narrow" });
+    } catch {
+      f = new Intl.NumberFormat("en", { style: "unit", unit: u, unitDisplay: "narrow" });
+    }
+    unitFormats.set(key, f);
+  }
+  return f.format(n);
+}
+
 export function duration(seconds: number | null | undefined): string {
   if (seconds == null || !Number.isFinite(seconds) || seconds < 0) return "—";
   const s = Math.round(seconds);
-  if (s < 60) return `${s}s`;
+  if (s < 60) return unit(s, "second");
   const m = Math.floor(s / 60);
-  if (m < 60) return `${m}m ${String(s % 60).padStart(2, "0")}s`;
+  if (m < 60) return `${unit(m, "minute")} ${unit(s % 60, "second", true)}`;
   const h = Math.floor(m / 60);
-  if (h < 48) return `${h}h ${String(m % 60).padStart(2, "0")}m`;
-  return `${Math.floor(h / 24)}d ${h % 24}h`;
+  if (h < 48) return `${unit(h, "hour")} ${unit(m % 60, "minute", true)}`;
+  return `${unit(Math.floor(h / 24), "day")} ${unit(h % 24, "hour")}`;
 }
 
 export function clock(seconds: number | null | undefined): string {

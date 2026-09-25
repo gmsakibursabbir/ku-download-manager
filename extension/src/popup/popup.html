@@ -9,31 +9,31 @@
     <header>
       <img src="../icons/32x32.png" alt="" width="18" height="18" />
       <span class="brand">KuDownloader</span>
-      <span id="status" class="status" data-state="checking">Checking…</span>
+      <span id="status" class="status" data-state="checking" data-i18n="checking">Checking…</span>
     </header>
 
     <div id="problem" class="problem" hidden></div>
 
     <section>
       <div class="section-head">
-        <span>Media on this page</span>
+        <span data-i18n="mediaOnPage">Media on this page</span>
         <span id="count" class="count"></span>
       </div>
       <ul id="media" class="media"></ul>
-      <p id="nomedia" class="empty">No video or audio detected yet. Start playback to detect streams.</p>
-      <button id="pageMedia" class="row-btn" type="button" hidden>Download this video with KuDownloader…</button>
+      <p id="nomedia" class="empty" data-i18n="noMedia">No video or audio detected yet. Start playback to detect streams.</p>
+      <button id="pageMedia" class="row-btn" type="button" hidden data-i18n="pageMedia">Download this video with KuDownloader…</button>
     </section>
 
     <nav class="actions">
-      <button id="all" type="button">Download all links…</button>
-      <button id="selected" type="button">Download selected links…</button>
-      <button id="open" type="button">Open KuDownloader</button>
+      <button id="all" type="button" data-i18n="downloadAll">Download all links…</button>
+      <button id="selected" type="button" data-i18n="downloadSelected">Download selected links…</button>
+      <button id="open" type="button" data-i18n="openApp">Open KuDownloader</button>
     </nav>
 
     <footer>
       <label class="toggle">
         <input id="intercept" type="checkbox" />
-        <span>Take over downloads in this browser</span>
+        <span data-i18n="takeOver">Take over downloads in this browser</span>
       </label>
     </footer>
     <script src="popup.js"></script>

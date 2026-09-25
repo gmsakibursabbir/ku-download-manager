@@ -1,3 +1,4 @@
+import { te } from "../lib/engineText";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -43,7 +44,7 @@ function stateText(x: AirTransfer): string {
     case "cancelled":
       return t("Cancelled");
     default:
-      return x.error || t("Failed");
+      return te(x.error) || t("Failed");
   }
 }
 

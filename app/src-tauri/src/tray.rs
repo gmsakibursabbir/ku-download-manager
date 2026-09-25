@@ -1,3 +1,4 @@
+use crate::i18n::{tr, trf};
 use crate::{show_main, AppState};
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
@@ -5,15 +6,23 @@ use tauri::{AppHandle, Manager};
 
 const TRAY_ID: &str = "main";
 
+fn menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
+    let show = MenuItem::with_id(app, "show", tr("Show KuDownloader"), true, None::<&str>)?;
+    let pause = MenuItem::with_id(app, "pause_all", tr("Pause all"), true, None::<&str>)?;
+    let resume = MenuItem::with_id(app, "resume_all", tr("Resume all"), true, None::<&str>)?;
+    let quit = MenuItem::with_id(app, "quit", tr("Quit KuDownloader"), true, None::<&str>)?;
+    Menu::with_items(app, &[&show, &PredefinedMenuItem::separator(app)?, &pause, &resume, &PredefinedMenuItem::separator(app)?, &quit])
+}
+
+/// Rebuild the menu in the current interface language.
+pub fn relabel(app: &AppHandle) {
+    if let (Some(t), Ok(m)) = (app.tray_by_id(TRAY_ID), menu(app)) {
+        let _ = t.set_menu(Some(m));
+    }
+}
+
 pub fn create(app: &AppHandle) -> tauri::Result<()> {
-    let show = MenuItem::with_id(app, "show", "Show KuDownloader", true, None::<&str>)?;
-    let pause = MenuItem::with_id(app, "pause_all", "Pause all", true, None::<&str>)?;
-    let resume = MenuItem::with_id(app, "resume_all", "Resume all", true, None::<&str>)?;
-    let quit = MenuItem::with_id(app, "quit", "Quit KuDownloader", true, None::<&str>)?;
-    let menu = Menu::with_items(
-        app,
-        &[&show, &PredefinedMenuItem::separator(app)?, &pause, &resume, &PredefinedMenuItem::separator(app)?, &quit],
-    )?;
+    let menu = menu(app)?;
     let icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray.png"))?;
     TrayIconBuilder::with_id(TRAY_ID)
         .icon(icon)
@@ -59,9 +68,9 @@ pub fn update_tooltip(app: &AppHandle, down: i64, up: i64, active: usize) {
         let text = if active == 0 {
             "KuDownloader".to_string()
         } else if up > 0 {
-            format!("KuDownloader — {active} active\n↓ {}  ↑ {}", human_speed(down), human_speed(up))
+            format!("KuDownloader — {}\n↓ {}  ↑ {}", trf("{n} active", &[("n", &active.to_string())]), human_speed(down), human_speed(up))
         } else {
-            format!("KuDownloader — {active} active\n↓ {}", human_speed(down))
+            format!("KuDownloader — {}\n↓ {}", trf("{n} active", &[("n", &active.to_string())]), human_speed(down))
         };
         let _ = t.set_tooltip(Some(text));
     }

@@ -1,0 +1,110 @@
+{
+  "extDesc": {
+    "message": "Schicke Downloads, Videos und Links aus deinem Browser an KuDownloader."
+  },
+  "notInstalled": {
+    "message": "KuDownloader ist nicht installiert oder die Browser-Verbindung ist nicht registriert."
+  },
+  "noResponse": {
+    "message": "Keine Antwort von KuDownloader"
+  },
+  "browserFallback": {
+    "message": "$1 Der Browser hat die Datei stattdessen heruntergeladen."
+  },
+  "menuDownload": {
+    "message": "Mit KuDownloader herunterladen"
+  },
+  "menuSelected": {
+    "message": "Ausgewählte Links mit KuDownloader herunterladen"
+  },
+  "menuPageMedia": {
+    "message": "Medien dieser Seite herunterladen…"
+  },
+  "menuAll": {
+    "message": "Alle Links mit KuDownloader herunterladen…"
+  },
+  "noLinksFound": {
+    "message": "Keine Links gefunden."
+  },
+  "unsupported": {
+    "message": "Nicht unterstützte Adresse"
+  },
+  "selectFirst": {
+    "message": "Markiere zuerst einige Links auf der Seite."
+  },
+  "noLinksPage": {
+    "message": "Auf dieser Seite wurden keine Links gefunden."
+  },
+  "close": {
+    "message": "Schließen"
+  },
+  "readingFormats": {
+    "message": "Verfügbare Formate werden gelesen…"
+  },
+  "downloadVideoFile": {
+    "message": "Videodatei herunterladen"
+  },
+  "sent": {
+    "message": "An KuDownloader gesendet."
+  },
+  "download": {
+    "message": "Herunterladen"
+  },
+  "video": {
+    "message": "Video"
+  },
+  "audio": {
+    "message": "Audio"
+  },
+  "noFormats": {
+    "message": "Keine herunterladbaren Formate gefunden."
+  },
+  "more": {
+    "message": "Mehr…"
+  },
+  "moreTitle": {
+    "message": "In KuDownloader öffnen für Untertitel, Playlists und weitere Optionen"
+  },
+  "sending": {
+    "message": "Wird gesendet…"
+  },
+  "added": {
+    "message": "Zu KuDownloader hinzugefügt."
+  },
+  "checking": {
+    "message": "Wird geprüft…"
+  },
+  "mediaOnPage": {
+    "message": "Medien auf dieser Seite"
+  },
+  "noMedia": {
+    "message": "Noch kein Video oder Audio erkannt. Starte die Wiedergabe, um Streams zu erkennen."
+  },
+  "pageMedia": {
+    "message": "Dieses Video mit KuDownloader herunterladen…"
+  },
+  "downloadAll": {
+    "message": "Alle Links herunterladen…"
+  },
+  "downloadSelected": {
+    "message": "Ausgewählte Links herunterladen…"
+  },
+  "openApp": {
+    "message": "KuDownloader öffnen"
+  },
+  "takeOver": {
+    "message": "Downloads in diesem Browser übernehmen"
+  },
+  "notConnected": {
+    "message": "Nicht verbunden"
+  },
+  "connected": {
+    "message": "Verbunden"
+  },
+  "ready": {
+    "message": "Bereit"
+  },
+  "stream": {
+    "message": "Stream"
+  }
+}

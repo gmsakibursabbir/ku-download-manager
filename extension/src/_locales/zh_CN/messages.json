@@ -1,0 +1,110 @@
+{
+  "extDesc": {
+    "message": "将浏览器中的下载、视频和链接发送到 KuDownloader。"
+  },
+  "notInstalled": {
+    "message": "KuDownloader 未安装，或其浏览器连接未注册。"
+  },
+  "noResponse": {
+    "message": "KuDownloader 没有响应"
+  },
+  "browserFallback": {
+    "message": "$1 已改由浏览器下载该文件。"
+  },
+  "menuDownload": {
+    "message": "使用 KuDownloader 下载"
+  },
+  "menuSelected": {
+    "message": "使用 KuDownloader 下载所选链接"
+  },
+  "menuPageMedia": {
+    "message": "下载此页面中的媒体…"
+  },
+  "menuAll": {
+    "message": "使用 KuDownloader 下载全部链接…"
+  },
+  "noLinksFound": {
+    "message": "未找到链接。"
+  },
+  "unsupported": {
+    "message": "不支持的地址"
+  },
+  "selectFirst": {
+    "message": "请先在页面上选择一些链接。"
+  },
+  "noLinksPage": {
+    "message": "此页面上未找到链接。"
+  },
+  "close": {
+    "message": "关闭"
+  },
+  "readingFormats": {
+    "message": "正在读取可用格式…"
+  },
+  "downloadVideoFile": {
+    "message": "下载视频文件"
+  },
+  "sent": {
+    "message": "已发送到 KuDownloader。"
+  },
+  "download": {
+    "message": "下载"
+  },
+  "video": {
+    "message": "视频"
+  },
+  "audio": {
+    "message": "音频"
+  },
+  "noFormats": {
+    "message": "未找到可下载的格式。"
+  },
+  "more": {
+    "message": "更多…"
+  },
+  "moreTitle": {
+    "message": "在 KuDownloader 中打开，以使用字幕、播放列表等更多选项"
+  },
+  "sending": {
+    "message": "正在发送…"
+  },
+  "added": {
+    "message": "已添加到 KuDownloader。"
+  },
+  "checking": {
+    "message": "正在检查…"
+  },
+  "mediaOnPage": {
+    "message": "此页面中的媒体"
+  },
+  "noMedia": {
+    "message": "尚未检测到视频或音频。开始播放即可检测。"
+  },
+  "pageMedia": {
+    "message": "使用 KuDownloader 下载此视频…"
+  },
+  "downloadAll": {
+    "message": "下载全部链接…"
+  },
+  "downloadSelected": {
+    "message": "下载所选链接…"
+  },
+  "openApp": {
+    "message": "打开 KuDownloader"
+  },
+  "takeOver": {
+    "message": "接管此浏览器中的下载"
+  },
+  "notConnected": {
+    "message": "未连接"
+  },
+  "connected": {
+    "message": "已连接"
+  },
+  "ready": {
+    "message": "就绪"
+  },
+  "stream": {
+    "message": "流媒体"
+  }
+}

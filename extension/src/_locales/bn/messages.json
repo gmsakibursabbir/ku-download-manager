@@ -1,0 +1,110 @@
+{
+  "extDesc": {
+    "message": "আপনার ব্রাউজার থেকে ডাউনলোড, ভিডিও ও লিংক KuDownloader-এ পাঠান।"
+  },
+  "notInstalled": {
+    "message": "KuDownloader ইনস্টল করা নেই বা এর ব্রাউজার সংযোগ নিবন্ধিত নয়।"
+  },
+  "noResponse": {
+    "message": "KuDownloader থেকে কোনো সাড়া নেই"
+  },
+  "browserFallback": {
+    "message": "$1 ব্রাউজার ফাইলটি নিজেই ডাউনলোড করেছে।"
+  },
+  "menuDownload": {
+    "message": "KuDownloader দিয়ে ডাউনলোড করুন"
+  },
+  "menuSelected": {
+    "message": "নির্বাচিত লিংক KuDownloader দিয়ে ডাউনলোড করুন"
+  },
+  "menuPageMedia": {
+    "message": "এই পেজের মিডিয়া ডাউনলোড করুন…"
+  },
+  "menuAll": {
+    "message": "সব লিংক KuDownloader দিয়ে ডাউনলোড করুন…"
+  },
+  "noLinksFound": {
+    "message": "কোনো লিংক পাওয়া যায়নি।"
+  },
+  "unsupported": {
+    "message": "অসমর্থিত ঠিকানা"
+  },
+  "selectFirst": {
+    "message": "আগে পেজে কিছু লিংক নির্বাচন করুন।"
+  },
+  "noLinksPage": {
+    "message": "এই পেজে কোনো লিংক পাওয়া যায়নি।"
+  },
+  "close": {
+    "message": "বন্ধ করুন"
+  },
+  "readingFormats": {
+    "message": "উপলব্ধ ফরম্যাট পড়া হচ্ছে…"
+  },
+  "downloadVideoFile": {
+    "message": "ভিডিও ফাইল ডাউনলোড করুন"
+  },
+  "sent": {
+    "message": "KuDownloader-এ পাঠানো হয়েছে।"
+  },
+  "download": {
+    "message": "ডাউনলোড"
+  },
+  "video": {
+    "message": "ভিডিও"
+  },
+  "audio": {
+    "message": "অডিও"
+  },
+  "noFormats": {
+    "message": "ডাউনলোডযোগ্য কোনো ফরম্যাট পাওয়া যায়নি।"
+  },
+  "more": {
+    "message": "আরও…"
+  },
+  "moreTitle": {
+    "message": "সাবটাইটেল, প্লেলিস্ট ও আরও অপশনের জন্য KuDownloader-এ খুলুন"
+  },
+  "sending": {
+    "message": "পাঠানো হচ্ছে…"
+  },
+  "added": {
+    "message": "KuDownloader-এ যোগ হয়েছে।"
+  },
+  "checking": {
+    "message": "যাচাই হচ্ছে…"
+  },
+  "mediaOnPage": {
+    "message": "এই পেজের মিডিয়া"
+  },
+  "noMedia": {
+    "message": "এখনো কোনো ভিডিও বা অডিও পাওয়া যায়নি। শনাক্ত করতে প্লে শুরু করুন।"
+  },
+  "pageMedia": {
+    "message": "এই ভিডিও KuDownloader দিয়ে ডাউনলোড করুন…"
+  },
+  "downloadAll": {
+    "message": "সব লিংক ডাউনলোড করুন…"
+  },
+  "downloadSelected": {
+    "message": "নির্বাচিত লিংক ডাউনলোড করুন…"
+  },
+  "openApp": {
+    "message": "KuDownloader খুলুন"
+  },
+  "takeOver": {
+    "message": "এই ব্রাউজারের ডাউনলোড নিজে নিন"
+  },
+  "notConnected": {
+    "message": "সংযুক্ত নয়"
+  },
+  "connected": {
+    "message": "সংযুক্ত"
+  },
+  "ready": {
+    "message": "প্রস্তুত"
+  },
+  "stream": {
+    "message": "স্ট্রিম"
+  }
+}

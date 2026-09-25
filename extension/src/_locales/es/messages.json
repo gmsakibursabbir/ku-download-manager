@@ -1,0 +1,110 @@
+{
+  "extDesc": {
+    "message": "Envía descargas, vídeos y enlaces de tu navegador a KuDownloader."
+  },
+  "notInstalled": {
+    "message": "KuDownloader no está instalado o su conexión con el navegador no está registrada."
+  },
+  "noResponse": {
+    "message": "Sin respuesta de KuDownloader"
+  },
+  "browserFallback": {
+    "message": "$1 El navegador descargó el archivo en su lugar."
+  },
+  "menuDownload": {
+    "message": "Descargar con KuDownloader"
+  },
+  "menuSelected": {
+    "message": "Descargar los enlaces seleccionados con KuDownloader"
+  },
+  "menuPageMedia": {
+    "message": "Descargar el contenido multimedia de esta página…"
+  },
+  "menuAll": {
+    "message": "Descargar todos los enlaces con KuDownloader…"
+  },
+  "noLinksFound": {
+    "message": "No se encontraron enlaces."
+  },
+  "unsupported": {
+    "message": "Dirección no admitida"
+  },
+  "selectFirst": {
+    "message": "Selecciona primero algunos enlaces en la página."
+  },
+  "noLinksPage": {
+    "message": "No se encontraron enlaces en esta página."
+  },
+  "close": {
+    "message": "Cerrar"
+  },
+  "readingFormats": {
+    "message": "Leyendo los formatos disponibles…"
+  },
+  "downloadVideoFile": {
+    "message": "Descargar el archivo de vídeo"
+  },
+  "sent": {
+    "message": "Enviado a KuDownloader."
+  },
+  "download": {
+    "message": "Descargar"
+  },
+  "video": {
+    "message": "Vídeo"
+  },
+  "audio": {
+    "message": "Audio"
+  },
+  "noFormats": {
+    "message": "No se encontraron formatos descargables."
+  },
+  "more": {
+    "message": "Más…"
+  },
+  "moreTitle": {
+    "message": "Abrir en KuDownloader para subtítulos, listas de reproducción y más opciones"
+  },
+  "sending": {
+    "message": "Enviando…"
+  },
+  "added": {
+    "message": "Añadido a KuDownloader."
+  },
+  "checking": {
+    "message": "Comprobando…"
+  },
+  "mediaOnPage": {
+    "message": "Contenido multimedia de esta página"
+  },
+  "noMedia": {
+    "message": "Aún no se detectó vídeo ni audio. Inicia la reproducción para detectarlo."
+  },
+  "pageMedia": {
+    "message": "Descargar este vídeo con KuDownloader…"
+  },
+  "downloadAll": {
+    "message": "Descargar todos los enlaces…"
+  },
+  "downloadSelected": {
+    "message": "Descargar los enlaces seleccionados…"
+  },
+  "openApp": {
+    "message": "Abrir KuDownloader"
+  },
+  "takeOver": {
+    "message": "Encargarse de las descargas de este navegador"
+  },
+  "notConnected": {
+    "message": "Sin conexión"
+  },
+  "connected": {
+    "message": "Conectado"
+  },
+  "ready": {
+    "message": "Listo"
+  },
+  "stream": {
+    "message": "Transmisión"
+  }
+}

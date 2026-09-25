@@ -21,6 +21,7 @@ fn e(err: impl std::fmt::Display) -> String {
 
 pub fn handler() -> impl Fn(tauri::ipc::Invoke) -> bool + Send + Sync + 'static {
     tauri::generate_handler![
+        set_native_strings,
         airsend_status,
         airsend_set_enabled,
         airsend_peers,
@@ -794,6 +795,13 @@ async fn airsend_trust(state: State<'_, AppState>, fingerprint: String, trusted:
 fn airsend_clear_history(state: State<'_, AppState>) -> R<()> {
     air(&state)?.clear_history();
     Ok(())
+}
+
+/// The interface's language for text the shell shows itself (tray, notifications).
+#[tauri::command]
+fn set_native_strings(app: AppHandle, strings: std::collections::HashMap<String, String>) {
+    crate::i18n::set(strings);
+    crate::tray::relabel(&app);
 }
 
 #[cfg(test)]

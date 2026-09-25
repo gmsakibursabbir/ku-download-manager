@@ -1,3 +1,4 @@
+import { te } from "../../lib/engineText";
 import { t, t as tr, tf } from "../../lib/i18n";
 import { useEffect, useMemo, useState } from "react";
 import { Copy, FolderOpen, ExternalLink, Pause, Play, RotateCcw, Trash2, X, CircleAlert, Gauge, ChevronRight, ChevronDown, ShieldCheck, Link as LinkIcon } from "lucide-react";
@@ -302,11 +303,11 @@ export function Inspector({ id, onClose, onVerify }: { id: string; onClose: () =
               </div>
             }
           >
-            {d.error}
+            {te(d.error)}
           </Notice>
         )}
         {d.meta.smartNote && d.status !== "error" && d.status !== "completed" && (
-          <Notice icon={Gauge}>{d.meta.smartNote}</Notice>
+          <Notice icon={Gauge}>{te(d.meta.smartNote)}</Notice>
         )}
 
         {!finished && (

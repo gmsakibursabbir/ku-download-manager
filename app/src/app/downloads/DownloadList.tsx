@@ -10,6 +10,7 @@ import { showMenu } from "../../ui/overlays";
 import { FileGlyph } from "./FileGlyph";
 import { contextMenu, openDownload, canPause, canResume, run } from "./actions";
 import { api } from "../../lib/api";
+import { te, tx } from "../../lib/engineText";
 import { useApp } from "../context";
 
 export type SortKey = "added" | "name" | "size" | "progress" | "speed" | "status" | "queue" | "eta";
@@ -122,7 +123,7 @@ const Row = memo(function Row({
       <label className="row-check" onMouseDown={(e) => e.stopPropagation()}>
         <input type="checkbox" checked={selected} onChange={() => onCheck(id, index)} aria-label={tf("Select {name}", { name: d.name })} />
       </label>
-      <div className="row-name" title={d.error ? `${d.name}\n${d.error}` : d.name}>
+      <div className="row-name" title={d.error ? `${d.name}\n${te(d.error)}` : d.name}>
         <FileGlyph d={d} size={14} />
         <span className="row-title">{d.name}</span>
       </div>
@@ -130,7 +131,7 @@ const Row = memo(function Row({
         {queue && <Icon icon={ListOrdered} size={14} />}
       </div>
       <div className="cell num">{d.total > 0 ? fmt.bytes(d.total, 2) : d.done > 0 ? fmt.bytes(d.done) : ""}</div>
-      <div className="cell cell-status num" data-tone={st.tone} title={st.title && t(st.title)}>
+      <div className="cell cell-status num" data-tone={st.tone} title={st.title && tx(st.title)}>
         <span>{t(st.text)}</span>
         {(active || d.status === "paused" || d.status === "queued") && d.total > 0 && d.done > 0 && (
           <span className="status-bar" aria-hidden="true">

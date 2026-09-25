@@ -1,0 +1,110 @@
+{
+  "extDesc": {
+    "message": "Envie downloads, vídeos e links do navegador para o KuDownloader."
+  },
+  "notInstalled": {
+    "message": "O KuDownloader não está instalado ou a conexão com o navegador não está registrada."
+  },
+  "noResponse": {
+    "message": "Sem resposta do KuDownloader"
+  },
+  "browserFallback": {
+    "message": "$1 O navegador baixou o arquivo no lugar."
+  },
+  "menuDownload": {
+    "message": "Baixar com o KuDownloader"
+  },
+  "menuSelected": {
+    "message": "Baixar os links selecionados com o KuDownloader"
+  },
+  "menuPageMedia": {
+    "message": "Baixar as mídias desta página…"
+  },
+  "menuAll": {
+    "message": "Baixar todos os links com o KuDownloader…"
+  },
+  "noLinksFound": {
+    "message": "Nenhum link encontrado."
+  },
+  "unsupported": {
+    "message": "Endereço não suportado"
+  },
+  "selectFirst": {
+    "message": "Selecione alguns links na página primeiro."
+  },
+  "noLinksPage": {
+    "message": "Nenhum link encontrado nesta página."
+  },
+  "close": {
+    "message": "Fechar"
+  },
+  "readingFormats": {
+    "message": "Lendo os formatos disponíveis…"
+  },
+  "downloadVideoFile": {
+    "message": "Baixar o arquivo de vídeo"
+  },
+  "sent": {
+    "message": "Enviado ao KuDownloader."
+  },
+  "download": {
+    "message": "Baixar"
+  },
+  "video": {
+    "message": "Vídeo"
+  },
+  "audio": {
+    "message": "Áudio"
+  },
+  "noFormats": {
+    "message": "Nenhum formato para baixar foi encontrado."
+  },
+  "more": {
+    "message": "Mais…"
+  },
+  "moreTitle": {
+    "message": "Abrir no KuDownloader para legendas, playlists e mais opções"
+  },
+  "sending": {
+    "message": "Enviando…"
+  },
+  "added": {
+    "message": "Adicionado ao KuDownloader."
+  },
+  "checking": {
+    "message": "Verificando…"
+  },
+  "mediaOnPage": {
+    "message": "Mídias desta página"
+  },
+  "noMedia": {
+    "message": "Nenhum vídeo ou áudio detectado ainda. Inicie a reprodução para detectar."
+  },
+  "pageMedia": {
+    "message": "Baixar este vídeo com o KuDownloader…"
+  },
+  "downloadAll": {
+    "message": "Baixar todos os links…"
+  },
+  "downloadSelected": {
+    "message": "Baixar os links selecionados…"
+  },
+  "openApp": {
+    "message": "Abrir o KuDownloader"
+  },
+  "takeOver": {
+    "message": "Assumir os downloads deste navegador"
+  },
+  "notConnected": {
+    "message": "Não conectado"
+  },
+  "connected": {
+    "message": "Conectado"
+  },
+  "ready": {
+    "message": "Pronto"
+  },
+  "stream": {
+    "message": "Stream"
+  }
+}

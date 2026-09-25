@@ -1,0 +1,110 @@
+{
+  "extDesc": {
+    "message": "Envoyez téléchargements, vidéos et liens de votre navigateur vers KuDownloader."
+  },
+  "notInstalled": {
+    "message": "KuDownloader n'est pas installé ou sa connexion au navigateur n'est pas enregistrée."
+  },
+  "noResponse": {
+    "message": "Aucune réponse de KuDownloader"
+  },
+  "browserFallback": {
+    "message": "$1 Le navigateur a téléchargé le fichier à la place."
+  },
+  "menuDownload": {
+    "message": "Télécharger avec KuDownloader"
+  },
+  "menuSelected": {
+    "message": "Télécharger les liens sélectionnés avec KuDownloader"
+  },
+  "menuPageMedia": {
+    "message": "Télécharger les médias de cette page…"
+  },
+  "menuAll": {
+    "message": "Télécharger tous les liens avec KuDownloader…"
+  },
+  "noLinksFound": {
+    "message": "Aucun lien trouvé."
+  },
+  "unsupported": {
+    "message": "Adresse non prise en charge"
+  },
+  "selectFirst": {
+    "message": "Sélectionnez d'abord des liens sur la page."
+  },
+  "noLinksPage": {
+    "message": "Aucun lien trouvé sur cette page."
+  },
+  "close": {
+    "message": "Fermer"
+  },
+  "readingFormats": {
+    "message": "Lecture des formats disponibles…"
+  },
+  "downloadVideoFile": {
+    "message": "Télécharger le fichier vidéo"
+  },
+  "sent": {
+    "message": "Envoyé à KuDownloader."
+  },
+  "download": {
+    "message": "Télécharger"
+  },
+  "video": {
+    "message": "Vidéo"
+  },
+  "audio": {
+    "message": "Audio"
+  },
+  "noFormats": {
+    "message": "Aucun format téléchargeable trouvé."
+  },
+  "more": {
+    "message": "Plus…"
+  },
+  "moreTitle": {
+    "message": "Ouvrir dans KuDownloader pour les sous-titres, les playlists et d'autres options"
+  },
+  "sending": {
+    "message": "Envoi…"
+  },
+  "added": {
+    "message": "Ajouté à KuDownloader."
+  },
+  "checking": {
+    "message": "Vérification…"
+  },
+  "mediaOnPage": {
+    "message": "Médias de cette page"
+  },
+  "noMedia": {
+    "message": "Aucune vidéo ni aucun son détecté pour l'instant. Lancez la lecture pour les détecter."
+  },
+  "pageMedia": {
+    "message": "Télécharger cette vidéo avec KuDownloader…"
+  },
+  "downloadAll": {
+    "message": "Télécharger tous les liens…"
+  },
+  "downloadSelected": {
+    "message": "Télécharger les liens sélectionnés…"
+  },
+  "openApp": {
+    "message": "Ouvrir KuDownloader"
+  },
+  "takeOver": {
+    "message": "Prendre en charge les téléchargements de ce navigateur"
+  },
+  "notConnected": {
+    "message": "Non connecté"
+  },
+  "connected": {
+    "message": "Connecté"
+  },
+  "ready": {
+    "message": "Prêt"
+  },
+  "stream": {
+    "message": "Flux"
+  }
+}

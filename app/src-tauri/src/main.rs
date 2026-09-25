@@ -2,6 +2,7 @@
 
 mod clipboard;
 mod commands;
+mod i18n;
 mod platform;
 mod tray;
 
@@ -59,7 +60,7 @@ fn open_prompt_window(app: &AppHandle, request: AddRequest) {
     let dark = prefers_dark(app);
     let bg = if dark { (0x16, 0x16, 0x18, 255) } else { (0xF5, 0xF5, 0xF7, 255) };
     let built = WebviewWindowBuilder::new(app, format!("prompt-{id}"), WebviewUrl::App(format!("index.html#prompt={id}").into()))
-        .title("Download File")
+        .title(i18n::tr("Download File"))
         .inner_size(600.0, 400.0)
         .min_inner_size(460.0, 260.0)
         .decorations(false)
@@ -100,7 +101,7 @@ pub fn open_progress_window(app: &AppHandle, id: &str) -> tauri::Result<()> {
     let dark = prefers_dark(app);
     let bg = if dark { (0x16, 0x16, 0x18, 255) } else { (0xF5, 0xF5, 0xF7, 255) };
     let w = WebviewWindowBuilder::new(app, &label, WebviewUrl::App(format!("index.html#progress={id}").into()))
-        .title("Download progress")
+        .title(i18n::tr("Download progress"))
         .inner_size(560.0, 360.0)
         .min_inner_size(440.0, 240.0)
         .decorations(false)
@@ -186,14 +187,15 @@ fn forward_events(app: AppHandle, core: Arc<Core>) {
                         continue;
                     }
                 }
-                CoreEvent::Completed { name, .. } if s.notify_complete => notify(&app, "Download complete", name),
+                CoreEvent::Completed { name, .. } if s.notify_complete => notify(&app, &i18n::tr("Download complete"), name),
                 CoreEvent::Notice { level, title, message, .. } if level == "error" && s.notify_error && !window_visible(&app) => {
-                    notify(&app, title, message)
+                    notify(&app, &i18n::te(title), &i18n::te(message))
                 }
-                CoreEvent::QueueDone { name, .. } if s.notify_queue_done => notify(&app, "Queue finished", &format!("All downloads in “{name}” are done.")),
+                CoreEvent::QueueDone { name, .. } if s.notify_queue_done => notify(&app, &i18n::tr("Queue finished"), &i18n::trf("All downloads in “{name}” are done.", &[("name", name)])),
                 CoreEvent::PowerCountdown { action, seconds } => {
                     show_main(&app);
-                    notify(&app, "Downloads finished", &format!("Your computer will {} in {seconds} seconds.", if action == "sleep" { "sleep" } else { "shut down" }));
+                    let key = if action == "sleep" { "Your computer will sleep in {n} seconds." } else { "Your computer will shut down in {n} seconds." };
+                    notify(&app, &i18n::tr("Downloads finished"), &i18n::trf(key, &[("n", &seconds.to_string())]));
                 }
                 CoreEvent::Show => show_main(&app),
                 CoreEvent::PromptAdd { request } if request.source.as_deref() == Some("browser") => {
@@ -203,14 +205,23 @@ fn forward_events(app: AppHandle, core: Arc<Core>) {
                 CoreEvent::PromptAdd { .. } => show_main(&app),
                 CoreEvent::AirSendRequest { request } => {
                     show_main(&app);
-                    let what = if request.file_count == 1 { request.files.first().map(|f| format!("“{}”", f.name)).unwrap_or_default() } else { format!("{} files", request.file_count) };
-                    notify(&app, "KuAirSend", &format!("{} wants to send you {what}.", request.peer));
+                    let what = if request.file_count == 1 {
+                        request.files.first().map(|f| format!("“{}”", f.name)).unwrap_or_else(|| i18n::tr("1 file"))
+                    } else {
+                        i18n::trf("{n} files", &[("n", &request.file_count.to_string())])
+                    };
+                    notify(&app, "KuAirSend", &i18n::trf("{peer} wants to send you {files}.", &[("peer", &request.peer), ("files", &what)]));
                 }
-                CoreEvent::AirSendMessage { message } if !window_visible(&app) => notify(&app, &format!("Message from {}", message.peer), &message.text),
+                CoreEvent::AirSendMessage { message } if !window_visible(&app) => notify(&app, &i18n::trf("Message from {peer}", &[("peer", &message.peer)]), &message.text),
                 CoreEvent::AirSendTransfer { transfer } if transfer.direction == "receive" && transfer.state == "done" && transfer.text.is_none() && !window_visible(&app) => {
-                    notify(&app, "KuAirSend", &format!("Received {} file{} from {}.", transfer.file_count, if transfer.file_count == 1 { "" } else { "s" }, transfer.peer))
+                    let body = if transfer.file_count == 1 {
+                        i18n::trf("Received 1 file from {peer}.", &[("peer", &transfer.peer)])
+                    } else {
+                        i18n::trf("Received {n} files from {peer}.", &[("n", &transfer.file_count.to_string()), ("peer", &transfer.peer)])
+                    };
+                    notify(&app, "KuAirSend", &body)
                 }
-                CoreEvent::ClipboardUrl { url } if !window_visible(&app) => notify(&app, "Link copied", &format!("{url}\nOpen KuDownloader to download it.")),
+                CoreEvent::ClipboardUrl { url } if !window_visible(&app) => notify(&app, &i18n::tr("Link copied"), &format!("{url}\n{}", i18n::tr("Open KuDownloader to download it."))),
                 _ => {}
             }
             let state = app.state::<AppState>();

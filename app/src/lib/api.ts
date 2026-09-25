@@ -1,3 +1,4 @@
+import { te } from "./engineText";
 import { invoke } from "@tauri-apps/api/core";
 import type * as T from "./types";
 
@@ -55,8 +56,7 @@ export const api = {
   grabPage: (url: string) => invoke<T.GrabLink[]>("grab_page", { url }),
 };
 
+/** An error for display, in the interface language when the engine knows it. */
 export function errorText(e: unknown): string {
-  if (typeof e === "string") return e;
-  if (e instanceof Error) return e.message;
-  return String(e);
+  return te(typeof e === "string" ? e : e instanceof Error ? e.message : String(e));
 }

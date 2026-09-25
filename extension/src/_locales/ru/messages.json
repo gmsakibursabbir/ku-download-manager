@@ -1,0 +1,110 @@
+{
+  "extDesc": {
+    "message": "Отправляйте загрузки, видео и ссылки из браузера в KuDownloader."
+  },
+  "notInstalled": {
+    "message": "KuDownloader не установлен или его связь с браузером не зарегистрирована."
+  },
+  "noResponse": {
+    "message": "Нет ответа от KuDownloader"
+  },
+  "browserFallback": {
+    "message": "$1 Файл был загружен браузером."
+  },
+  "menuDownload": {
+    "message": "Загрузить с помощью KuDownloader"
+  },
+  "menuSelected": {
+    "message": "Загрузить выбранные ссылки с помощью KuDownloader"
+  },
+  "menuPageMedia": {
+    "message": "Загрузить медиа с этой страницы…"
+  },
+  "menuAll": {
+    "message": "Загрузить все ссылки с помощью KuDownloader…"
+  },
+  "noLinksFound": {
+    "message": "Ссылки не найдены."
+  },
+  "unsupported": {
+    "message": "Неподдерживаемый адрес"
+  },
+  "selectFirst": {
+    "message": "Сначала выделите ссылки на странице."
+  },
+  "noLinksPage": {
+    "message": "На этой странице ссылок нет."
+  },
+  "close": {
+    "message": "Закрыть"
+  },
+  "readingFormats": {
+    "message": "Чтение доступных форматов…"
+  },
+  "downloadVideoFile": {
+    "message": "Загрузить видеофайл"
+  },
+  "sent": {
+    "message": "Отправлено в KuDownloader."
+  },
+  "download": {
+    "message": "Загрузить"
+  },
+  "video": {
+    "message": "Видео"
+  },
+  "audio": {
+    "message": "Аудио"
+  },
+  "noFormats": {
+    "message": "Не найдено форматов для загрузки."
+  },
+  "more": {
+    "message": "Ещё…"
+  },
+  "moreTitle": {
+    "message": "Открыть в KuDownloader для субтитров, плейлистов и других параметров"
+  },
+  "sending": {
+    "message": "Отправка…"
+  },
+  "added": {
+    "message": "Добавлено в KuDownloader."
+  },
+  "checking": {
+    "message": "Проверка…"
+  },
+  "mediaOnPage": {
+    "message": "Медиа на этой странице"
+  },
+  "noMedia": {
+    "message": "Видео или аудио пока не найдено. Начните воспроизведение, чтобы обнаружить потоки."
+  },
+  "pageMedia": {
+    "message": "Загрузить это видео с помощью KuDownloader…"
+  },
+  "downloadAll": {
+    "message": "Загрузить все ссылки…"
+  },
+  "downloadSelected": {
+    "message": "Загрузить выбранные ссылки…"
+  },
+  "openApp": {
+    "message": "Открыть KuDownloader"
+  },
+  "takeOver": {
+    "message": "Перехватывать загрузки в этом браузере"
+  },
+  "notConnected": {
+    "message": "Нет связи"
+  },
+  "connected": {
+    "message": "Подключено"
+  },
+  "ready": {
+    "message": "Готово"
+  },
+  "stream": {
+    "message": "Поток"
+  }
+}

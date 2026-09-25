@@ -1,0 +1,110 @@
+{
+  "extDesc": {
+    "message": "ブラウザーのダウンロード、動画、リンクを KuDownloader に送ります。"
+  },
+  "notInstalled": {
+    "message": "KuDownloader がインストールされていないか、ブラウザー接続が登録されていません。"
+  },
+  "noResponse": {
+    "message": "KuDownloader から応答がありません"
+  },
+  "browserFallback": {
+    "message": "$1 代わりにブラウザーがファイルをダウンロードしました。"
+  },
+  "menuDownload": {
+    "message": "KuDownloader でダウンロード"
+  },
+  "menuSelected": {
+    "message": "選択したリンクを KuDownloader でダウンロード"
+  },
+  "menuPageMedia": {
+    "message": "このページのメディアをダウンロード…"
+  },
+  "menuAll": {
+    "message": "すべてのリンクを KuDownloader でダウンロード…"
+  },
+  "noLinksFound": {
+    "message": "リンクが見つかりません。"
+  },
+  "unsupported": {
+    "message": "対応していないアドレス"
+  },
+  "selectFirst": {
+    "message": "先にページ上のリンクを選択してください。"
+  },
+  "noLinksPage": {
+    "message": "このページにリンクが見つかりません。"
+  },
+  "close": {
+    "message": "閉じる"
+  },
+  "readingFormats": {
+    "message": "利用可能な形式を読み込んでいます…"
+  },
+  "downloadVideoFile": {
+    "message": "動画ファイルをダウンロード"
+  },
+  "sent": {
+    "message": "KuDownloader に送りました。"
+  },
+  "download": {
+    "message": "ダウンロード"
+  },
+  "video": {
+    "message": "動画"
+  },
+  "audio": {
+    "message": "音声"
+  },
+  "noFormats": {
+    "message": "ダウンロードできる形式が見つかりません。"
+  },
+  "more": {
+    "message": "その他…"
+  },
+  "moreTitle": {
+    "message": "字幕や再生リストなどのオプションは KuDownloader で開く"
+  },
+  "sending": {
+    "message": "送信中…"
+  },
+  "added": {
+    "message": "KuDownloader に追加しました。"
+  },
+  "checking": {
+    "message": "確認中…"
+  },
+  "mediaOnPage": {
+    "message": "このページのメディア"
+  },
+  "noMedia": {
+    "message": "動画や音声はまだ検出されていません。再生を始めると検出されます。"
+  },
+  "pageMedia": {
+    "message": "この動画を KuDownloader でダウンロード…"
+  },
+  "downloadAll": {
+    "message": "すべてのリンクをダウンロード…"
+  },
+  "downloadSelected": {
+    "message": "選択したリンクをダウンロード…"
+  },
+  "openApp": {
+    "message": "KuDownloader を開く"
+  },
+  "takeOver": {
+    "message": "このブラウザーのダウンロードを引き継ぐ"
+  },
+  "notConnected": {
+    "message": "未接続"
+  },
+  "connected": {
+    "message": "接続済み"
+  },
+  "ready": {
+    "message": "準備完了"
+  },
+  "stream": {
+    "message": "ストリーム"
+  }
+}

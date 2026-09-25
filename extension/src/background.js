@@ -3,6 +3,14 @@
 // messaging host; never executes anything it receives.
 
 const api = globalThis.browser ?? globalThis.chrome;
+/** Translated text (browser language); English when a message is missing. */
+const M = (id, fallback, subs) => {
+  try {
+    return api.i18n?.getMessage(id, subs) || fallback;
+  } catch {
+    return fallback;
+  }
+};
 const HOST = "com.kuduy.kudownloader";
 const IS_FIREFOX = typeof api.runtime.getBrowserInfo === "function";
 
@@ -29,9 +37,9 @@ async function native(type, payload = {}) {
   } catch (e) {
     const text = String(e?.message ?? e);
     const missing = /not found|not registered|Specified native messaging host|No such native application/i.test(text);
-    throw new Error(missing ? "KuDownloader is not installed or its browser connection is not registered." : text);
+    throw new Error(missing ? M("notInstalled", "KuDownloader is not installed or its browser connection is not registered.") : text);
   }
-  if (!reply?.ok) throw new Error(reply?.error ?? "No response from KuDownloader");
+  if (!reply?.ok) throw new Error(reply?.error ?? M("noResponse", "No response from KuDownloader"));
   return reply.data;
 }
 
@@ -184,7 +192,7 @@ api.downloads.onCreated.addListener(async (item) => {
       /* ignore */
     }
     await api.downloads.download({ url, filename: basename(item.filename) ?? undefined, saveAs: false });
-    await notify("KuDownloader", `${e.message} The browser downloaded the file instead.`);
+    await notify("KuDownloader", M("browserFallback", `${e.message} The browser downloaded the file instead.`, [e.message]));
   }
 });
 
@@ -192,11 +200,11 @@ api.downloads.onCreated.addListener(async (item) => {
 
 function createMenus() {
   api.contextMenus.removeAll(() => {
-    api.contextMenus.create({ id: "ku-link", title: "Download with KuDownloader", contexts: ["link"] });
-    api.contextMenus.create({ id: "ku-media", title: "Download with KuDownloader", contexts: ["video", "audio", "image"] });
-    api.contextMenus.create({ id: "ku-selection", title: "Download selected links with KuDownloader", contexts: ["selection"] });
-    api.contextMenus.create({ id: "ku-page-media", title: "Download media from this page…", contexts: ["page"] });
-    api.contextMenus.create({ id: "ku-all", title: "Download all links with KuDownloader…", contexts: ["page"] });
+    api.contextMenus.create({ id: "ku-link", title: M("menuDownload", "Download with KuDownloader"), contexts: ["link"] });
+    api.contextMenus.create({ id: "ku-media", title: M("menuDownload", "Download with KuDownloader"), contexts: ["video", "audio", "image"] });
+    api.contextMenus.create({ id: "ku-selection", title: M("menuSelected", "Download selected links with KuDownloader"), contexts: ["selection"] });
+    api.contextMenus.create({ id: "ku-page-media", title: M("menuPageMedia", "Download media from this page…"), contexts: ["page"] });
+    api.contextMenus.create({ id: "ku-all", title: M("menuAll", "Download all links with KuDownloader…"), contexts: ["page"] });
   });
 }
 
@@ -270,7 +278,7 @@ api.contextMenus.onClicked.addListener(async (info, tab) => {
       case "ku-all": {
         const links = await collectLinks(tab.id, info.menuItemId === "ku-selection");
         if (!links.length) {
-          await notify("KuDownloader", "No links found.");
+          await notify("KuDownloader", M("noLinksFound", "No links found."));
           return;
         }
         await native("grab", { pageUrl: info.pageUrl, referer: info.pageUrl, links, cookies: await cookiesFor(info.pageUrl), userAgent: navigator.userAgent });
@@ -367,26 +375,26 @@ api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         return { ok: true };
       case "analyze": {
         const url = String(msg.url || "");
-        if (!/^https?:\/\//i.test(url)) throw new Error("Unsupported address");
+        if (!/^https?:\/\//i.test(url)) throw new Error(M("unsupported", "Unsupported address"));
         return native("analyze", { url, playlist: !!msg.playlist, cookies: await cookiesFor(url), referer: sender.tab?.url ?? null });
       }
       case "mediaDownload": {
         const req = msg.request || {};
-        if (!/^https?:\/\//i.test(req.url || "")) throw new Error("Unsupported address");
+        if (!/^https?:\/\//i.test(req.url || "")) throw new Error(M("unsupported", "Unsupported address"));
         return native("mediaDownload", { ...req, cookies: await cookiesFor(req.url), userAgent: navigator.userAgent, source: "browser" });
       }
       case "openInApp":
         return native("show", { mediaUrl: msg.url, cookies: await cookiesFor(msg.url) });
       case "addDetected": {
         const item = msg.item;
-        if (!/^https?:\/\//i.test(item?.url || "")) throw new Error("Unsupported address");
+        if (!/^https?:\/\//i.test(item?.url || "")) throw new Error(M("unsupported", "Unsupported address"));
         return sendLink({ url: item.url, referer: msg.pageUrl, engine: item.manifest ? "ytdlp" : "aria2", prompt: !item.manifest });
       }
       case "detected":
         return loadDetected(msg.tabId);
       case "grabTab": {
         const links = await collectLinks(msg.tabId, !!msg.selection);
-        if (!links.length) throw new Error(msg.selection ? "Select some links on the page first." : "No links found on this page.");
+        if (!links.length) throw new Error(msg.selection ? M("selectFirst", "Select some links on the page first.") : M("noLinksPage", "No links found on this page."));
         return native("grab", { pageUrl: msg.pageUrl, referer: msg.pageUrl, links, cookies: await cookiesFor(msg.pageUrl), userAgent: navigator.userAgent });
       }
       case "showApp":

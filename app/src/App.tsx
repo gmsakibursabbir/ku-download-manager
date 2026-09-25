@@ -1,3 +1,5 @@
+import { syncNativeStrings } from "./lib/native";
+import { te } from "./lib/engineText";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Power } from "lucide-react";
 import { AppContext, type AppApi, type ListFilter, type View } from "./app/context";
@@ -211,8 +213,8 @@ export default function App() {
         case "notice":
           toast({
             level: e.level === "error" ? "error" : e.level === "warning" ? "warning" : "info",
-            title: e.title,
-            message: e.message,
+            title: te(e.title),
+            message: te(e.message),
             actions: e.downloadId
               ? [
                   {
@@ -260,6 +262,7 @@ export default function App() {
     };
     const off = onCoreEvent(handle);
     void startStore().then((pending) => pending.forEach(applyEvent));
+    syncNativeStrings();
     loadAir();
     return () => {
       off();

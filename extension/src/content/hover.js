@@ -7,11 +7,19 @@
   if (globalThis.__kuHover) return;
   globalThis.__kuHover = true;
   const isTop = window.top === window;
+  /** Translated text (browser language); English when a message is missing. */
+  const M = (id, fallback, subs) => {
+    try {
+      return api.i18n?.getMessage(id, subs) || fallback;
+    } catch {
+      return fallback;
+    }
+  };
 
   const ask = async (msg) => {
     // Promise form works on Chromium MV3 and Firefox alike.
     const r = await api.runtime.sendMessage(msg);
-    if (!r?.ok) throw new Error(r?.error || "No response");
+    if (!r?.ok) throw new Error(r?.error || M("noResponse", "No response from KuDownloader"));
     return r.data;
   };
 
@@ -88,7 +96,7 @@
     btn = document.createElement("button");
     btn.className = "btn";
     btn.type = "button";
-    btn.setAttribute("aria-label", "Download with KuDownloader");
+    btn.setAttribute("aria-label", M("menuDownload", "Download with KuDownloader"));
     btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="m7 11 5 5 5-5"/><path d="M5 20h14"/></svg><span>KuDownload</span>`;
     panel = document.createElement("div");
     panel.className = "panel";
@@ -234,7 +242,7 @@
     head.append(el("div", "title", title));
     const x = el("button", "close", "×");
     x.type = "button";
-    x.setAttribute("aria-label", "Close");
+    x.setAttribute("aria-label", M("close", "Close"));
     x.addEventListener("click", closePanel);
     head.append(x);
     return head;
@@ -248,19 +256,19 @@
   }
 
   async function openPanel(hit) {
-    panel.replaceChildren(header("KuDownloader"), state("Reading available formats…", "loading"));
+    panel.replaceChildren(header("KuDownloader"), state(M("readingFormats", "Reading available formats…"), "loading"));
     panel.style.display = "block";
     positionPanel();
     if (hit.kind === "file") {
       panel.replaceChildren(header("KuDownloader"), el("div", "meta", decodeURIComponent(hit.url.split("/").pop() || hit.url)));
       const foot = el("div", "foot");
-      const go = el("button", "primary", "Download video file");
+      const go = el("button", "primary", M("downloadVideoFile", "Download video file"));
       go.type = "button";
       go.addEventListener("click", async () => {
         go.disabled = true;
         try {
           await ask({ type: "addDetected", item: { url: hit.url, manifest: false }, pageUrl: location.href });
-          panel.replaceChildren(header("KuDownloader"), state("Sent to KuDownloader.", "ok"));
+          panel.replaceChildren(header("KuDownloader"), state(M("sent", "Sent to KuDownloader."), "ok"));
           setTimeout(closePanel, 1200);
         } catch (e) {
           panel.replaceChildren(header("KuDownloader"), state(e.message, "err"));
@@ -300,7 +308,7 @@
       opts.push(b);
       return b;
     };
-    const go = el("button", "primary", "Download");
+    const go = el("button", "primary", M("download", "Download"));
     go.type = "button";
     go.disabled = true;
     const children = [header("KuDownloader"), el("div", "meta", info.title)];
@@ -308,22 +316,22 @@
     const video = info.video.filter((v) => heights.includes(v.height) || info.video.length <= 5);
     if (video.length) {
       const g = el("div", "group");
-      g.append(el("div", "label", "Video"));
+      g.append(el("div", "label", M("video", "Video")));
       for (const v of video.slice(0, 6)) g.append(option(`${v.height}p${v.hdr ? " HDR" : ""}`, v.size, { mode: "video", height: v.height }));
       children.push(g);
     }
     const audio = info.audio.filter((a) => [320, 256, 128].includes(a.bitrate) || !info.ffmpegAvailable);
     if (audio.length) {
       const g = el("div", "group");
-      g.append(el("div", "label", "Audio"));
+      g.append(el("div", "label", M("audio", "Audio")));
       for (const a of audio.slice(0, 3)) g.append(option(`${a.bitrate} kbps ${a.ext.toUpperCase()}`, a.size, { mode: "audio", audioBitrate: a.bitrate }));
       children.push(g);
     }
-    if (!video.length && !audio.length) children.push(state("No downloadable formats were found.", "err"));
+    if (!video.length && !audio.length) children.push(state(M("noFormats", "No downloadable formats were found."), "err"));
     const foot = el("div", "foot");
-    const more = el("button", "secondary", "More…");
+    const more = el("button", "secondary", M("more", "More…"));
     more.type = "button";
-    more.title = "Open in KuDownloader for subtitles, playlists and more options";
+    more.title = M("moreTitle", "Open in KuDownloader for subtitles, playlists and more options");
     more.addEventListener("click", async () => {
       await ask({ type: "openInApp", url: hit.url }).catch(() => {});
       closePanel();
@@ -331,7 +339,7 @@
     go.addEventListener("click", async () => {
       if (!choice) return;
       go.disabled = true;
-      go.textContent = "Sending…";
+      go.textContent = M("sending", "Sending…");
       try {
         await ask({
           type: "mediaDownload",
@@ -342,7 +350,7 @@
             media: { mode: choice.mode, height: choice.height ?? null, audioBitrate: choice.audioBitrate ?? null, subtitles: false, embedSubtitles: false, writeThumbnail: false, embedThumbnail: false, playlist: false },
           },
         });
-        panel.replaceChildren(header("KuDownloader"), state("Added to KuDownloader.", "ok"));
+        panel.replaceChildren(header("KuDownloader"), state(M("added", "Added to KuDownloader."), "ok"));
         positionPanel();
         setTimeout(closePanel, 1400);
       } catch (e) {
