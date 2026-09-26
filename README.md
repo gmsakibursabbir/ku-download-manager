@@ -19,13 +19,14 @@ videos to the app. Free and open source.
 | System | Package |
 |---|---|
 | Windows 10/11 x64 | `KuDownloader_<v>_x64-setup.exe` (per-user, no admin) |
+| macOS 11+ | `KuDownloader_<v>_aarch64.dmg` (Apple Silicon), `KuDownloader_<v>_x64.dmg` (Intel) |
 | Debian / Ubuntu | `KuDownloader_<v>_amd64.deb`, `…_arm64.deb` |
 | Fedora / openSUSE | `KuDownloader-<v>-1.x86_64.rpm`, `…aarch64.rpm` |
 | Arch | `kudownloader-<v>-1-x86_64.pkg.tar.zst` (`pacman -U`) |
 | Android 7+ | `KuDownloader_<v>_android-arm64-v8a.apk` (most phones), `…armeabi-v7a.apk`, `…x86_64.apk`, `…universal.apk` |
 
-Unsigned builds: on Windows SmartScreen may ask for “More info → Run anyway”.
-yt-dlp and FFmpeg are
+Unsigned builds: on Windows SmartScreen may ask for “More info → Run anyway”;
+on macOS right-click the app → **Open** the first time. yt-dlp and FFmpeg are
 downloaded on demand from their official releases (SHA-256 verified); aria2 is
 bundled on Windows and used from the system (`apt/dnf/pacman/brew install
 aria2`) elsewhere — plain HTTP(S) works without it.
@@ -152,7 +153,7 @@ cd app && pnpm tauri build --config src-tauri/tauri.bundle.macos.conf.json    # 
 
 CI (`.github/workflows/ci.yml`) runs the tests on Windows, Linux and macOS.
 Pushing a `v*` tag builds into a **draft** GitHub release: Windows `.exe`;
-Linux x86_64 and arm64 `.deb`/`.rpm`; an Arch package (`packaging/arch/PKGBUILD`)
+macOS `.dmg` for Apple Silicon and Intel; Linux x86_64 and arm64 `.deb`/`.rpm`; an Arch package (`packaging/arch/PKGBUILD`)
 built from the `.deb`; and the Android APKs.
 
 Optional repository secrets (each feature switches on when its secrets exist):
