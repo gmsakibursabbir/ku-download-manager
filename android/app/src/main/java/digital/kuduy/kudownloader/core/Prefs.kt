@@ -73,11 +73,13 @@ object Prefs {
     /** yt-dlp release installed by the app ("" = the one bundled with the build). */
     val ytdlpVersion = Pref("ytdlpVersion", "")
     val ytdlpChecked = Pref("ytdlpChecked", 0L)
+    /** The KuDownloader release the user was last notified about. */
+    val appUpdateNotified = Pref("appUpdateNotified", "")
 
     private val all = listOf(
         wifiOnly, pauseOnBatterySaver, highPerfWifi, clipboardOffer, adblock, pill, detectMedia, interceptDownloads,
         searchEngine, homePage, desktopMode, blockPopups, bookmarks, history, adsBlocked, dynamicColor, welcomed, lastClipboard,
-        ytdlpVersion, ytdlpChecked,
+        ytdlpVersion, ytdlpChecked, appUpdateNotified,
     )
 
     fun init(ctx: Context) {

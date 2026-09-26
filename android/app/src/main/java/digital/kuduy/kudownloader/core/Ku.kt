@@ -117,6 +117,12 @@ object Ku {
                     if (!t.videoReady) runCatching { repairTools(app) }
                     // Sites change weekly; the bundled yt-dlp ages with the app.
                     runCatching { updateYtdlp(app, force = false) }
+                    // New KuDownloader release: tell the user once per version.
+                    AppUpdate.check()
+                    AppUpdate.available.value?.takeIf { it.version != Prefs.appUpdateNotified.value }?.let {
+                        Prefs.appUpdateNotified.value = it.version
+                        digital.kuduy.kudownloader.service.Notifier.appUpdate(app, it.version)
+                    }
                 }
                 pump()
             } catch (e: Throwable) {

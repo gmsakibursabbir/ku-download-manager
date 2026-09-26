@@ -335,5 +335,11 @@
  "Trust it too, so nothing asks again?": "الوثوق به أيضًا حتى لا يُسأل مجددًا؟",
  "Trust {name} too? Files, links and scheduled downloads between you will then go through without asking.": "الوثوق بـ {name} أيضًا؟ عندها تصل الملفات والروابط والتنزيلات المجدولة بينكما دون سؤال.",
  "{name} trusts this phone": "{name} يثق بهذا الهاتف",
- "Media and browser": "الوسائط والمتصفح"
+ "Media and browser": "الوسائط والمتصفح",
+ "Could not download the update. Check the connection and try again.": "تعذّر تنزيل التحديث. تحقّق من الاتصال وحاول مجددًا.",
+ "Could not open the download page.": "تعذّر فتح صفحة التنزيل.",
+ "App updates": "تحديثات التطبيق",
+ "Tap to update.": "انقر للتحديث.",
+ "Downloading the update…": "جارٍ تنزيل التحديث…",
+ "Update now": "حدّث الآن"
 }

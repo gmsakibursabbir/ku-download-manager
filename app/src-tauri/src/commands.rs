@@ -521,7 +521,16 @@ async fn available_update(app: &AppHandle, state: &AppState) -> R<Option<UpdateI
     }
 }
 
+/// Flatpak and AppImage copies are no longer released: the signed feed has no
+/// package for them, so they update from the release page (.deb/.rpm) instead.
+fn updates_in_place() -> bool {
+    std::env::var_os("FLATPAK_ID").is_none() && std::env::var_os("APPIMAGE").is_none()
+}
+
 async fn find_update(app: &AppHandle, state: &AppState) -> R<Option<tauri_plugin_updater::Update>> {
+    if !updates_in_place() {
+        return Err("This copy updates from the download page.".into());
+    }
     let s = state.core.settings();
     let mut b = app.updater_builder();
     if !s.update_endpoint.trim().is_empty() {
@@ -545,7 +554,15 @@ async fn install_update(app: AppHandle, state: State<'_, AppState>) -> R<()> {
         let url = info.url.ok_or("KuDownloader is up to date.")?;
         return app.opener().open_url(url, None::<&str>).map_err(e);
     };
-    u.download_and_install(|_, _| {}, || {}).await.map_err(|err| format!("Update failed: {err}"))?;
+    if let Err(err) = u.download_and_install(|_, _| {}, || {}).await {
+        // Could not install in place (e.g. the password prompt was cancelled):
+        // the release page always works.
+        if let Ok(Some(url)) = latest_release(&u.current_version).await.map(|r| r.and_then(|r| r.url)) {
+            let _ = app.opener().open_url(url, None::<&str>);
+            return Err(format!("Update failed: {err}. The download page is open instead."));
+        }
+        return Err(format!("Update failed: {err}"));
+    }
     state.core.shutdown().await;
     app.restart();
 }

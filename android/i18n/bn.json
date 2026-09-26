@@ -335,5 +335,11 @@
  "Trust it too, so nothing asks again?": "এটিকেও বিশ্বাস করবেন, যাতে আর কিছু জিজ্ঞেস না করে?",
  "Trust {name} too? Files, links and scheduled downloads between you will then go through without asking.": "{name}-কেও বিশ্বাস করবেন? তাহলে আপনাদের মধ্যে ফাইল, লিংক ও শিডিউল করা ডাউনলোড জিজ্ঞেস না করেই যাবে।",
  "{name} trusts this phone": "{name} এই ফোনকে বিশ্বাস করে",
- "Media and browser": "মিডিয়া ও ব্রাউজার"
+ "Media and browser": "মিডিয়া ও ব্রাউজার",
+ "Could not download the update. Check the connection and try again.": "আপডেট ডাউনলোড করা যায়নি। সংযোগ দেখে আবার চেষ্টা করুন।",
+ "Could not open the download page.": "ডাউনলোড পেজ খোলা যায়নি।",
+ "App updates": "অ্যাপ আপডেট",
+ "Tap to update.": "আপডেট করতে ট্যাপ করুন।",
+ "Downloading the update…": "আপডেট ডাউনলোড হচ্ছে…",
+ "Update now": "এখনই আপডেট করুন"
 }

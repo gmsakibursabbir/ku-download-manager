@@ -335,5 +335,11 @@
  "Trust it too, so nothing asks again?": "Доверять ему тоже, чтобы больше не спрашивать?",
  "Trust {name} too? Files, links and scheduled downloads between you will then go through without asking.": "Доверять {name} тоже? Тогда файлы, ссылки и запланированные загрузки между вами будут проходить без вопросов.",
  "{name} trusts this phone": "{name} доверяет этому телефону",
- "Media and browser": "Медиа и браузер"
+ "Media and browser": "Медиа и браузер",
+ "Could not download the update. Check the connection and try again.": "Не удалось загрузить обновление. Проверьте подключение и повторите.",
+ "Could not open the download page.": "Не удалось открыть страницу загрузки.",
+ "App updates": "Обновления приложения",
+ "Tap to update.": "Нажмите, чтобы обновить.",
+ "Downloading the update…": "Загрузка обновления…",
+ "Update now": "Обновить сейчас"
 }

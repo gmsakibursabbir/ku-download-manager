@@ -335,5 +335,11 @@
  "Trust it too, so nothing asks again?": "相手も信頼して、今後確認しないようにしますか？",
  "Trust {name} too? Files, links and scheduled downloads between you will then go through without asking.": "{name} も信頼しますか？お互いのファイル、リンク、予約ダウンロードが確認なしで届くようになります。",
  "{name} trusts this phone": "{name} がこのスマホを信頼しました",
- "Media and browser": "メディアとブラウザー"
+ "Media and browser": "メディアとブラウザー",
+ "Could not download the update. Check the connection and try again.": "アップデートをダウンロードできませんでした。接続を確認して再試行してください。",
+ "Could not open the download page.": "ダウンロードページを開けませんでした。",
+ "App updates": "アプリのアップデート",
+ "Tap to update.": "タップしてアップデート。",
+ "Downloading the update…": "アップデートをダウンロード中…",
+ "Update now": "今すぐアップデート"
 }

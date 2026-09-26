@@ -335,5 +335,11 @@
  "Trust it too, so nothing asks again?": "也信任它，以后不再询问？",
  "Trust {name} too? Files, links and scheduled downloads between you will then go through without asking.": "也信任 {name} 吗？这样你们之间的文件、链接和计划下载都无需询问。",
  "{name} trusts this phone": "{name} 信任这部手机",
- "Media and browser": "媒体与浏览器"
+ "Media and browser": "媒体与浏览器",
+ "Could not download the update. Check the connection and try again.": "无法下载更新。请检查网络后重试。",
+ "Could not open the download page.": "无法打开下载页面。",
+ "App updates": "应用更新",
+ "Tap to update.": "点按即可更新。",
+ "Downloading the update…": "正在下载更新…",
+ "Update now": "立即更新"
 }

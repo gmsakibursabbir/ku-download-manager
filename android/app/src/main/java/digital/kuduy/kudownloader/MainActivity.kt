@@ -76,6 +76,7 @@ class MainActivity : ComponentActivity() {
                 UiState.details = id
             }
             ACTION_AIRSEND -> UiState.go(Screen.AirSend)
+            ACTION_UPDATE -> UiState.go(Screen.About)
             ACTION_ADD_URL -> if (id != null) UiState.add = AddPrefill(url = id)
             ACTION_ADD_CLIPBOARD -> window.decorView.post { offerClipboard(force = true) }
             Intent.ACTION_PROCESS_TEXT -> {
@@ -146,6 +147,7 @@ class MainActivity : ComponentActivity() {
     companion object {
         const val ACTION_SHOW_DOWNLOAD = "digital.kuduy.kudownloader.SHOW_DOWNLOAD"
         const val ACTION_AIRSEND = "digital.kuduy.kudownloader.AIRSEND"
+        const val ACTION_UPDATE = "digital.kuduy.kudownloader.UPDATE"
         const val ACTION_ADD_URL = "digital.kuduy.kudownloader.ADD_URL"
         const val ACTION_ADD_CLIPBOARD = "digital.kuduy.kudownloader.ADD_CLIPBOARD"
 

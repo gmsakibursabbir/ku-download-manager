@@ -167,6 +167,24 @@ jobs:
           releaseDraft: true
           includeUpdaterJson: ${{ steps.sign.outputs.json }}
 
+  # Without an AppImage, tauri-action points the generic linux-<arch> entry at
+  # the .deb. Older AppImage copies fall back to that entry and would write the
+  # .deb over themselves, so drop it: they then update from the release page.
+  update-feed:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Keep only installer-specific Linux entries
+        run: |
+          gh release download "${{ github.ref_name }}" --repo "${{ github.repository }}" --pattern latest.json --dir feed || exit 0
+          jq 'del(.platforms["linux-x86_64"], .platforms["linux-aarch64"], .platforms["linux-x86_64-appimage"], .platforms["linux-aarch64-appimage"])' feed/latest.json > latest.json
+          jq -r '.platforms | keys[]' latest.json
+          gh release upload "${{ github.ref_name }}" latest.json --clobber --repo "${{ github.repository }}"
+
   linux-extras:
     needs: release
     permissions:

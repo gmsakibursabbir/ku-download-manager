@@ -26,6 +26,7 @@ object Notifier {
     const val CH_DONE = "done"
     const val CH_ERRORS = "errors"
     const val CH_AIRSEND = "airsend"
+    const val CH_UPDATES = "updates"
     const val ID_SERVICE = 1
 
     fun channels(ctx: Context) {
@@ -37,6 +38,7 @@ object Notifier {
                 NotificationChannel(CH_DONE, t("Finished downloads"), NotificationManager.IMPORTANCE_DEFAULT),
                 NotificationChannel(CH_ERRORS, t("Download problems"), NotificationManager.IMPORTANCE_DEFAULT),
                 NotificationChannel(CH_AIRSEND, "KuAirSend", NotificationManager.IMPORTANCE_HIGH),
+                NotificationChannel(CH_UPDATES, t("App updates"), NotificationManager.IMPORTANCE_DEFAULT),
             ),
         )
     }
@@ -107,6 +109,17 @@ object Notifier {
             .setAutoCancel(true)
             .setContentIntent(openApp(ctx))
         post(ctx, (title + message).hashCode(), b.build())
+    }
+
+    /** A new KuDownloader release; tapping opens About, where it installs in one tap. */
+    fun appUpdate(ctx: Context, version: String) {
+        val b = NotificationCompat.Builder(ctx, CH_UPDATES)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(tf("KuDownloader {version} is available", "version" to version))
+            .setContentText(t("Tap to update."))
+            .setAutoCancel(true)
+            .setContentIntent(openApp(ctx, MainActivity.ACTION_UPDATE))
+        post(ctx, "app-update".hashCode(), b.build())
     }
 
     fun airRequest(ctx: Context, r: AirRequest) {

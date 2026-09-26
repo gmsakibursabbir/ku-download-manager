@@ -23,6 +23,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.SystemUpdate
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.runtime.collectAsState
+import digital.kuduy.kudownloader.core.AppUpdate
+import kotlinx.coroutines.launch
 import androidx.compose.material.icons.filled.Queue
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TravelExplore
@@ -60,14 +65,6 @@ import digital.kuduy.kudownloader.ui.PixelAnimal
 import digital.kuduy.kudownloader.ui.Screen
 import digital.kuduy.kudownloader.ui.SectionTitle
 import digital.kuduy.kudownloader.ui.UiState
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
-import java.net.HttpURLConnection
-import java.net.URL
 
 const val REPO = "https://github.com/kuduyDigital/ku-download-manager"
 
@@ -75,6 +72,12 @@ const val REPO = "https://github.com/kuduyDigital/ku-download-manager"
 fun MoreScreen() {
     KuScaffold(t("More")) { pad ->
         Column(Modifier.fillMaxSize().padding(pad).verticalScroll(rememberScrollState())) {
+            val update by AppUpdate.available.collectAsState()
+            update?.let { u ->
+                Group {
+                    ClickRow(tf("KuDownloader {version} is available", "version" to u.version), t("Tap to update."), Icons.Filled.SystemUpdate) { UiState.go(Screen.About) }
+                }
+            }
             Group(t("Tools")) {
                 ClickRow(t("Batch downloads"), t("Many links at once, or a numbered pattern"), Icons.AutoMirrored.Filled.PlaylistAdd) { UiState.go(Screen.Batch) }
                 ClickRow(t("Fetch Projects"), t("Download the files linked on a page"), Icons.Filled.TravelExplore) { UiState.go(Screen.Fetch) }
@@ -96,24 +99,11 @@ fun MoreScreen() {
 fun AboutScreen() {
     val ctx = LocalContext.current
     var checking by remember { mutableStateOf(true) }
-    var latest by remember { mutableStateOf<Pair<String, String>?>(null) }
-    // Releases are published on GitHub (the Play Store does not allow video downloaders).
+    var error by remember { mutableStateOf<String?>(null) }
+    val update by AppUpdate.available.collectAsState()
+    val progress by AppUpdate.progress.collectAsState()
     LaunchedEffect(Unit) {
-        latest = withContext(Dispatchers.IO) {
-            runCatching {
-                val c = URL("https://api.github.com/repos/kuduyDigital/ku-download-manager/releases/latest").openConnection() as HttpURLConnection
-                c.setRequestProperty("Accept", "application/vnd.github+json")
-                c.connectTimeout = 10_000
-                c.readTimeout = 10_000
-                val o = Ku.json.parseToJsonElement(c.inputStream.bufferedReader().use { it.readText() }).jsonObject
-                val tag = o["tag_name"]?.jsonPrimitive?.contentOrNull ?: return@runCatching null
-                val apk = o["assets"]?.jsonArray?.map { it.jsonObject }?.firstOrNull { a ->
-                    val n = a["name"]?.jsonPrimitive?.contentOrNull.orEmpty()
-                    n.endsWith(".apk") && (n.contains(Build.SUPPORTED_ABIS.firstOrNull() ?: "arm64-v8a") || n.contains("universal"))
-                }?.get("browser_download_url")?.jsonPrimitive?.contentOrNull ?: o["html_url"]?.jsonPrimitive?.contentOrNull ?: REPO
-                tag to apk
-            }.getOrNull()
-        }
+        AppUpdate.check()
         checking = false
     }
     KuScaffold(t("About KuDownloader"), back = true) { pad ->
@@ -123,14 +113,27 @@ fun AboutScreen() {
             }
             Text("KuDownloader", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
             Text("${t("Version")} ${BuildConfig.VERSION_NAME}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            val u = update
             when {
-                checking -> CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
-                latest != null && isNewer(latest!!.first, BuildConfig.VERSION_NAME) -> {
-                    Notice(tf("Version {version} is available.", "version" to latest!!.first.removePrefix("v")), MaterialTheme.colorScheme.primary)
-                    Button({ ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(latest!!.second))) }) { Text(t("Download the update")) }
+                u != null -> {
+                    Notice(tf("Version {version} is available.", "version" to u.version), MaterialTheme.colorScheme.primary)
+                    val p = progress
+                    if (p != null) {
+                        LinearProgressIndicator(progress = { p }, modifier = Modifier.fillMaxWidth(0.7f))
+                        Text(t("Downloading the update…"), style = MaterialTheme.typography.bodySmall)
+                    } else {
+                        Button({
+                            error = null
+                            // App-wide scope: leaving this screen does not stop the download.
+                            Ku.scope.launch { error = AppUpdate.install(ctx.applicationContext, u) }
+                        }) { Text(t("Update now")) }
+                    }
+                    error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
                 }
-                latest != null -> Text(t("You have the latest version."), style = MaterialTheme.typography.bodySmall)
+                checking -> CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
+                else -> Text(t("You have the latest version."), style = MaterialTheme.typography.bodySmall)
             }
+            Text(t("Made by Kuduy"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(8.dp))
             Text(
                 t("A fast download manager: resumable multi-connection downloads, videos and music from 1,000+ sites, torrents, queues and schedules, a private browser with an ad blocker, and KuAirSend for nearby devices."),
@@ -146,18 +149,7 @@ fun AboutScreen() {
     }
 }
 
-fun isNewer(candidate: String, current: String): Boolean {
-    fun parts(v: String) = v.removePrefix("v").substringBefore('-').split('.').map { it.toIntOrNull() ?: 0 }
-    if (candidate.contains('-')) return false
-    val a = parts(candidate)
-    val b = parts(current)
-    for (i in 0 until maxOf(a.size, b.size)) {
-        val x = a.getOrElse(i) { 0 }
-        val y = b.getOrElse(i) { 0 }
-        if (x != y) return x > y
-    }
-    return false
-}
+fun isNewer(candidate: String, current: String): Boolean = AppUpdate.isNewer(candidate, current)
 
 /** First start: what the app needs, asked for once. */
 @Composable

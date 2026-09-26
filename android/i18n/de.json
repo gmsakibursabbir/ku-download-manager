@@ -335,5 +335,11 @@
  "Trust it too, so nothing asks again?": "Auch vertrauen, damit nichts mehr nachfragt?",
  "Trust {name} too? Files, links and scheduled downloads between you will then go through without asking.": "{name} auch vertrauen? Dann kommen Dateien, Links und geplante Downloads zwischen Ihnen ohne Nachfrage an.",
  "{name} trusts this phone": "{name} vertraut diesem Telefon",
- "Media and browser": "Medien und Browser"
+ "Media and browser": "Medien und Browser",
+ "Could not download the update. Check the connection and try again.": "Das Update konnte nicht geladen werden. Verbindung prüfen und erneut versuchen.",
+ "Could not open the download page.": "Die Downloadseite konnte nicht geöffnet werden.",
+ "App updates": "App-Updates",
+ "Tap to update.": "Zum Aktualisieren tippen.",
+ "Downloading the update…": "Update wird geladen…",
+ "Update now": "Jetzt aktualisieren"
 }

@@ -335,5 +335,11 @@
  "Trust it too, so nothing asks again?": "¿Confiar también en él para que no se pregunte más?",
  "Trust {name} too? Files, links and scheduled downloads between you will then go through without asking.": "¿Confiar también en {name}? Así los archivos, enlaces y descargas programadas entre vosotros pasarán sin preguntar.",
  "{name} trusts this phone": "{name} confía en este teléfono",
- "Media and browser": "Multimedia y navegador"
+ "Media and browser": "Multimedia y navegador",
+ "Could not download the update. Check the connection and try again.": "No se pudo descargar la actualización. Revisa la conexión e inténtalo de nuevo.",
+ "Could not open the download page.": "No se pudo abrir la página de descarga.",
+ "App updates": "Actualizaciones de la app",
+ "Tap to update.": "Toca para actualizar.",
+ "Downloading the update…": "Descargando la actualización…",
+ "Update now": "Actualizar ahora"
 }
