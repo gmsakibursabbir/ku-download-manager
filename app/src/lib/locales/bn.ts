@@ -917,6 +917,10 @@ const bn: Record<string, string> = {
   "{peer} trusts this computer": "{peer} এই কম্পিউটারকে বিশ্বাস করে",
   "Trust {peer} too? Files, links and scheduled downloads between you will then go through without asking.": "{peer}-কেও বিশ্বাস করবেন? তাহলে আপনাদের মধ্যে ফাইল, লিংক ও শিডিউল করা ডাউনলোড জিজ্ঞেস না করেই যাবে।",
   "{peer} trusts this computer. Trust it too?": "{peer} এই কম্পিউটারকে বিশ্বাস করে। আপনিও বিশ্বাস করবেন?",
+  // Help › About
+  "Checking for updates…": "আপডেট খোঁজা হচ্ছে…",
+  "Version {version}": "সংস্করণ {version}",
+  "Made by Kuduy": "তৈরি করেছে Kuduy",
 };
 
 export default bn;

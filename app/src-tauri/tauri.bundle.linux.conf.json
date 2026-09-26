@@ -3,8 +3,7 @@
   "bundle": {
     "targets": [
       "deb",
-      "rpm",
-      "appimage"
+      "rpm"
     ],
     "externalBin": [
       "binaries/ku-native-host",

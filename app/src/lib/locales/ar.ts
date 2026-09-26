@@ -919,6 +919,10 @@ const ar: Record<string, string> = {
   "{peer} trusts this computer": "{peer} يثق بهذا الحاسوب",
   "Trust {peer} too? Files, links and scheduled downloads between you will then go through without asking.": "الوثوق بـ {peer} أيضًا؟ عندها تصل الملفات والروابط والتنزيلات المجدولة بينكما دون سؤال.",
   "{peer} trusts this computer. Trust it too?": "{peer} يثق بهذا الحاسوب. الوثوق به أيضًا؟",
+  // Help › About
+  "Checking for updates…": "جارٍ البحث عن تحديثات…",
+  "Version {version}": "الإصدار {version}",
+  "Made by Kuduy": "من صنع Kuduy",
 };
 
 export default ar;

@@ -919,6 +919,10 @@ const zh: Record<string, string> = {
   "{peer} trusts this computer": "{peer} 信任这台电脑",
   "Trust {peer} too? Files, links and scheduled downloads between you will then go through without asking.": "也信任 {peer} 吗？这样你们之间的文件、链接和计划下载都无需询问。",
   "{peer} trusts this computer. Trust it too?": "{peer} 信任这台电脑。也信任它吗？",
+  // Help › About
+  "Checking for updates…": "正在检查更新…",
+  "Version {version}": "版本 {version}",
+  "Made by Kuduy": "由 Kuduy 制作",
 };
 
 export default zh;

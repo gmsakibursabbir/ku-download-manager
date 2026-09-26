@@ -45,9 +45,9 @@ jobs:
       - name: Rust tests (unit, aria2 end-to-end, KuHTTP failure suite)
         run: cargo test --workspace --release -- --test-threads 4
 
-  # Tag push (vX.Y.Z) → draft GitHub release: Windows .exe, macOS .dmg (Apple
-  # Silicon + Intel), Linux .deb/.rpm/AppImage (x86_64) and .deb/.rpm (arm64),
-  # Arch .pkg.tar.zst and Flatpak. Publish the draft by hand.
+  # Tag push (vX.Y.Z) → draft GitHub release: Windows .exe, Linux .deb/.rpm
+  # (x86_64 and arm64) and Arch .pkg.tar.zst; the Android workflow adds the
+  # APKs. Publish the draft by hand.
   release:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: test
@@ -64,15 +64,7 @@ jobs:
           - os: ubuntu-22.04-arm
             bundle: src-tauri/tauri.bundle.linux.conf.json
             extra: --bundles deb,rpm
-          - os: macos-latest
-            bundle: src-tauri/tauri.bundle.macos.conf.json
-            target: aarch64-apple-darwin
-          - os: macos-latest
-            bundle: src-tauri/tauri.bundle.macos.conf.json
-            target: x86_64-apple-darwin
     runs-on: ${{ matrix.os }}
-    env:
-      APPIMAGE_EXTRACT_AND_RUN: 1
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable

@@ -208,8 +208,10 @@ mockIPC(
         };
       case "stats":
         return {};
+      case "check_update":
+        return null;
       case "app_info":
-        return { version: "0.1.0", dataDir: "C:\\Users\\you\\AppData\\Roaming\\KuDownloader", apiPort: 64669, platform: "windows", defaultDownloadDir: "C:\\Users\\you\\Downloads" };
+        return { version: "0.2.7", dataDir: "C:\\Users\\you\\AppData\\Roaming\\KuDownloader", apiPort: 64669, platform: "windows", defaultDownloadDir: "C:\\Users\\you\\Downloads" };
       case "native_host_status":
         return {
           hostPath: "C:\\Program Files\\KuDownloader\\ku-native-host.exe",

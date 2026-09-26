@@ -919,6 +919,10 @@ const es: Record<string, string> = {
   "{peer} trusts this computer": "{peer} confía en este ordenador",
   "Trust {peer} too? Files, links and scheduled downloads between you will then go through without asking.": "¿Confiar también en {peer}? Así los archivos, enlaces y descargas programadas entre vosotros pasarán sin preguntar.",
   "{peer} trusts this computer. Trust it too?": "{peer} confía en este ordenador. ¿Confiar también en él?",
+  // Help › About
+  "Checking for updates…": "Buscando actualizaciones…",
+  "Version {version}": "Versión {version}",
+  "Made by Kuduy": "Hecho por Kuduy",
 };
 
 export default es;

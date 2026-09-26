@@ -919,6 +919,10 @@ const ja: Record<string, string> = {
   "{peer} trusts this computer": "{peer} がこのコンピューターを信頼しました",
   "Trust {peer} too? Files, links and scheduled downloads between you will then go through without asking.": "{peer} も信頼しますか？お互いのファイル、リンク、予約ダウンロードが確認なしで届くようになります。",
   "{peer} trusts this computer. Trust it too?": "{peer} がこのコンピューターを信頼しました。こちらも信頼しますか？",
+  // Help › About
+  "Checking for updates…": "アップデートを確認中…",
+  "Version {version}": "バージョン {version}",
+  "Made by Kuduy": "制作: Kuduy",
 };
 
 export default ja;

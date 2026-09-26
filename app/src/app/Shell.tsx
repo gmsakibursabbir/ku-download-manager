@@ -100,6 +100,18 @@ function WindowControls({ buttons }: { buttons: string[] }) {
   );
 }
 
+export function LogoMark({ size }: { size: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 1024 1024" aria-hidden="true">
+      <rect x="64" y="64" width="896" height="896" rx="208" fill="#2563EB" />
+      <path d="M512 248v396" stroke="#fff" strokeWidth="88" strokeLinecap="round" />
+      <path d="M340 480l172 172 172-172" fill="none" stroke="#fff" strokeWidth="88" strokeLinecap="round" strokeLinejoin="round" />
+      <rect x="308" y="728" width="408" height="72" rx="36" fill="#D4FF00" />
+    </svg>
+  );
+}
+
+const MENU_ORDER = ["File", "View", "Downloads", "Tasks", "Help"];
 
 export function TitleBar() {
   const app = useApp();
@@ -148,9 +160,9 @@ export function TitleBar() {
       { label: t("Getting started…"), onSelect: () => window.dispatchEvent(new Event("ku:welcome")) },
       { label: t("Browser integration setup"), onSelect: () => app.navigate("browser") },
       { label: t("Keyboard shortcuts"), onSelect: () => app.openSettings("general") },
-      { label: t("Check for updates…"), onSelect: () => app.openSettings("general") },
+      { label: t("Check for updates…"), onSelect: () => window.dispatchEvent(new Event("ku:about")) },
       "sep",
-      { label: t("About KuDownloader"), onSelect: () => app.openSettings("advanced") },
+      { label: t("About KuDownloader"), onSelect: () => window.dispatchEvent(new Event("ku:about")) },
     ],
   };
   return (
@@ -158,18 +170,13 @@ export function TitleBar() {
       {platform?.os === "macos" && <div className="traffic-light-inset" data-tauri-drag-region />}
       {left.length > 0 && <WindowControls buttons={left} />}
       <div className="brand" data-tauri-drag-region>
-        <svg width="18" height="18" viewBox="0 0 1024 1024" aria-hidden="true">
-          <rect x="64" y="64" width="896" height="896" rx="208" fill="#2563EB" />
-          <path d="M512 248v396" stroke="#fff" strokeWidth="88" strokeLinecap="round" />
-          <path d="M340 480l172 172 172-172" fill="none" stroke="#fff" strokeWidth="88" strokeLinecap="round" strokeLinejoin="round" />
-          <rect x="308" y="728" width="408" height="72" rx="36" fill="#D4FF00" />
-        </svg>
+        <LogoMark size={18} />
         <span className="wordmark" data-tauri-drag-region>
           KuDownloader
         </span>
       </div>
       <nav className="menubar" aria-label={t("Menu")}>
-        {Object.keys(menus).map((name) => (
+        {MENU_ORDER.map((name) => (
           <button key={name} type="button" className="menubar-item" onClick={(e) => showMenuAt(e.currentTarget, menus[name]())}>
             {t(name)}
           </button>

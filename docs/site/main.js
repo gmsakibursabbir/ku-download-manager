@@ -271,15 +271,14 @@
       });
       const primary = {
         windows: "_x64-setup.exe",
-        mac: "_aarch64.dmg",
-        linux: "_amd64.AppImage",
+        linux: "_amd64.deb",
         android: "_android-arm64-v8a.apk",
       }[os];
       const hit = primary && find(primary);
       if (hit) $$("[data-os-label]").forEach((a) => (a.href = hit.browser_download_url));
       if (version) {
         const v = $("[data-version]");
-        if (v) v.textContent = `Version ${version} · Windows · macOS · Linux · Android`;
+        if (v) v.textContent = `Version ${version} · Windows · Linux · Android`;
         const vl = $("[data-version-long]");
         if (vl) vl.textContent = `Version ${version}. Free and open source. Pick your system.`;
       }

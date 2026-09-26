@@ -919,6 +919,10 @@ const ko: Record<string, string> = {
   "{peer} trusts this computer": "{peer}에서 이 컴퓨터를 신뢰합니다",
   "Trust {peer} too? Files, links and scheduled downloads between you will then go through without asking.": "{peer}도 신뢰할까요? 그러면 서로 간의 파일, 링크, 예약 다운로드가 묻지 않고 전달됩니다.",
   "{peer} trusts this computer. Trust it too?": "{peer}에서 이 컴퓨터를 신뢰합니다. 함께 신뢰할까요?",
+  // Help › About
+  "Checking for updates…": "업데이트 확인 중…",
+  "Version {version}": "버전 {version}",
+  "Made by Kuduy": "제작: Kuduy",
 };
 
 export default ko;

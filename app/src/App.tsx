@@ -10,6 +10,7 @@ import { AddDownloadDialog } from "./app/AddDownloadDialog";
 import { applyAppearance } from "./lib/appearance";
 import { syncLanguage, t, tf, tj } from "./lib/i18n";
 import { WelcomeGuide } from "./app/WelcomeGuide";
+import { AboutDialog } from "./app/AboutDialog";
 import { ToolDownloadsPanel } from "./app/MediaTools";
 import { AirSendPrompts } from "./app/airsend/AirSendPrompts";
 import { loadAir } from "./lib/airsend";
@@ -137,6 +138,12 @@ export default function App() {
     const open = () => setWelcome(true);
     window.addEventListener("ku:welcome", open);
     return () => window.removeEventListener("ku:welcome", open);
+  }, []);
+  const [about, setAbout] = useState(false);
+  useEffect(() => {
+    const open = () => setAbout(true);
+    window.addEventListener("ku:about", open);
+    return () => window.removeEventListener("ku:about", open);
   }, []);
   useTheme(setMaterial);
   useUpdateCheck(settingsNow?.checkUpdates);
@@ -402,6 +409,7 @@ export default function App() {
       )}
       <MenuHost />
       {welcome && <WelcomeGuide onClose={() => setWelcome(false)} />}
+      {about && <AboutDialog onClose={() => setAbout(false)} />}
       <ToolDownloadsPanel />
       <AirSendPrompts />
       <ToastHost />

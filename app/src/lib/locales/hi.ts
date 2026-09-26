@@ -919,6 +919,10 @@ const hi: Record<string, string> = {
   "{peer} trusts this computer": "{peer} इस कंप्यूटर पर भरोसा करता है",
   "Trust {peer} too? Files, links and scheduled downloads between you will then go through without asking.": "{peer} पर भी भरोसा करें? फिर आपके बीच फ़ाइलें, लिंक और शेड्यूल किए डाउनलोड बिना पूछे पहुंचेंगे।",
   "{peer} trusts this computer. Trust it too?": "{peer} इस कंप्यूटर पर भरोसा करता है। आप भी भरोसा करेंगे?",
+  // Help › About
+  "Checking for updates…": "अपडेट खोजे जा रहे हैं…",
+  "Version {version}": "संस्करण {version}",
+  "Made by Kuduy": "Kuduy द्वारा निर्मित",
 };
 
 export default hi;
